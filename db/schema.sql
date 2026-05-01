@@ -1,0 +1,101 @@
+-- Portfolio Tracker — initial schema
+-- Run this once against your Neon database. Re-running is safe (IF NOT EXISTS).
+--
+-- Notes:
+--   - We DO NOT define a `users` table here. Neon Auth handles users in the
+--     `neon_auth` schema. We reference users by their stable user_id (TEXT).
+--   - All money/price columns are NUMERIC for accuracy.
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id            BIGSERIAL PRIMARY KEY,
+  user_id       TEXT NOT NULL,
+  portfolio     TEXT NOT NULL,
+  ticker        TEXT NOT NULL,
+  shares        NUMERIC(20, 8) NOT NULL DEFAULT 0,
+  buy_price     NUMERIC(20, 8),
+  buy_value     NUMERIC(20, 8),
+  buy_date      DATE,
+  sell_shares   NUMERIC(20, 8),
+  sell_price    NUMERIC(20, 8),
+  sell_value    NUMERIC(20, 8),
+  sell_date     DATE,
+  result        NUMERIC(20, 8),
+  source_currency TEXT NOT NULL DEFAULT 'EUR',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_user_ticker
+  ON transactions (user_id, ticker);
+
+CREATE TABLE IF NOT EXISTS dividends (
+  id          BIGSERIAL PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  ticker      TEXT NOT NULL,
+  amount      NUMERIC(20, 8) NOT NULL,
+  paid_at     DATE,
+  currency    TEXT NOT NULL DEFAULT 'EUR',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_dividends_user
+  ON dividends (user_id);
+
+CREATE TABLE IF NOT EXISTS interests (
+  id          BIGSERIAL PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  amount      NUMERIC(20, 8) NOT NULL,
+  paid_at     DATE,
+  currency    TEXT NOT NULL DEFAULT 'EUR',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS wealth_entries (
+  id          BIGSERIAL PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  category    TEXT NOT NULL CHECK (category IN ('stocks', 'cash')),
+  label       TEXT NOT NULL,
+  value       NUMERIC(20, 8) NOT NULL,
+  currency    TEXT NOT NULL DEFAULT 'EUR',
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Daily price snapshots, shared across all users (no user_id).
+-- Keyed by ticker + date.
+CREATE TABLE IF NOT EXISTS prices (
+  ticker      TEXT NOT NULL,
+  as_of       TIMESTAMPTZ NOT NULL,
+  price       NUMERIC(20, 8) NOT NULL,
+  currency    TEXT NOT NULL DEFAULT 'USD',
+  source      TEXT NOT NULL DEFAULT 'twelvedata',
+  PRIMARY KEY (ticker, as_of)
+);
+
+CREATE INDEX IF NOT EXISTS idx_prices_ticker_recent
+  ON prices (ticker, as_of DESC);
+
+-- Latest price per ticker — convenience view
+CREATE OR REPLACE VIEW latest_prices AS
+SELECT DISTINCT ON (ticker)
+  ticker,
+  as_of,
+  price,
+  currency,
+  source
+FROM prices
+ORDER BY ticker, as_of DESC;
+
+-- FX rates (USD pivot). row per (currency, date).
+CREATE TABLE IF NOT EXISTS fx_rates (
+  currency    TEXT NOT NULL,    -- e.g. 'EUR' (rate of CURRENCY per 1 USD)
+  as_of       TIMESTAMPTZ NOT NULL,
+  rate        NUMERIC(20, 8) NOT NULL,
+  PRIMARY KEY (currency, as_of)
+);
+
+CREATE OR REPLACE VIEW latest_fx_rates AS
+SELECT DISTINCT ON (currency)
+  currency,
+  as_of,
+  rate
+FROM fx_rates
+ORDER BY currency, as_of DESC;

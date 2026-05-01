@@ -1,0 +1,103 @@
+{
+  "app": {
+    "name": "Portfolio Tracker",
+    "tagline": "Turn your spreadsheet into a live portfolio tracker"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "upload": "Upload Excel",
+    "howTo": "How to prepare",
+    "account": "Account",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
+  "home": {
+    "heroTitle": "Your portfolio, always up to date",
+    "heroSubtitle": "Upload your spreadsheet and turn it into a dashboard with live prices, P&L, and dividends.",
+    "ctaStart": "Get started for free",
+    "ctaHowTo": "How to prepare my Excel",
+    "feat1Title": "Frictionless",
+    "feat1Desc": "Works with Excel and Google Sheets exported as XLSX.",
+    "feat2Title": "Daily prices",
+    "feat2Desc": "Automatic update once a day after US market close.",
+    "feat3Title": "Multi-currency",
+    "feat3Desc": "Pick a display currency and we handle FX conversion automatically."
+  },
+  "disclaimer": {
+    "title": "Read this before uploading",
+    "important": "Important: review your spreadsheet before uploading",
+    "p1": "This tool expects data in a specific format. If your data is mixed with notes, formulas, or extra columns, the result may be incorrect.",
+    "p2": "We strongly recommend running your Excel through an AI (Claude, ChatGPT or similar) using the prompt available in the «How to prepare» tab. That way you make sure the columns are the expected ones and the dates are in the right format.",
+    "p3": "This app is not financial advice. Price data comes from third-party sources and may be delayed. Always verify with your broker before making decisions.",
+    "ack": "Got it, continue"
+  },
+  "upload": {
+    "title": "Upload your Excel",
+    "drop": "Drop your file here or click to browse",
+    "supports": "Format: .xlsx (exportable from Google Sheets)",
+    "preview": "Preview",
+    "confirm": "Import into my portfolio",
+    "cancel": "Cancel",
+    "summary": "{{count}} transactions, {{tickers}} unique tickers",
+    "errors": {
+      "noSheets": "No recognized sheet was found in the Excel.",
+      "parseFailed": "Could not read the file. Make sure it follows the expected format."
+    }
+  },
+  "dashboard": {
+    "title": "My portfolio",
+    "summary": "Summary",
+    "totalValue": "Total value",
+    "totalCost": "Total cost",
+    "totalPL": "Unrealized P&L",
+    "realizedPL": "Realized P&L",
+    "dividends": "Dividends received",
+    "positions": "Positions",
+    "transactions": "Transactions",
+    "noPositions": "You don't have any positions yet. Upload an Excel to get started.",
+    "lastUpdated": "Prices last updated: {{when}}",
+    "currency": "Display currency",
+    "headers": {
+      "ticker": "Ticker",
+      "shares": "Shares",
+      "avgCost": "Avg cost",
+      "currentPrice": "Current price",
+      "marketValue": "Market value",
+      "cost": "Cost",
+      "pl": "P&L",
+      "plPct": "P&L %"
+    }
+  },
+  "howTo": {
+    "title": "How to prepare my Excel",
+    "intro": "If your Excel doesn't follow the expected structure, use the prompt below with an AI (Claude, ChatGPT, Gemini) to convert it. Upload your file + the prompt and it will return a ready-to-use Excel.",
+    "promptTitle": "Copyable prompt",
+    "copy": "Copy prompt",
+    "copied": "Copied!",
+    "schemaTitle": "Expected structure",
+    "schemaDesc": "The app reads up to 4 sheets (names must match):",
+    "sheet1": "Portfolio 1 (TR) – buy/sell transactions of the main broker",
+    "sheet2": "Portfolio 2 (operacions) – transactions from other brokers",
+    "sheet3": "Interessos i dividends – passive income",
+    "sheet4": "Patrimoni – account summary (cash + stocks)"
+  },
+  "account": {
+    "title": "My account",
+    "preferences": "Preferences",
+    "language": "Language",
+    "displayCurrency": "Display currency",
+    "save": "Save"
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create an account",
+    "signedOut": "You have signed out"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

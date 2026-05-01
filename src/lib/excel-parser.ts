@@ -1,0 +1,335 @@
+import * as XLSX from "xlsx";
+
+export type Transaction = {
+  ticker: string;
+  shares: number;
+  buyPrice: number | null;
+  buyValue: number | null;
+  buyDate: string | null; // ISO yyyy-mm-dd
+  sellShares: number | null;
+  sellPrice: number | null;
+  sellValue: number | null;
+  sellDate: string | null;
+  result: number | null;
+  portfolio: string; // sheet origin
+};
+
+export type Dividend = {
+  ticker: string;
+  amount: number;
+  date: string | null;
+};
+
+export type Interest = {
+  date: string | null;
+  amount: number;
+};
+
+export type WealthEntry = {
+  category: "stocks" | "cash";
+  label: string;
+  value: number;
+};
+
+export type ParsedWorkbook = {
+  transactions: Transaction[];
+  dividends: Dividend[];
+  interests: Interest[];
+  wealth: WealthEntry[];
+  warnings: string[];
+};
+
+const PORTFOLIO_SHEETS = [
+  "Portfolio 1 (TR)",
+  "Portfolio 2 (operacions i transaccions)",
+  "Portfolio 2 (operacions)",
+];
+const DIV_SHEET_CANDIDATES = ["Interessos i dividends", "Dividends"];
+const WEALTH_SHEET_CANDIDATES = ["Patrimoni", "Wealth"];
+
+// Excel serial date -> ISO string. Excel epoch starts 1900-01-01 (with the
+// well-known 1900 leap-year bug — we use the standard 25569 offset).
+export function excelSerialToISO(serial: number): string | null {
+  if (!Number.isFinite(serial) || serial <= 0) return null;
+  const utcDays = serial - 25569;
+  const utcMs = utcDays * 86400 * 1000;
+  const d = new Date(utcMs);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 10);
+}
+
+function findSheet(
+  workbook: XLSX.WorkBook,
+  candidates: string[],
+): { name: string; sheet: XLSX.WorkSheet } | null {
+  for (const name of workbook.SheetNames) {
+    const norm = name.trim().toLowerCase();
+    for (const cand of candidates) {
+      if (norm.startsWith(cand.toLowerCase().slice(0, 12))) {
+        return { name, sheet: workbook.Sheets[name] };
+      }
+    }
+  }
+  return null;
+}
+
+function rowsToMatrix(sheet: XLSX.WorkSheet): unknown[][] {
+  return XLSX.utils.sheet_to_json(sheet, {
+    header: 1,
+    raw: true,
+    defval: null,
+  }) as unknown[][];
+}
+
+function asNumber(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "number" ? v : parseFloat(String(v).replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+function asString(v: unknown): string | null {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s.length ? s : null;
+}
+
+function findHeaderRow(matrix: unknown[][]): number {
+  for (let i = 0; i < Math.min(matrix.length, 10); i++) {
+    const row = matrix[i] ?? [];
+    const cells = row.map((c) => String(c ?? "").toLowerCase());
+    if (cells.some((c) => c === "nom") && cells.some((c) => c.includes("titol"))) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function parsePortfolioSheet(
+  sheet: XLSX.WorkSheet,
+  portfolioName: string,
+): { txns: Transaction[]; warnings: string[] } {
+  const matrix = rowsToMatrix(sheet);
+  const headerRow = findHeaderRow(matrix);
+  const warnings: string[] = [];
+
+  if (headerRow === -1) {
+    warnings.push(
+      `Sheet "${portfolioName}": no header row with "Nom" + "titols" found.`,
+    );
+    return { txns: [], warnings };
+  }
+
+  const txns: Transaction[] = [];
+  for (let i = headerRow + 1; i < matrix.length; i++) {
+    const row = matrix[i] ?? [];
+    const ticker = asString(row[0]);
+    if (!ticker) continue;
+
+    const buyShares = asNumber(row[1]);
+    const buyPrice = asNumber(row[2]);
+    const buyValue = asNumber(row[3]);
+    const buyDate = asNumber(row[4]);
+
+    const sellShares = asNumber(row[5]);
+    const sellPrice = asNumber(row[6]);
+    const sellValue = asNumber(row[7]);
+    const sellDate = asNumber(row[8]);
+    const result = asNumber(row[9]);
+
+    const isBuy = buyShares != null && buyPrice != null;
+    const isSell = sellShares != null && sellPrice != null;
+    if (!isBuy && !isSell) continue;
+
+    txns.push({
+      ticker,
+      shares: isBuy ? (buyShares ?? 0) : 0,
+      buyPrice: isBuy ? buyPrice : null,
+      buyValue: isBuy ? buyValue : null,
+      buyDate: isBuy && buyDate != null ? excelSerialToISO(buyDate) : null,
+      sellShares: isSell ? sellShares : null,
+      sellPrice: isSell ? sellPrice : null,
+      sellValue: isSell ? sellValue : null,
+      sellDate: isSell && sellDate != null ? excelSerialToISO(sellDate) : null,
+      result,
+      portfolio: portfolioName,
+    });
+  }
+
+  return { txns, warnings };
+}
+
+function parseDividendsSheet(sheet: XLSX.WorkSheet): {
+  dividends: Dividend[];
+  interests: Interest[];
+} {
+  const matrix = rowsToMatrix(sheet);
+  const dividends: Dividend[] = [];
+  const interests: Interest[] = [];
+
+  // Layout (per the user's Excel):
+  //  Col 0: interest date | Col 1: interest amount
+  //  Col 4: dividend ticker | Col 5: amount | Col 6: date
+  for (const row of matrix) {
+    if (!row) continue;
+
+    const intDate = asNumber(row[0]);
+    const intAmount = asNumber(row[1]);
+    if (intDate != null && intAmount != null) {
+      interests.push({
+        date: excelSerialToISO(intDate),
+        amount: intAmount,
+      });
+    }
+
+    const divTicker = asString(row[4]);
+    const divAmount = asNumber(row[5]);
+    const divDate = asNumber(row[6]);
+    if (
+      divTicker &&
+      divTicker.toLowerCase() !== "dividends" &&
+      divAmount != null
+    ) {
+      dividends.push({
+        ticker: divTicker,
+        amount: divAmount,
+        date: divDate != null ? excelSerialToISO(divDate) : null,
+      });
+    }
+  }
+
+  return { dividends, interests };
+}
+
+function parseWealthSheet(sheet: XLSX.WorkSheet): WealthEntry[] {
+  const matrix = rowsToMatrix(sheet);
+  const entries: WealthEntry[] = [];
+  let currentCategory: "stocks" | "cash" | null = null;
+
+  for (const row of matrix) {
+    if (!row) continue;
+    const colA = asString(row[0]);
+    const colB = asString(row[1]);
+    const colC = asNumber(row[2]);
+
+    if (colA) {
+      const lower = colA.toLowerCase();
+      if (lower.includes("accion") || lower.includes("stock")) {
+        currentCategory = "stocks";
+      } else if (
+        lower.includes("efectiu") ||
+        lower.includes("cash") ||
+        lower.includes("compte")
+      ) {
+        currentCategory = "cash";
+      }
+    }
+
+    if (
+      colB &&
+      colC != null &&
+      currentCategory &&
+      !colB.toLowerCase().includes("total")
+    ) {
+      entries.push({
+        category: currentCategory,
+        label: colB,
+        value: colC,
+      });
+    }
+  }
+
+  return entries;
+}
+
+export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
+  const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
+  const transactions: Transaction[] = [];
+  const warnings: string[] = [];
+
+  for (const name of workbook.SheetNames) {
+    const lower = name.trim().toLowerCase();
+    if (lower.startsWith("portfolio")) {
+      const { txns, warnings: w } = parsePortfolioSheet(
+        workbook.Sheets[name],
+        name.trim(),
+      );
+      transactions.push(...txns);
+      warnings.push(...w);
+    }
+  }
+
+  const divHit = findSheet(workbook, DIV_SHEET_CANDIDATES);
+  const { dividends, interests } = divHit
+    ? parseDividendsSheet(divHit.sheet)
+    : { dividends: [], interests: [] };
+
+  const wealthHit = findSheet(workbook, WEALTH_SHEET_CANDIDATES);
+  const wealth = wealthHit ? parseWealthSheet(wealthHit.sheet) : [];
+
+  if (transactions.length === 0) {
+    warnings.push("No portfolio sheet was successfully parsed.");
+  }
+
+  // Suppress unused symbol warning for the lookup helper
+  void PORTFOLIO_SHEETS;
+
+  return { transactions, dividends, interests, wealth, warnings };
+}
+
+export type Position = {
+  ticker: string;
+  shares: number;
+  totalCost: number;
+  avgCost: number;
+  realizedPL: number;
+};
+
+export function aggregatePositions(txns: Transaction[]): Position[] {
+  // Aggregate using FIFO-ish weighted average. Simple model:
+  //   - Sum buy shares & cost.
+  //   - Subtract sell shares (proportional cost reduction).
+  //   - Realized P&L = sum of `result` from sell rows.
+  const map = new Map<
+    string,
+    {
+      buyShares: number;
+      buyCost: number;
+      soldShares: number;
+      realizedPL: number;
+    }
+  >();
+
+  for (const t of txns) {
+    const cur = map.get(t.ticker) ?? {
+      buyShares: 0,
+      buyCost: 0,
+      soldShares: 0,
+      realizedPL: 0,
+    };
+    if (t.buyPrice != null && t.shares > 0) {
+      cur.buyShares += t.shares;
+      cur.buyCost += t.buyValue ?? t.shares * t.buyPrice;
+    }
+    if (t.sellShares != null) {
+      cur.soldShares += t.sellShares;
+      cur.realizedPL += t.result ?? 0;
+    }
+    map.set(t.ticker, cur);
+  }
+
+  const positions: Position[] = [];
+  for (const [ticker, agg] of map) {
+    const remaining = agg.buyShares - agg.soldShares;
+    if (remaining <= 1e-6 && agg.realizedPL === 0) continue;
+    const avgCost = agg.buyShares > 0 ? agg.buyCost / agg.buyShares : 0;
+    positions.push({
+      ticker,
+      shares: Math.max(remaining, 0),
+      totalCost: avgCost * Math.max(remaining, 0),
+      avgCost,
+      realizedPL: agg.realizedPL,
+    });
+  }
+
+  return positions.sort((a, b) => b.totalCost - a.totalCost);
+}

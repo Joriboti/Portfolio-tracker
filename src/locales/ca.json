@@ -1,0 +1,103 @@
+{
+  "app": {
+    "name": "Portfolio Tracker",
+    "tagline": "Converteix el teu Excel en un seguidor de cartera viu"
+  },
+  "nav": {
+    "home": "Inici",
+    "dashboard": "Dashboard",
+    "upload": "Pujar Excel",
+    "howTo": "Com preparar-ho",
+    "account": "Compte",
+    "signIn": "Inicia sessió",
+    "signOut": "Tanca sessió"
+  },
+  "home": {
+    "heroTitle": "El teu portfolio, sempre actualitzat",
+    "heroSubtitle": "Puja el teu full de càlcul i transforma-lo en un panell amb preus en temps real, P&L i dividends.",
+    "ctaStart": "Comença gratuïtament",
+    "ctaHowTo": "Com preparar el meu Excel",
+    "feat1Title": "Sense fricció",
+    "feat1Desc": "Compatibilitat amb Excel i Google Sheets exportats com a XLSX.",
+    "feat2Title": "Preus diaris",
+    "feat2Desc": "Actualització automàtica un cop al dia després del tancament del mercat US.",
+    "feat3Title": "Multidivisa",
+    "feat3Desc": "Selecciona la divisa de visualització i l'app fa la conversió FX automàticament."
+  },
+  "disclaimer": {
+    "title": "Llegeix-ho abans de pujar",
+    "important": "Important: revisa el teu full de càlcul abans de pujar-lo",
+    "p1": "Aquesta eina espera dades en un format concret. Si les teves dades estan barrejades amb notes, fórmules o columnes extra, el resultat pot ser incorrecte.",
+    "p2": "Et recomanem encaridament passar primer el teu Excel per una IA (Claude, ChatGPT o similar) amb el prompt que et facilitem a la pestanya «Com preparar-ho». Així t'assegures que les columnes són les esperades i que les dates estan en format correcte.",
+    "p3": "Aquesta app no és un assessor financer. Les dades de preus provenen de fonts de tercers i poden tenir endarreriments. Verifica sempre amb el teu broker abans de prendre decisions.",
+    "ack": "Ho he entès, vull continuar"
+  },
+  "upload": {
+    "title": "Puja el teu Excel",
+    "drop": "Arrossega el teu fitxer aquí o fes clic per seleccionar",
+    "supports": "Format: .xlsx (exportable des de Google Sheets)",
+    "preview": "Previsualització",
+    "confirm": "Importar a la meva cartera",
+    "cancel": "Cancel·lar",
+    "summary": "{{count}} transaccions, {{tickers}} tickers únics",
+    "errors": {
+      "noSheets": "No s'ha trobat cap full reconegut a l'Excel.",
+      "parseFailed": "No s'ha pogut llegir el fitxer. Comprova que segueixi el format correcte."
+    }
+  },
+  "dashboard": {
+    "title": "La meva cartera",
+    "summary": "Resum",
+    "totalValue": "Valor total",
+    "totalCost": "Cost total",
+    "totalPL": "P&L no realitzat",
+    "realizedPL": "P&L realitzat",
+    "dividends": "Dividends rebuts",
+    "positions": "Posicions",
+    "transactions": "Transaccions",
+    "noPositions": "Encara no tens posicions. Puja un Excel per començar.",
+    "lastUpdated": "Darrera actualització de preus: {{when}}",
+    "currency": "Divisa de visualització",
+    "headers": {
+      "ticker": "Ticker",
+      "shares": "Títols",
+      "avgCost": "Preu mig",
+      "currentPrice": "Preu actual",
+      "marketValue": "Valor mercat",
+      "cost": "Cost",
+      "pl": "P&L",
+      "plPct": "P&L %"
+    }
+  },
+  "howTo": {
+    "title": "Com preparar el meu Excel",
+    "intro": "Si el teu Excel no segueix l'estructura esperada, fes servir el següent prompt amb una IA (Claude, ChatGPT, Gemini) per convertir-lo. Puja el teu fitxer + el prompt i et tornarà l'Excel preparat.",
+    "promptTitle": "Prompt copiable",
+    "copy": "Copia el prompt",
+    "copied": "Copiat!",
+    "schemaTitle": "Estructura esperada",
+    "schemaDesc": "L'app reconeix fins a 4 fulls (els noms han de coincidir):",
+    "sheet1": "Portfolio 1 (TR) – transaccions de compra/venda del broker principal",
+    "sheet2": "Portfolio 2 (operacions) – transaccions d'altres brokers",
+    "sheet3": "Interessos i dividends – ingressos passius",
+    "sheet4": "Patrimoni – resum de comptes (efectiu + accions)"
+  },
+  "account": {
+    "title": "El meu compte",
+    "preferences": "Preferències",
+    "language": "Idioma",
+    "displayCurrency": "Divisa de visualització",
+    "save": "Desa"
+  },
+  "auth": {
+    "signInTitle": "Inicia sessió",
+    "signUpTitle": "Crea un compte",
+    "signedOut": "Has tancat la sessió"
+  },
+  "common": {
+    "loading": "Carregant...",
+    "error": "Hi ha hagut un error",
+    "yes": "Sí",
+    "no": "No"
+  }
+}
