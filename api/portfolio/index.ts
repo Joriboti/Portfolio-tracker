@@ -23,7 +23,7 @@ export default async function handler(
   }
 
   try {
-    const sql = getSql();
+    const sql = await getSql();
     const [transactions, dividends, interests, wealth, last] = await Promise.all([
       sql`
         SELECT

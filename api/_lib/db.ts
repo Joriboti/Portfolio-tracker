@@ -1,17 +1,19 @@
-import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+// Vercel's serverless build chokes when @neondatabase/serverless is imported
+// at the top of an API route — the function crashes during cold-start with no
+// JSON body (FUNCTION_INVOCATION_FAILED). Dynamic import sidesteps this and
+// lets the rest of the function run normally. Discovered via /api/db-direct
+// probe: dynamic import worked, static import crashed with the same code.
 
-// Lazy singleton — instantiating the Neon client at module load time means
-// any failure (bad URL, runtime mismatch, ...) crashes the serverless function
-// before the handler runs and Vercel returns FUNCTION_INVOCATION_FAILED with
-// no JSON body. By deferring instantiation to first use inside the handler,
-// the same error is caught by the handler's try/catch and returned as JSON.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Sql = any;
 
-let _sql: NeonQueryFunction<false, false> | null = null;
+let _sql: Sql | null = null;
 
-export function getSql(): NeonQueryFunction<false, false> {
+export async function getSql(): Promise<Sql> {
   if (_sql) return _sql;
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not configured");
-  _sql = neon(url);
+  const mod = await import("@neondatabase/serverless");
+  _sql = mod.neon(url);
   return _sql;
 }

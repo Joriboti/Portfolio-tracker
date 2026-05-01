@@ -9,7 +9,7 @@ export default async function handler(
   res: VercelResponse,
 ) {
   try {
-    const sql = getSql();
+    const sql = await getSql();
     const result = await sql`SELECT 1 AS ok`;
     res.status(200).json({ ok: true, result });
   } catch (e) {

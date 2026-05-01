@@ -66,7 +66,7 @@ export default async function handler(
     return;
   }
 
-  const sql = getSql();
+  const sql = await getSql();
   // Collect distinct tickers across all users.
   const tickers = (await sql`
     SELECT DISTINCT ticker FROM transactions

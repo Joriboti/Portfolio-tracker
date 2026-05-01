@@ -22,7 +22,7 @@ export default async function handler(
   }
 
   try {
-    const sql = getSql();
+    const sql = await getSql();
     const rows = await sql`
       SELECT ticker, price, currency, as_of AS "asOf"
       FROM latest_prices

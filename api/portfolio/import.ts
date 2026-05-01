@@ -54,7 +54,7 @@ export default async function handler(
     const interests = body.interests ?? [];
     const wealth = body.wealth ?? [];
 
-    const sql = getSql();
+    const sql = await getSql();
 
     // Wipe previous data first.
     await sql`DELETE FROM transactions WHERE user_id = ${userId}`;
