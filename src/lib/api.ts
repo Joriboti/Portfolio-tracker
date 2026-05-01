@@ -38,10 +38,56 @@ async function jsonFetch<T>(
   return (await res.json()) as T;
 }
 
-export function getPrices(tickers: string[]): Promise<{ quotes: PriceQuote[] }> {
-  if (tickers.length === 0) return Promise.resolve({ quotes: [] });
+// Postgres NUMERIC values come back as strings from the Neon HTTP driver.
+// We coerce them here so downstream math doesn't accidentally do string
+// concatenation and produce NaN.
+function num(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "number" ? v : parseFloat(String(v));
+  return Number.isFinite(n) ? n : null;
+}
+function numReq(v: unknown): number {
+  return num(v) ?? 0;
+}
+
+function normaliseTransaction(t: Transaction): Transaction {
+  return {
+    ...t,
+    shares: numReq(t.shares),
+    buyPrice: num(t.buyPrice),
+    buyValue: num(t.buyValue),
+    sellShares: num(t.sellShares),
+    sellPrice: num(t.sellPrice),
+    sellValue: num(t.sellValue),
+    result: num(t.result),
+  };
+}
+
+function normaliseDividend(d: Dividend): Dividend {
+  return { ...d, amount: numReq(d.amount) };
+}
+
+function normaliseInterest(i: Interest): Interest {
+  return { ...i, amount: numReq(i.amount) };
+}
+
+function normaliseWealth(w: WealthEntry): WealthEntry {
+  return { ...w, value: numReq(w.value) };
+}
+
+function normaliseQuote(q: PriceQuote): PriceQuote {
+  return { ...q, price: numReq(q.price) };
+}
+
+export async function getPrices(
+  tickers: string[],
+): Promise<{ quotes: PriceQuote[] }> {
+  if (tickers.length === 0) return { quotes: [] };
   const params = new URLSearchParams({ symbols: tickers.join(",") });
-  return jsonFetch(`/api/prices-current?${params.toString()}`);
+  const data = await jsonFetch<{ quotes: PriceQuote[] }>(
+    `/api/prices-current?${params.toString()}`,
+  );
+  return { quotes: data.quotes.map(normaliseQuote) };
 }
 
 export function importPortfolio(
@@ -60,12 +106,36 @@ export function importPortfolio(
   });
 }
 
-export function getPortfolio(userId: string): Promise<{
+export async function getPortfolio(userId: string): Promise<{
   transactions: Transaction[];
   dividends: Dividend[];
   interests: Interest[];
   wealth: WealthEntry[];
   lastPriceUpdate: string | null;
 }> {
-  return jsonFetch("/api/portfolio-get", { userId });
+  const data = await jsonFetch<{
+    transactions: Transaction[];
+    dividends: Dividend[];
+    interests: Interest[];
+    wealth: WealthEntry[];
+    lastPriceUpdate: string | null;
+  }>("/api/portfolio-get", { userId });
+  return {
+    transactions: (data.transactions ?? []).map(normaliseTransaction),
+    dividends: (data.dividends ?? []).map(normaliseDividend),
+    interests: (data.interests ?? []).map(normaliseInterest),
+    wealth: (data.wealth ?? []).map(normaliseWealth),
+    lastPriceUpdate: data.lastPriceUpdate,
+  };
+}
+
+// Manual trigger of the price-update cron (handy for first run before the
+// scheduled cron fires). Returns counts of refreshed quotes.
+export function refreshPrices(userId: string): Promise<{
+  ok: boolean;
+  updated: number;
+  tickers: number;
+  errors?: string[];
+}> {
+  return jsonFetch("/api/prices-update", { method: "GET", userId });
 }

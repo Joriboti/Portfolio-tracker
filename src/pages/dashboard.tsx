@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { aggregatePositions, type Position } from "@/lib/excel-parser";
 import { formatMoney, formatPct, type Currency } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
-import { getPortfolio, getPrices, type PriceQuote } from "@/lib/api";
+import { getPortfolio, getPrices, refreshPrices, type PriceQuote } from "@/lib/api";
 import { AuthGuard } from "@/components/AuthGuard";
 import { useUser } from "@/hooks/useUser";
 
@@ -18,6 +18,24 @@ function DashboardInner() {
   const [quotes, setQuotes] = useState<Record<string, PriceQuote>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function handleRefreshPrices() {
+    if (!user) return;
+    setRefreshing(true);
+    try {
+      await refreshPrices(user.id);
+      const tickers = positions.map((p) => p.ticker);
+      const { quotes } = await getPrices(tickers);
+      const map: Record<string, PriceQuote> = {};
+      for (const q of quotes) map[q.ticker] = q;
+      setQuotes(map);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -105,17 +123,26 @@ function DashboardInner() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-semibold text-slate-900">
           {t("dashboard.title")}
         </h1>
-        {data.lastPriceUpdate && (
-          <p className="text-xs text-slate-500">
-            {t("dashboard.lastUpdated", {
-              when: new Date(data.lastPriceUpdate).toLocaleString(),
-            })}
-          </p>
-        )}
+        <div className="flex items-center gap-3">
+          {data.lastPriceUpdate && (
+            <p className="text-xs text-slate-500">
+              {t("dashboard.lastUpdated", {
+                when: new Date(data.lastPriceUpdate).toLocaleString(),
+              })}
+            </p>
+          )}
+          <button
+            onClick={() => void handleRefreshPrices()}
+            disabled={refreshing}
+            className="btn-ghost text-xs px-3 py-1.5"
+          >
+            {refreshing ? t("common.loading") : "↻ Refresh prices"}
+          </button>
+        </div>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

@@ -50,13 +50,16 @@ export default async function handler(
   try {
     res.setHeader("Content-Type", "application/json");
 
+    // Accept either the cron secret (for Vercel Cron) or any logged-in user
+    // header (for the dashboard's manual "Refresh prices" button).
     const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret) {
-      const authz = req.headers.authorization ?? "";
-      if (authz !== `Bearer ${cronSecret}`) {
-        res.status(401).end(JSON.stringify({ error: "Unauthorized" }));
-        return;
-      }
+    const authz = req.headers.authorization ?? "";
+    const cronOk =
+      !cronSecret || authz === `Bearer ${cronSecret}`;
+    const userId = req.headers["x-user-id"];
+    if (!cronOk && !userId) {
+      res.status(401).end(JSON.stringify({ error: "Unauthorized" }));
+      return;
     }
 
     const apiKey = process.env.TWELVE_DATA_API_KEY;
