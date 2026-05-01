@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSql } from "../_lib/db";
 import { getUserIdFromRequest } from "../_lib/auth";
 
 export const config = { maxDuration: 60 };
@@ -23,27 +22,38 @@ type ImportPayload = {
   wealth?: Array<{ category: "stocks" | "cash"; label: string; value: number }>;
 };
 
+// We inline the Neon dynamic import here instead of going through
+// api/_lib/db.ts. The shared-lib indirection (even though _lib/db.ts uses
+// dynamic import internally) keeps crashing this function at cold start on
+// Vercel, while the same dynamic-import pattern inlined directly works
+// (verified via /api/db-direct).
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ) {
+  let phase = "start";
   try {
     if (req.method !== "POST") {
       res.status(405).json({ error: "Method not allowed" });
       return;
     }
 
-    if (!process.env.DATABASE_URL) {
+    phase = "env-check";
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
       res.status(500).json({ error: "DATABASE_URL not configured" });
       return;
     }
 
+    phase = "auth";
     const userId = getUserIdFromRequest(req);
     if (!userId) {
       res.status(401).json({ error: "Missing x-user-id header" });
       return;
     }
 
+    phase = "parse-body";
     const body: ImportPayload =
       typeof req.body === "string"
         ? (JSON.parse(req.body) as ImportPayload)
@@ -54,16 +64,17 @@ export default async function handler(
     const interests = body.interests ?? [];
     const wealth = body.wealth ?? [];
 
-    const sql = await getSql();
+    phase = "neon-import";
+    const mod = await import("@neondatabase/serverless");
+    const sql = mod.neon(dbUrl);
 
-    // Wipe previous data first.
+    phase = "delete-old";
     await sql`DELETE FROM transactions WHERE user_id = ${userId}`;
     await sql`DELETE FROM dividends WHERE user_id = ${userId}`;
     await sql`DELETE FROM interests WHERE user_id = ${userId}`;
     await sql`DELETE FROM wealth_entries WHERE user_id = ${userId}`;
 
-    // Sequential inserts. Slow but predictable; with maxDuration=60 this is
-    // safe for several hundred rows.
+    phase = "insert-transactions";
     for (const t of transactions) {
       await sql`
         INSERT INTO transactions
@@ -77,18 +88,24 @@ export default async function handler(
            ${t.result})
       `;
     }
+
+    phase = "insert-dividends";
     for (const d of dividends) {
       await sql`
         INSERT INTO dividends (user_id, ticker, amount, paid_at)
         VALUES (${userId}, ${d.ticker}, ${d.amount}, ${d.date})
       `;
     }
+
+    phase = "insert-interests";
     for (const it of interests) {
       await sql`
         INSERT INTO interests (user_id, amount, paid_at)
         VALUES (${userId}, ${it.amount}, ${it.date})
       `;
     }
+
+    phase = "insert-wealth";
     for (const w of wealth) {
       const cat = w.category === "cash" ? "cash" : "stocks";
       await sql`
@@ -107,10 +124,15 @@ export default async function handler(
       },
     });
   } catch (e) {
+    const err = e as Error;
     // eslint-disable-next-line no-console
-    console.error("[import] error:", e);
+    console.error("[import] failed at phase", phase, err);
     res.status(500).json({
-      error: `Import error: ${(e as Error)?.message ?? "unknown"}`,
+      ok: false,
+      phase,
+      error: err?.message ?? "unknown",
+      name: err?.name,
+      stack: err?.stack?.slice(0, 1500),
     });
   }
 }

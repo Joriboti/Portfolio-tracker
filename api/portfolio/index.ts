@@ -1,29 +1,31 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSql } from "../_lib/db";
 import { getUserIdFromRequest } from "../_lib/auth";
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ) {
-  if (req.method !== "GET") {
-    res.status(405).json({ error: "Method not allowed" });
-    return;
-  }
-
-  if (!process.env.DATABASE_URL) {
-    res.status(500).json({ error: "DATABASE_URL not configured" });
-    return;
-  }
-
-  const userId = getUserIdFromRequest(req);
-  if (!userId) {
-    res.status(401).json({ error: "Missing x-user-id header" });
-    return;
-  }
-
   try {
-    const sql = await getSql();
+    if (req.method !== "GET") {
+      res.status(405).json({ error: "Method not allowed" });
+      return;
+    }
+
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+      res.status(500).json({ error: "DATABASE_URL not configured" });
+      return;
+    }
+
+    const userId = getUserIdFromRequest(req);
+    if (!userId) {
+      res.status(401).json({ error: "Missing x-user-id header" });
+      return;
+    }
+
+    const mod = await import("@neondatabase/serverless");
+    const sql = mod.neon(dbUrl);
+
     const [transactions, dividends, interests, wealth, last] = await Promise.all([
       sql`
         SELECT

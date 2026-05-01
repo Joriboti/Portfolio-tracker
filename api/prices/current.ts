@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSql } from "../_lib/db";
 
 export default async function handler(
   req: VercelRequest,
@@ -10,8 +9,16 @@ export default async function handler(
     return;
   }
 
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    res.status(500).json({ error: "DATABASE_URL not configured" });
+    return;
+  }
+
   const symbolsParam = req.query.symbols;
-  const symbols = (Array.isArray(symbolsParam) ? symbolsParam[0] : symbolsParam ?? "")
+  const symbols = (
+    Array.isArray(symbolsParam) ? symbolsParam[0] : (symbolsParam ?? "")
+  )
     .split(",")
     .map((s) => s.trim().toUpperCase())
     .filter(Boolean);
@@ -22,7 +29,8 @@ export default async function handler(
   }
 
   try {
-    const sql = await getSql();
+    const mod = await import("@neondatabase/serverless");
+    const sql = mod.neon(dbUrl);
     const rows = await sql`
       SELECT ticker, price, currency, as_of AS "asOf"
       FROM latest_prices
