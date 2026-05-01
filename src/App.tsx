@@ -17,8 +17,10 @@ export default function App() {
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/how-to-prepare" element={<HowToPreparePage />} />
         <Route path="/disclaimer" element={<DisclaimerPage />} />
-        <Route path="/account/*" element={<AccountPage />} />
-        <Route path="/auth/*" element={<AuthPage />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/account/:pathname" element={<AccountPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/:pathname" element={<AuthPage />} />
         <Route path="*" element={<HomePage />} />
       </Route>
     </Routes>

@@ -1,12 +1,16 @@
 import { AccountView } from "@neondatabase/neon-js/auth/react";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
+import { AuthGuard } from "@/components/AuthGuard";
 
-export function AccountPage() {
+function AccountInner() {
   const { t } = useTranslation();
+  const { pathname } = useParams<{ pathname: string }>();
   const { currency, setCurrency } = useDisplayCurrency();
+  const path = (pathname ?? "settings").trim() || "settings";
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
@@ -33,7 +37,9 @@ export function AccountPage() {
               className="rounded-md border border-slate-200 px-3 py-2 text-sm"
               value={currency}
               onChange={(e) =>
-                setCurrency(e.target.value as (typeof SUPPORTED_CURRENCIES)[number])
+                setCurrency(
+                  e.target.value as (typeof SUPPORTED_CURRENCIES)[number],
+                )
               }
             >
               {SUPPORTED_CURRENCIES.map((c) => (
@@ -47,8 +53,17 @@ export function AccountPage() {
       </section>
 
       <section className="card">
-        <AccountView />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <AccountView path={path as any} />
       </section>
     </div>
+  );
+}
+
+export function AccountPage() {
+  return (
+    <AuthGuard>
+      <AccountInner />
+    </AuthGuard>
   );
 }

@@ -1,15 +1,16 @@
 import { AuthView } from "@neondatabase/neon-js/auth/react";
-import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 export function AuthPage() {
-  const { t } = useTranslation();
+  const { pathname } = useParams<{ pathname: string }>();
+  // Default to "sign-in" when no sub-path is provided.
+  const path = (pathname ?? "sign-in").trim() || "sign-in";
+
   return (
     <div className="mx-auto max-w-md px-4 py-12">
       <div className="card">
-        <h1 className="text-xl font-semibold text-slate-900 mb-4">
-          {t("auth.signInTitle")}
-        </h1>
-        <AuthView />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <AuthView path={path as any} />
       </div>
     </div>
   );
