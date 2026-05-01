@@ -4,10 +4,13 @@ import { useTranslation } from "react-i18next";
 import { parseWorkbook, type ParsedWorkbook } from "@/lib/excel-parser";
 import { hasAcceptedDisclaimer } from "./disclaimer";
 import { importPortfolio } from "@/lib/api";
+import { AuthGuard } from "@/components/AuthGuard";
+import { useUser } from "@/hooks/useUser";
 
-export function UploadPage() {
+function UploadInner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [parsed, setParsed] = useState<ParsedWorkbook | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -42,10 +45,11 @@ export function UploadPage() {
   }
 
   async function confirmImport() {
-    if (!parsed) return;
+    if (!parsed || !user) return;
     setBusy(true);
+    setError(null);
     try {
-      await importPortfolio({
+      await importPortfolio(user.id, {
         transactions: parsed.transactions,
         dividends: parsed.dividends,
         interests: parsed.interests,
@@ -98,7 +102,7 @@ export function UploadPage() {
       )}
 
       {error && (
-        <div className="card border-rose-200 bg-rose-50 text-rose-900 text-sm">
+        <div className="card border-rose-200 bg-rose-50 text-rose-900 text-sm whitespace-pre-wrap">
           {error}
         </div>
       )}
@@ -170,5 +174,13 @@ export function UploadPage() {
         </section>
       )}
     </div>
+  );
+}
+
+export function UploadPage() {
+  return (
+    <AuthGuard>
+      <UploadInner />
+    </AuthGuard>
   );
 }

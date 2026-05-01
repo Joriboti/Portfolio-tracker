@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { sql } from "../_lib/db";
-import { getUserFromRequest, requireUser } from "../_lib/auth";
+import { getUserIdFromRequest } from "../_lib/auth";
 
 type ImportPayload = {
   transactions: Array<{
@@ -18,11 +18,7 @@ type ImportPayload = {
   }>;
   dividends: Array<{ ticker: string; amount: number; date: string | null }>;
   interests: Array<{ date: string | null; amount: number }>;
-  wealth: Array<{
-    category: "stocks" | "cash";
-    label: string;
-    value: number;
-  }>;
+  wealth: Array<{ category: "stocks" | "cash"; label: string; value: number }>;
 };
 
 export default async function handler(
@@ -34,55 +30,91 @@ export default async function handler(
     return;
   }
 
-  const user = await getUserFromRequest(req);
-  try {
-    requireUser(user);
-  } catch {
-    res.status(401).json({ error: "Unauthorized" });
+  if (!process.env.DATABASE_URL) {
+    res.status(500).json({ error: "DATABASE_URL not configured" });
     return;
   }
 
-  const body = req.body as ImportPayload;
-
-  // Replace strategy: wipe user's previous import, then insert the new one.
-  await sql`DELETE FROM transactions WHERE user_id = ${user.id}`;
-  await sql`DELETE FROM dividends WHERE user_id = ${user.id}`;
-  await sql`DELETE FROM interests WHERE user_id = ${user.id}`;
-  await sql`DELETE FROM wealth_entries WHERE user_id = ${user.id}`;
-
-  for (const t of body.transactions ?? []) {
-    await sql`
-      INSERT INTO transactions
-        (user_id, portfolio, ticker, shares, buy_price, buy_value, buy_date,
-         sell_shares, sell_price, sell_value, sell_date, result)
-      VALUES
-        (${user.id}, ${t.portfolio}, ${t.ticker}, ${t.shares},
-         ${t.buyPrice}, ${t.buyValue}, ${t.buyDate},
-         ${t.sellShares}, ${t.sellPrice}, ${t.sellValue}, ${t.sellDate},
-         ${t.result})
-    `;
+  const userId = getUserIdFromRequest(req);
+  if (!userId) {
+    res.status(401).json({ error: "Missing x-user-id header" });
+    return;
   }
 
-  for (const d of body.dividends ?? []) {
-    await sql`
-      INSERT INTO dividends (user_id, ticker, amount, paid_at)
-      VALUES (${user.id}, ${d.ticker}, ${d.amount}, ${d.date})
-    `;
+  let body: ImportPayload;
+  try {
+    body =
+      typeof req.body === "string"
+        ? (JSON.parse(req.body) as ImportPayload)
+        : (req.body as ImportPayload);
+  } catch (e) {
+    res.status(400).json({ error: `Invalid JSON: ${(e as Error).message}` });
+    return;
   }
 
-  for (const i of body.interests ?? []) {
-    await sql`
-      INSERT INTO interests (user_id, amount, paid_at)
-      VALUES (${user.id}, ${i.amount}, ${i.date})
-    `;
-  }
+  const transactions = body.transactions ?? [];
+  const dividends = body.dividends ?? [];
+  const interests = body.interests ?? [];
+  const wealth = body.wealth ?? [];
 
-  for (const w of body.wealth ?? []) {
-    await sql`
-      INSERT INTO wealth_entries (user_id, category, label, value)
-      VALUES (${user.id}, ${w.category}, ${w.label}, ${w.value})
-    `;
-  }
+  try {
+    // Wipe and replace this user's data.
+    await Promise.all([
+      sql`DELETE FROM transactions WHERE user_id = ${userId}`,
+      sql`DELETE FROM dividends WHERE user_id = ${userId}`,
+      sql`DELETE FROM interests WHERE user_id = ${userId}`,
+      sql`DELETE FROM wealth_entries WHERE user_id = ${userId}`,
+    ]);
 
-  res.status(200).json({ ok: true });
+    // Parallel inserts. Neon's serverless driver multiplexes over HTTP so this
+    // is safe and ~10x faster than awaiting each insert sequentially.
+    await Promise.all([
+      ...transactions.map(
+        (t) => sql`
+          INSERT INTO transactions
+            (user_id, portfolio, ticker, shares, buy_price, buy_value, buy_date,
+             sell_shares, sell_price, sell_value, sell_date, result)
+          VALUES
+            (${userId}, ${t.portfolio}, ${t.ticker}, ${t.shares},
+             ${t.buyPrice}, ${t.buyValue}, ${t.buyDate},
+             ${t.sellShares}, ${t.sellPrice}, ${t.sellValue}, ${t.sellDate},
+             ${t.result})
+        `,
+      ),
+      ...dividends.map(
+        (d) => sql`
+          INSERT INTO dividends (user_id, ticker, amount, paid_at)
+          VALUES (${userId}, ${d.ticker}, ${d.amount}, ${d.date})
+        `,
+      ),
+      ...interests.map(
+        (i) => sql`
+          INSERT INTO interests (user_id, amount, paid_at)
+          VALUES (${userId}, ${i.amount}, ${i.date})
+        `,
+      ),
+      ...wealth.map(
+        (w) => sql`
+          INSERT INTO wealth_entries (user_id, category, label, value)
+          VALUES (${userId}, ${w.category}, ${w.label}, ${w.value})
+        `,
+      ),
+    ]);
+
+    res.status(200).json({
+      ok: true,
+      counts: {
+        transactions: transactions.length,
+        dividends: dividends.length,
+        interests: interests.length,
+        wealth: wealth.length,
+      },
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("[import] failed:", e);
+    res.status(500).json({
+      error: `Import failed: ${(e as Error).message}`,
+    });
+  }
 }

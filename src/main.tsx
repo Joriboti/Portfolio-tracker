@@ -12,7 +12,12 @@ if (!root) throw new Error("#root element not found");
 
 createRoot(root).render(
   <StrictMode>
-    <NeonAuthUIProvider authClient={authClient}>
+    <NeonAuthUIProvider
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      authClient={authClient as any}
+      emailOTP
+      magicLink
+    >
       <BrowserRouter>
         <App />
       </BrowserRouter>

@@ -1,9 +1,25 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useUser } from "@/hooks/useUser";
+import { authClient } from "@/lib/auth";
 
 export function Layout() {
   const { t } = useTranslation();
+  const { user } = useUser();
+  const navigate = useNavigate();
+
+  async function signOut() {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const client = authClient as any;
+      if (typeof client.signOut === "function") {
+        await client.signOut();
+      }
+    } finally {
+      navigate("/");
+    }
+  }
 
   return (
     <div className="min-h-full flex flex-col">
@@ -23,12 +39,29 @@ export function Layout() {
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <LanguageSwitcher />
-            <NavLink
-              to="/account"
-              className="text-sm text-slate-600 hover:text-slate-900"
-            >
-              {t("nav.account")}
-            </NavLink>
+            {user ? (
+              <>
+                <NavLink
+                  to="/account"
+                  className="text-sm text-slate-600 hover:text-slate-900"
+                >
+                  {user.email ?? t("nav.account")}
+                </NavLink>
+                <button
+                  onClick={() => void signOut()}
+                  className="text-sm text-slate-500 hover:text-slate-900"
+                >
+                  {t("nav.signOut")}
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/auth/sign-in"
+                className="btn-primary text-xs px-3 py-1.5"
+              >
+                {t("nav.signIn")}
+              </Link>
+            )}
           </div>
         </div>
       </header>

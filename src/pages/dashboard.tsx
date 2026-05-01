@@ -5,26 +5,32 @@ import { aggregatePositions, type Position } from "@/lib/excel-parser";
 import { formatMoney, formatPct, type Currency } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
 import { getPortfolio, getPrices, type PriceQuote } from "@/lib/api";
+import { AuthGuard } from "@/components/AuthGuard";
+import { useUser } from "@/hooks/useUser";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
-export function DashboardPage() {
+function DashboardInner() {
   const { t } = useTranslation();
   const { currency } = useDisplayCurrency();
+  const { user } = useUser();
   const [data, setData] = useState<DashboardData | null>(null);
   const [quotes, setQuotes] = useState<Record<string, PriceQuote>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
     let cancelled = false;
     setLoading(true);
-    getPortfolio()
+    getPortfolio(user.id)
       .then((d) => {
         if (cancelled) return;
         setData(d);
       })
-      .catch(() => {
+      .catch((e) => {
         if (cancelled) return;
+        setError((e as Error).message);
         setData({
           transactions: [],
           dividends: [],
@@ -37,7 +43,7 @@ export function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user]);
 
   const positions = useMemo(
     () => (data ? aggregatePositions(data.transactions) : []),
@@ -59,6 +65,16 @@ export function DashboardPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">{t("common.loading")}</div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <div className="card border-rose-200 bg-rose-50 text-rose-900 text-sm whitespace-pre-wrap">
+          {error}
+        </div>
+      </div>
     );
   }
 
@@ -127,6 +143,14 @@ export function DashboardPage() {
         <PositionsTable positions={positions} quotes={quotes} currency={currency} />
       </section>
     </div>
+  );
+}
+
+export function DashboardPage() {
+  return (
+    <AuthGuard>
+      <DashboardInner />
+    </AuthGuard>
   );
 }
 

@@ -1,50 +1,20 @@
 import type { VercelRequest } from "@vercel/node";
 
-// Verify the Neon Auth session for incoming serverless function requests.
+// MVP auth model: the frontend reads the current user from the Neon Auth
+// session client-side and sends `user.id` in the `x-user-id` header.
 //
-// The Neon Auth client (frontend) sets a session cookie on requests to the
-// auth domain. Because our API runs on the same Vercel project but a different
-// origin, the SDK forwards the session token via the `Authorization` header.
-// We forward that to the Neon Auth server for verification.
+// SECURITY NOTE: this trusts the header. A malicious user could spoof another
+// user_id and read/write their data. To harden, replace this with a true
+// session check (decode the Better Auth JWT with the public key, or proxy to
+// the Neon Auth `/api/auth/get-session` endpoint and verify cookies).
 //
-// This is intentionally minimal — refine when Neon Auth's stable API publishes
-// a server-side helper.
+// Acceptable for v0 / personal use. MUST be tightened before public release.
 
-export type AuthUser = {
-  id: string;
-  email?: string;
-};
-
-export async function getUserFromRequest(
-  req: VercelRequest,
-): Promise<AuthUser | null> {
-  const authURL = process.env.NEON_AUTH_URL ?? process.env.VITE_NEON_AUTH_URL;
-  if (!authURL) return null;
-
-  const cookie = req.headers.cookie ?? "";
-  const authz = req.headers.authorization ?? "";
-  if (!cookie && !authz) return null;
-
-  try {
-    const res = await fetch(`${authURL}/session`, {
-      headers: {
-        cookie,
-        ...(authz ? { authorization: authz } : {}),
-      },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { user?: { id: string; email?: string } };
-    if (!data.user?.id) return null;
-    return { id: data.user.id, email: data.user.email };
-  } catch {
-    return null;
-  }
-}
-
-export function requireUser(user: AuthUser | null): asserts user is AuthUser {
-  if (!user) {
-    const err = new Error("Unauthorized");
-    (err as Error & { statusCode?: number }).statusCode = 401;
-    throw err;
-  }
+export function getUserIdFromRequest(req: VercelRequest): string | null {
+  const raw = req.headers["x-user-id"];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || trimmed.length > 128) return null;
+  return trimmed;
 }
