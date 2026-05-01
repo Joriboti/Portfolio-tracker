@@ -2,6 +2,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { sql } from "../_lib/db";
 import { getUserIdFromRequest } from "../_lib/auth";
 
+// Vercel function config: extend timeout from the 10s default to 60s (max
+// allowed on Hobby plan). Imports of large spreadsheets need the headroom.
+export const config = {
+  maxDuration: 60,
+};
+
 type ImportPayload = {
   transactions: Array<{
     ticker: string;
@@ -21,26 +27,12 @@ type ImportPayload = {
   wealth: Array<{ category: "stocks" | "cash"; label: string; value: number }>;
 };
 
-// Run a list of async operations with a hard concurrency cap. Avoids opening
-// hundreds of HTTP connections to Neon at once, which can crash the Vercel
-// serverless function or trip Neon connection limits.
-async function runBatched<T>(
-  items: T[],
-  fn: (item: T, index: number) => Promise<unknown>,
-  concurrency = 5,
-): Promise<void> {
-  let next = 0;
-  const workers = Array.from(
-    { length: Math.min(concurrency, items.length) },
-    async () => {
-      while (true) {
-        const i = next++;
-        if (i >= items.length) return;
-        await fn(items[i], i);
-      }
-    },
-  );
-  await Promise.all(workers);
+const CHUNK = 50;
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
 }
 
 export default async function handler(
@@ -80,19 +72,19 @@ export default async function handler(
       return;
     }
 
-    const transactions = Array.isArray(body.transactions) ? body.transactions : [];
+    const transactions = Array.isArray(body.transactions)
+      ? body.transactions
+      : [];
     const dividends = Array.isArray(body.dividends) ? body.dividends : [];
     const interests = Array.isArray(body.interests) ? body.interests : [];
     const wealth = Array.isArray(body.wealth) ? body.wealth : [];
 
-    // Sanity-check the sizes so a runaway payload doesn't time us out.
     if (transactions.length > 5000) {
       res.status(413).json({ error: "Too many transactions (max 5000)" });
       return;
     }
 
-    // Wipe the user's previous data — these are independent so we can run
-    // them in parallel.
+    // Step 1 — clear the user's previous import.
     await Promise.all([
       sql`DELETE FROM transactions WHERE user_id = ${userId}`,
       sql`DELETE FROM dividends WHERE user_id = ${userId}`,
@@ -100,82 +92,59 @@ export default async function handler(
       sql`DELETE FROM wealth_entries WHERE user_id = ${userId}`,
     ]);
 
-    // Concurrency-capped inserts. Neon's HTTP driver can only handle a small
-    // number of concurrent calls cleanly, so we keep it conservative.
-    const errors: string[] = [];
+    // Step 2 — bulk insert in chunks. Neon's HTTP driver supports
+    // sql.transaction([q1, q2, ...]) which sends all statements in a single
+    // HTTPS roundtrip. With chunks of 50, 182 rows = 4 calls instead of 182.
+    for (const batch of chunk(transactions, CHUNK)) {
+      const queries = batch.map(
+        (t) => sql`
+          INSERT INTO transactions
+            (user_id, portfolio, ticker, shares, buy_price, buy_value, buy_date,
+             sell_shares, sell_price, sell_value, sell_date, result)
+          VALUES
+            (${userId}, ${t.portfolio ?? "default"}, ${t.ticker},
+             ${Number.isFinite(t.shares) ? t.shares : 0},
+             ${t.buyPrice}, ${t.buyValue}, ${t.buyDate},
+             ${t.sellShares}, ${t.sellPrice}, ${t.sellValue}, ${t.sellDate},
+             ${t.result})
+        `,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (sql as any).transaction(queries);
+    }
 
-    await runBatched(
-      transactions,
-      async (t, i) => {
-        try {
-          await sql`
-            INSERT INTO transactions
-              (user_id, portfolio, ticker, shares, buy_price, buy_value, buy_date,
-               sell_shares, sell_price, sell_value, sell_date, result)
-            VALUES
-              (${userId}, ${t.portfolio ?? "default"}, ${t.ticker},
-               ${Number.isFinite(t.shares) ? t.shares : 0},
-               ${t.buyPrice}, ${t.buyValue}, ${t.buyDate},
-               ${t.sellShares}, ${t.sellPrice}, ${t.sellValue}, ${t.sellDate},
-               ${t.result})
-          `;
-        } catch (e) {
-          errors.push(`tx[${i}] ${t.ticker}: ${(e as Error).message}`);
-        }
-      },
-      5,
-    );
+    for (const batch of chunk(dividends, CHUNK)) {
+      const queries = batch.map(
+        (d) => sql`
+          INSERT INTO dividends (user_id, ticker, amount, paid_at)
+          VALUES (${userId}, ${d.ticker}, ${d.amount}, ${d.date})
+        `,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (sql as any).transaction(queries);
+    }
 
-    await runBatched(
-      dividends,
-      async (d, i) => {
-        try {
-          await sql`
-            INSERT INTO dividends (user_id, ticker, amount, paid_at)
-            VALUES (${userId}, ${d.ticker}, ${d.amount}, ${d.date})
-          `;
-        } catch (e) {
-          errors.push(`dividend[${i}] ${d.ticker}: ${(e as Error).message}`);
-        }
-      },
-      5,
-    );
+    for (const batch of chunk(interests, CHUNK)) {
+      const queries = batch.map(
+        (it) => sql`
+          INSERT INTO interests (user_id, amount, paid_at)
+          VALUES (${userId}, ${it.amount}, ${it.date})
+        `,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (sql as any).transaction(queries);
+    }
 
-    await runBatched(
-      interests,
-      async (it, i) => {
-        try {
-          await sql`
-            INSERT INTO interests (user_id, amount, paid_at)
-            VALUES (${userId}, ${it.amount}, ${it.date})
-          `;
-        } catch (e) {
-          errors.push(`interest[${i}]: ${(e as Error).message}`);
-        }
-      },
-      5,
-    );
-
-    await runBatched(
-      wealth,
-      async (w, i) => {
-        try {
-          // Only allow valid category values — DB has a CHECK constraint.
-          const cat = w.category === "cash" ? "cash" : "stocks";
-          await sql`
-            INSERT INTO wealth_entries (user_id, category, label, value)
-            VALUES (${userId}, ${cat}, ${w.label}, ${w.value})
-          `;
-        } catch (e) {
-          errors.push(`wealth[${i}] ${w.label}: ${(e as Error).message}`);
-        }
-      },
-      5,
-    );
-
-    if (errors.length > 0) {
-      // eslint-disable-next-line no-console
-      console.error("[import] partial failure:", errors.slice(0, 5));
+    for (const batch of chunk(wealth, CHUNK)) {
+      const queries = batch.map((w) => {
+        const cat = w.category === "cash" ? "cash" : "stocks";
+        return sql`
+          INSERT INTO wealth_entries (user_id, category, label, value)
+          VALUES (${userId}, ${cat}, ${w.label}, ${w.value})
+        `;
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (sql as any).transaction(queries);
     }
 
     res.status(200).json({
@@ -186,16 +155,12 @@ export default async function handler(
         interests: interests.length,
         wealth: wealth.length,
       },
-      errors: errors.slice(0, 10),
     });
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error("[import] crashed:", e);
     res.status(500).json({
-      error: `Import crashed: ${(e as Error)?.message ?? "unknown"}`,
-      stack: process.env.NODE_ENV !== "production"
-        ? (e as Error)?.stack
-        : undefined,
+      error: `Import crashed: ${(e as Error)?.message ?? "unknown error"}`,
     });
   }
 }
