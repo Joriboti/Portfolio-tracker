@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sql } from "../_lib/db";
+import { getSql } from "../_lib/db";
 
 export default async function handler(
   req: VercelRequest,
@@ -21,11 +21,17 @@ export default async function handler(
     return;
   }
 
-  const rows = await sql`
-    SELECT ticker, price, currency, as_of AS "asOf"
-    FROM latest_prices
-    WHERE ticker = ANY(${symbols})
-  `;
-
-  res.status(200).json({ quotes: rows });
+  try {
+    const sql = getSql();
+    const rows = await sql`
+      SELECT ticker, price, currency, as_of AS "asOf"
+      FROM latest_prices
+      WHERE ticker = ANY(${symbols})
+    `;
+    res.status(200).json({ quotes: rows });
+  } catch (e) {
+    res
+      .status(500)
+      .json({ error: `Prices query failed: ${(e as Error).message}` });
+  }
 }

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sql } from "../_lib/db";
+import { getSql } from "../_lib/db";
 import { getUserIdFromRequest } from "../_lib/auth";
 
 export default async function handler(
@@ -23,6 +23,7 @@ export default async function handler(
   }
 
   try {
+    const sql = getSql();
     const [transactions, dividends, interests, wealth, last] = await Promise.all([
       sql`
         SELECT

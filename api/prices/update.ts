@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sql } from "../_lib/db";
+import { getSql } from "../_lib/db";
 
 // Vercel Cron handler — fetch prices from Twelve Data once a day.
 // Called via vercel.json cron at ~22:30 CET (after US market close).
@@ -66,6 +66,7 @@ export default async function handler(
     return;
   }
 
+  const sql = getSql();
   // Collect distinct tickers across all users.
   const tickers = (await sql`
     SELECT DISTINCT ticker FROM transactions

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sql } from "../_lib/db";
+import { getSql } from "../_lib/db";
 import { getUserIdFromRequest } from "../_lib/auth";
 
 export const config = { maxDuration: 60 };
@@ -53,6 +53,8 @@ export default async function handler(
     const dividends = body.dividends ?? [];
     const interests = body.interests ?? [];
     const wealth = body.wealth ?? [];
+
+    const sql = getSql();
 
     // Wipe previous data first.
     await sql`DELETE FROM transactions WHERE user_id = ${userId}`;
