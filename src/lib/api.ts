@@ -41,7 +41,7 @@ async function jsonFetch<T>(
 export function getPrices(tickers: string[]): Promise<{ quotes: PriceQuote[] }> {
   if (tickers.length === 0) return Promise.resolve({ quotes: [] });
   const params = new URLSearchParams({ symbols: tickers.join(",") });
-  return jsonFetch(`/api/prices/current?${params.toString()}`);
+  return jsonFetch(`/api/prices-current?${params.toString()}`);
 }
 
 export function importPortfolio(
@@ -53,7 +53,7 @@ export function importPortfolio(
     wealth: WealthEntry[];
   },
 ): Promise<{ ok: true; counts?: Record<string, number> }> {
-  return jsonFetch("/api/portfolio/import", {
+  return jsonFetch("/api/portfolio-import", {
     method: "POST",
     body: JSON.stringify(payload),
     userId,
@@ -67,5 +67,5 @@ export function getPortfolio(userId: string): Promise<{
   wealth: WealthEntry[];
   lastPriceUpdate: string | null;
 }> {
-  return jsonFetch("/api/portfolio", { userId });
+  return jsonFetch("/api/portfolio-get", { userId });
 }

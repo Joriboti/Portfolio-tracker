@@ -13,7 +13,7 @@
   ],
   "crons": [
     {
-      "path": "/api/prices/update",
+      "path": "/api/prices-update",
       "schedule": "30 21 * * *"
     }
   ]

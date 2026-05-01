@@ -1,25 +1,30 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getUserIdFromRequest } from "../_lib/auth";
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ) {
   try {
+    res.setHeader("Content-Type", "application/json");
+
     if (req.method !== "GET") {
-      res.status(405).json({ error: "Method not allowed" });
+      res.status(405).end(JSON.stringify({ error: "Method not allowed" }));
       return;
     }
 
     const dbUrl = process.env.DATABASE_URL;
     if (!dbUrl) {
-      res.status(500).json({ error: "DATABASE_URL not configured" });
+      res
+        .status(500)
+        .end(JSON.stringify({ error: "DATABASE_URL not configured" }));
       return;
     }
 
-    const userId = getUserIdFromRequest(req);
-    if (!userId) {
-      res.status(401).json({ error: "Missing x-user-id header" });
+    const rawHeader = req.headers["x-user-id"];
+    const userIdRaw = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+    const userId = userIdRaw?.trim();
+    if (!userId || userId.length === 0 || userId.length > 128) {
+      res.status(401).end(JSON.stringify({ error: "Missing x-user-id header" }));
       return;
     }
 
@@ -63,20 +68,21 @@ export default async function handler(
       sql`SELECT MAX(as_of) AS "lastPriceUpdate" FROM prices`,
     ]);
 
-    res.status(200).json({
-      transactions,
-      dividends,
-      interests,
-      wealth,
-      lastPriceUpdate:
-        (last as Array<{ lastPriceUpdate: string | null }>)[0]
-          ?.lastPriceUpdate ?? null,
-    });
+    res.status(200).end(
+      JSON.stringify({
+        transactions,
+        dividends,
+        interests,
+        wealth,
+        lastPriceUpdate:
+          (last as Array<{ lastPriceUpdate: string | null }>)[0]
+            ?.lastPriceUpdate ?? null,
+      }),
+    );
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error("[portfolio GET] failed:", e);
+    const err = e as Error;
     res
       .status(500)
-      .json({ error: `Portfolio query failed: ${(e as Error).message}` });
+      .end(JSON.stringify({ error: err?.message ?? "Portfolio query failed" }));
   }
 }

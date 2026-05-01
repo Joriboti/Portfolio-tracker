@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getUserIdFromRequest } from "../_lib/auth";
 
 export const config = { maxDuration: 60 };
 
@@ -22,11 +21,9 @@ type ImportPayload = {
   wealth?: Array<{ category: "stocks" | "cash"; label: string; value: number }>;
 };
 
-// We inline the Neon dynamic import here instead of going through
-// api/_lib/db.ts. The shared-lib indirection (even though _lib/db.ts uses
-// dynamic import internally) keeps crashing this function at cold start on
-// Vercel, while the same dynamic-import pattern inlined directly works
-// (verified via /api/db-direct).
+// Self-contained — mirrors the structure of /api/db-direct.ts exactly
+// (which we know works) but with INSERTs instead of SELECT 1.
+// No imports from _lib, no subdirectory.
 
 export default async function handler(
   req: VercelRequest,
@@ -34,22 +31,28 @@ export default async function handler(
 ) {
   let phase = "start";
   try {
+    res.setHeader("Content-Type", "application/json");
+
     if (req.method !== "POST") {
-      res.status(405).json({ error: "Method not allowed" });
+      res.status(405).end(JSON.stringify({ error: "Method not allowed" }));
       return;
     }
 
     phase = "env-check";
     const dbUrl = process.env.DATABASE_URL;
     if (!dbUrl) {
-      res.status(500).json({ error: "DATABASE_URL not configured" });
+      res
+        .status(500)
+        .end(JSON.stringify({ error: "DATABASE_URL not configured" }));
       return;
     }
 
     phase = "auth";
-    const userId = getUserIdFromRequest(req);
-    if (!userId) {
-      res.status(401).json({ error: "Missing x-user-id header" });
+    const rawHeader = req.headers["x-user-id"];
+    const userIdRaw = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+    const userId = userIdRaw?.trim();
+    if (!userId || userId.length === 0 || userId.length > 128) {
+      res.status(401).end(JSON.stringify({ error: "Missing x-user-id header" }));
       return;
     }
 
@@ -114,25 +117,27 @@ export default async function handler(
       `;
     }
 
-    res.status(200).json({
-      ok: true,
-      counts: {
-        transactions: transactions.length,
-        dividends: dividends.length,
-        interests: interests.length,
-        wealth: wealth.length,
-      },
-    });
+    res.status(200).end(
+      JSON.stringify({
+        ok: true,
+        counts: {
+          transactions: transactions.length,
+          dividends: dividends.length,
+          interests: interests.length,
+          wealth: wealth.length,
+        },
+      }),
+    );
   } catch (e) {
     const err = e as Error;
-    // eslint-disable-next-line no-console
-    console.error("[import] failed at phase", phase, err);
-    res.status(500).json({
-      ok: false,
-      phase,
-      error: err?.message ?? "unknown",
-      name: err?.name,
-      stack: err?.stack?.slice(0, 1500),
-    });
+    res.status(500).end(
+      JSON.stringify({
+        ok: false,
+        phase,
+        error: err?.message ?? "unknown",
+        name: err?.name,
+        stack: err?.stack?.slice(0, 1500),
+      }),
+    );
   }
 }
