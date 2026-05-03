@@ -187,16 +187,35 @@ export default async function handler(
     const skipped: string[] = [];
     const now = new Date().toISOString();
 
+    // Normalize Yahoo's sub-unit currencies (London prices come in GBp =
+     // pence, JSE in ZAc = cents, Tel Aviv in ILA = agorot, etc.) to the
+     // major unit so EUR conversion downstream stays sane.
+    const SUB_UNIT_TO_MAJOR: Record<string, { major: string; divisor: number }> = {
+      GBp: { major: "GBP", divisor: 100 },
+      ZAc: { major: "ZAR", divisor: 100 },
+      ILA: { major: "ILS", divisor: 100 },
+    };
+    function normalizePrice(q: YahooQuote): { price: number; currency: string } | null {
+      if (q.regularMarketPrice == null) return null;
+      const ccy = q.currency ?? "USD";
+      const conv = SUB_UNIT_TO_MAJOR[ccy];
+      if (conv) {
+        return { price: q.regularMarketPrice / conv.divisor, currency: conv.major };
+      }
+      return { price: q.regularMarketPrice, currency: ccy };
+    }
+
     for (const { original, mapped } of work) {
       const q = bySymbol.get(mapped);
-      if (!q || q.regularMarketPrice == null) {
+      const norm = q ? normalizePrice(q) : null;
+      if (!norm) {
         skipped.push(`${original} (${mapped})`);
         continue;
       }
       try {
         await sql`
           INSERT INTO prices (ticker, as_of, price, currency, source)
-          VALUES (${original}, ${now}, ${q.regularMarketPrice}, ${q.currency ?? "USD"}, 'yahoo')
+          VALUES (${original}, ${now}, ${norm.price}, ${norm.currency}, 'yahoo')
           ON CONFLICT (ticker, as_of) DO UPDATE
             SET price = EXCLUDED.price,
                 currency = EXCLUDED.currency
