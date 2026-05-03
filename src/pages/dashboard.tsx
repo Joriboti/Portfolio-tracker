@@ -21,11 +21,11 @@ function DashboardInner() {
   const [refreshing, setRefreshing] = useState(false);
 
   async function handleRefreshPrices() {
-    if (!user) return;
+    if (!user || refreshing) return;
     setRefreshing(true);
     try {
       await refreshPrices(user.id);
-      const tickers = positions.map((p) => p.ticker);
+      const tickers = openPositions.map((p) => p.ticker);
       const { quotes } = await getPrices(tickers);
       const map: Record<string, PriceQuote> = {};
       for (const q of quotes) map[q.ticker] = q;
@@ -63,14 +63,22 @@ function DashboardInner() {
     };
   }, [user]);
 
-  const positions = useMemo(
+  const allPositions = useMemo(
     () => (data ? aggregatePositions(data.transactions) : []),
     [data],
   );
+  const openPositions = useMemo(
+    () => allPositions.filter((p) => p.isOpen),
+    [allPositions],
+  );
+  const closedPositions = useMemo(
+    () => allPositions.filter((p) => !p.isOpen),
+    [allPositions],
+  );
 
   useEffect(() => {
-    if (positions.length === 0) return;
-    const tickers = positions.map((p) => p.ticker);
+    if (openPositions.length === 0) return;
+    const tickers = openPositions.map((p) => p.ticker);
     getPrices(tickers)
       .then(({ quotes }) => {
         const map: Record<string, PriceQuote> = {};
@@ -78,7 +86,7 @@ function DashboardInner() {
         setQuotes(map);
       })
       .catch(() => setQuotes({}));
-  }, [positions]);
+  }, [openPositions]);
 
   if (loading) {
     return (
@@ -96,7 +104,7 @@ function DashboardInner() {
     );
   }
 
-  if (!data || positions.length === 0) {
+  if (!data || allPositions.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10">
         <div className="card text-center">
@@ -110,11 +118,11 @@ function DashboardInner() {
   }
 
   const totalDividends = data.dividends.reduce((s, d) => s + d.amount, 0);
-  const realizedPL = positions.reduce((s, p) => s + p.realizedPL, 0);
+  const realizedPL = allPositions.reduce((s, p) => s + p.realizedPL, 0);
 
   let totalValue = 0;
   let totalCost = 0;
-  for (const p of positions) {
+  for (const p of openPositions) {
     const quote = quotes[p.ticker];
     if (quote) totalValue += quote.price * p.shares;
     totalCost += p.totalCost;
@@ -163,12 +171,23 @@ function DashboardInner() {
         <Stat label={t("dashboard.dividends")} value={formatMoney(totalDividends, currency)} />
       </section>
 
-      <section className="card overflow-x-auto">
-        <h2 className="text-lg font-medium text-slate-900 mb-3">
-          {t("dashboard.positions")}
-        </h2>
-        <PositionsTable positions={positions} quotes={quotes} currency={currency} />
-      </section>
+      {openPositions.length > 0 && (
+        <section className="card overflow-x-auto">
+          <h2 className="text-lg font-medium text-slate-900 mb-3">
+            {t("dashboard.positions")}
+          </h2>
+          <PositionsTable positions={openPositions} quotes={quotes} currency={currency} />
+        </section>
+      )}
+
+      {closedPositions.length > 0 && (
+        <section className="card overflow-x-auto">
+          <h2 className="text-lg font-medium text-slate-900 mb-3">
+            {t("dashboard.closedPositions")}
+          </h2>
+          <ClosedPositionsTable positions={closedPositions} currency={currency} />
+        </section>
+      )}
     </div>
   );
 }
@@ -275,6 +294,49 @@ function PositionsTable({
             </tr>
           );
         })}
+      </tbody>
+    </table>
+  );
+}
+
+function ClosedPositionsTable({
+  positions,
+  currency,
+}: {
+  positions: Position[];
+  currency: Currency;
+}) {
+  const { t } = useTranslation();
+  const sorted = [...positions].sort(
+    (a, b) => Math.abs(b.realizedPL) - Math.abs(a.realizedPL),
+  );
+  return (
+    <table className="table-base">
+      <thead>
+        <tr>
+          <th>{t("dashboard.headers.ticker")}</th>
+          <th className="text-right">{t("dashboard.headers.avgCost")}</th>
+          <th className="text-right">{t("dashboard.realizedPL")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sorted.map((p) => (
+          <tr key={p.ticker}>
+            <td className="font-medium">{p.ticker}</td>
+            <td className="text-right">{formatMoney(p.avgCost, currency)}</td>
+            <td
+              className={`text-right ${
+                p.realizedPL > 0
+                  ? "text-brand-700"
+                  : p.realizedPL < 0
+                    ? "text-rose-600"
+                    : ""
+              }`}
+            >
+              {formatMoney(p.realizedPL, currency)}
+            </td>
+          </tr>
+        ))}
       </tbody>
     </table>
   );

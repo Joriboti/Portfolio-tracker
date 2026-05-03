@@ -2,32 +2,56 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 export const config = { maxDuration: 60 };
 
-const TWELVE_DATA_BASE = "https://api.twelvedata.com";
+// Yahoo Finance has no documented rate limit on the unofficial endpoints
+// yahoo-finance2 uses, and supports batched quote requests, so we can pull
+// all positions + FX in a single Vercel invocation without paging.
+
 const FX_PAIRS = ["EUR/USD", "GBP/USD", "CHF/USD"];
 
-// Map portfolio tickers to Twelve Data symbols. Add new entries here as they
-// come up. Keys are normalised (uppercase, trimmed) before lookup.
+// Map portfolio tickers to Yahoo Finance symbols. Yahoo uses suffixes for
+// non-US exchanges (e.g. ".MC" Madrid, ".L" London, ".DE" Xetra, ".AS"
+// Amsterdam, ".PA" Paris, ".SW" SIX Swiss). For commodities and crypto,
+// Yahoo expects "<base>-USD" (crypto) or futures like "GC=F" (gold).
 const TICKER_MAP: Record<string, string> = {
   TESLA: "TSLA",
   ABERCROMBIE: "ANF",
   PINDUODUO: "PDD",
-  SABADELL: "SAB.MC", // Banco Sabadell, Madrid
-  IAG: "IAG.L", // International Airlines Group, London
+  SABADELL: "SAB.MC",
+  IAG: "IAG.L",
   BBVA: "BBVA.MC",
-  SILVER: "XAGUSD", // spot silver
-  PALLADIUM: "XPDUSD", // spot palladium
-  GOLD: "XAUUSD",
+  SANTANDER: "SAN.MC",
+  TELEFONICA: "TEF.MC",
+  INDITEX: "ITX.MC",
+  REPSOL: "REP.MC",
+  CAIXABANK: "CABK.MC",
+  IBERDROLA: "IBE.MC",
+  ENDESA: "ELE.MC",
+  AMADEUS: "AMS.MC",
+  CELLNEX: "CLNX.MC",
+  MAPFRE: "MAP.MC",
+  BANKINTER: "BKT.MC",
+  FERROVIAL: "FER.MC",
+  ACS: "ACS.MC",
+  GRIFOLS: "GRF.MC",
+  NATURGY: "NTGY.MC",
+  COLONIAL: "COL.MC",
+  ACCIONA: "ANA.MC",
+  // Commodities (Yahoo continuous futures)
+  GOLD: "GC=F",
+  SILVER: "SI=F",
+  PLATINUM: "PL=F",
+  PALLADIUM: "PA=F",
+  // Crypto (Yahoo "<symbol>-USD" format)
+  BTC: "BTC-USD",
+  ETH: "ETH-USD",
+  ADA: "ADA-USD",
+  SOL: "SOL-USD",
+  DOT: "DOT-USD",
 };
 
-// Tickers we don't try to fetch — usually crypto under symbols Twelve Data
-// doesn't recognise on the free tier, or non-tradable categories.
-const SKIP_TICKERS = new Set([
-  "ETH",
-  "ADA",
-  "BTC",
-  "SOL",
-  "DOT",
-  "NBUS", // unknown
+// Tickers to skip (unknown / unsupported on Yahoo).
+const SKIP_TICKERS = new Set<string>([
+  "NBUS",
 ]);
 
 function mapTicker(raw: string): string | null {
@@ -36,70 +60,23 @@ function mapTicker(raw: string): string | null {
   return TICKER_MAP[key] ?? key;
 }
 
-async function fetchPrice(
-  symbol: string,
-  apiKey: string,
-): Promise<{ price: number; currency: string } | null> {
-  const url = new URL(`${TWELVE_DATA_BASE}/quote`);
-  url.searchParams.set("symbol", symbol);
-  url.searchParams.set("apikey", apiKey);
-  const res = await fetch(url.toString());
-  if (!res.ok) return null;
-  const data = (await res.json()) as {
-    close?: string;
-    price?: string;
-    currency?: string;
-    code?: number;
-    status?: string;
-    message?: string;
-  };
-  if (data.status === "error" || data.code) return null;
-  const priceStr = data.close ?? data.price;
-  if (!priceStr) return null;
-  const price = parseFloat(priceStr);
-  if (!Number.isFinite(price)) return null;
-  return { price, currency: data.currency ?? "USD" };
+// "EUR/USD" -> "EURUSD=X" (Yahoo's FX symbol format).
+function fxToYahoo(pair: string): string {
+  return pair.replace("/", "") + "=X";
 }
 
-async function fetchFx(
-  pair: string,
-  apiKey: string,
-): Promise<number | null> {
-  const url = new URL(`${TWELVE_DATA_BASE}/price`);
-  url.searchParams.set("symbol", pair);
-  url.searchParams.set("apikey", apiKey);
-  const res = await fetch(url.toString());
-  if (!res.ok) return null;
-  const data = (await res.json()) as { price?: string };
-  return data.price ? parseFloat(data.price) : null;
-}
-
-// Run async work with a hard concurrency cap so we don't blow the
-// Twelve Data free-tier rate limit (8 calls/min on the free plan but
-// in practice it accepts more if spaced).
-async function runBatched<T>(
-  items: T[],
-  fn: (item: T, index: number) => Promise<void>,
-  concurrency = 5,
-): Promise<void> {
-  let next = 0;
-  const workers = Array.from(
-    { length: Math.min(concurrency, items.length) },
-    async () => {
-      while (true) {
-        const i = next++;
-        if (i >= items.length) return;
-        await fn(items[i], i);
-      }
-    },
-  );
-  await Promise.all(workers);
-}
+type YahooQuote = {
+  symbol: string;
+  regularMarketPrice?: number | null;
+  currency?: string | null;
+};
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ) {
+  const startMs = Date.now();
+
   try {
     res.setHeader("Content-Type", "application/json");
 
@@ -112,14 +89,6 @@ export default async function handler(
       return;
     }
 
-    const apiKey = process.env.TWELVE_DATA_API_KEY;
-    if (!apiKey) {
-      res
-        .status(500)
-        .end(JSON.stringify({ error: "TWELVE_DATA_API_KEY not configured" }));
-      return;
-    }
-
     const dbUrl = process.env.DATABASE_URL;
     if (!dbUrl) {
       res
@@ -128,63 +97,114 @@ export default async function handler(
       return;
     }
 
-    const mod = await import("@neondatabase/serverless");
-    const sql = mod.neon(dbUrl);
+    const dbMod = await import("@neondatabase/serverless");
+    const sql = dbMod.neon(dbUrl);
+
+    // yahoo-finance2 v3 exports a class — instantiate per-invocation. The
+    // dynamic import keeps cold-start cost off the rest of the API surface.
+    const yfMod = await import("yahoo-finance2");
+    const YahooFinance = yfMod.default as unknown as new (
+      opts?: { suppressNotices?: string[] },
+    ) => {
+      quote: (symbol: string | string[]) => Promise<unknown>;
+      setGlobalConfig?: (cfg: { validation?: { logErrors?: boolean } }) => void;
+    };
+    const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
+    yahooFinance.setGlobalConfig?.({ validation: { logErrors: false } });
 
     const tickers = (await sql`
       SELECT DISTINCT ticker FROM transactions
     `) as Array<{ ticker: string }>;
 
-    // Build a list of unique mapped symbols, remembering the original ticker
-    // so we save the price under the name the dashboard queries by.
+    // Build (original ticker, yahoo symbol) pairs, deduping by original.
     const work: Array<{ original: string; mapped: string }> = [];
     const seen = new Set<string>();
     for (const row of tickers) {
       const mapped = mapTicker(row.ticker);
       if (!mapped) continue;
-      if (seen.has(row.ticker)) continue;
-      seen.add(row.ticker);
-      work.push({ original: row.ticker.trim().toUpperCase(), mapped });
+      const original = row.ticker.trim().toUpperCase();
+      if (seen.has(original)) continue;
+      seen.add(original);
+      work.push({ original, mapped });
     }
+
+    const symbols = work.map((w) => w.mapped);
+    const fxSymbols = FX_PAIRS.map(fxToYahoo);
+
+    // Yahoo accepts arrays and returns one quote per symbol. The lib also
+    // gracefully handles partial failures.
+    let quotesArr: YahooQuote[] = [];
+    let fxArr: YahooQuote[] = [];
+    try {
+      const all = (await yahooFinance.quote([...symbols, ...fxSymbols])) as
+        | YahooQuote
+        | YahooQuote[];
+      const list = Array.isArray(all) ? all : [all];
+      const symSet = new Set(symbols);
+      const fxSet = new Set(fxSymbols);
+      for (const q of list) {
+        if (symSet.has(q.symbol)) quotesArr.push(q);
+        else if (fxSet.has(q.symbol)) fxArr.push(q);
+      }
+    } catch (e) {
+      // Fall back to per-symbol calls if the batched call fails entirely.
+      for (const s of symbols) {
+        try {
+          const q = (await yahooFinance.quote(s)) as YahooQuote;
+          quotesArr.push(q);
+        } catch {
+          /* skipped below */
+        }
+      }
+      for (const s of fxSymbols) {
+        try {
+          const q = (await yahooFinance.quote(s)) as YahooQuote;
+          fxArr.push(q);
+        } catch {
+          /* skipped below */
+        }
+      }
+      console.warn("Yahoo batched quote failed, fell back to per-symbol", e);
+    }
+
+    const bySymbol = new Map(quotesArr.map((q) => [q.symbol, q]));
+    const fxBySymbol = new Map(fxArr.map((q) => [q.symbol, q]));
 
     let updated = 0;
     const errors: string[] = [];
     const skipped: string[] = [];
     const now = new Date().toISOString();
 
-    await runBatched(
-      work,
-      async ({ original, mapped }) => {
-        try {
-          const quote = await fetchPrice(mapped, apiKey);
-          if (!quote) {
-            skipped.push(`${original} (${mapped})`);
-            return;
-          }
-          await sql`
-            INSERT INTO prices (ticker, as_of, price, currency, source)
-            VALUES (${original}, ${now}, ${quote.price}, ${quote.currency}, 'twelvedata')
-            ON CONFLICT (ticker, as_of) DO UPDATE
-              SET price = EXCLUDED.price,
-                  currency = EXCLUDED.currency
-          `;
-          updated++;
-        } catch (e) {
-          errors.push(`${original}: ${(e as Error).message}`);
-        }
-      },
-      5,
-    );
+    for (const { original, mapped } of work) {
+      const q = bySymbol.get(mapped);
+      if (!q || q.regularMarketPrice == null) {
+        skipped.push(`${original} (${mapped})`);
+        continue;
+      }
+      try {
+        await sql`
+          INSERT INTO prices (ticker, as_of, price, currency, source)
+          VALUES (${original}, ${now}, ${q.regularMarketPrice}, ${q.currency ?? "USD"}, 'yahoo')
+          ON CONFLICT (ticker, as_of) DO UPDATE
+            SET price = EXCLUDED.price,
+                currency = EXCLUDED.currency
+        `;
+        updated++;
+      } catch (e) {
+        errors.push(`${original}: ${(e as Error).message}`);
+      }
+    }
 
     let fxOk = 0;
     for (const pair of FX_PAIRS) {
+      const ySym = fxToYahoo(pair);
+      const q = fxBySymbol.get(ySym);
+      if (!q || q.regularMarketPrice == null) continue;
+      const currency = pair.split("/")[0];
       try {
-        const rate = await fetchFx(pair, apiKey);
-        if (rate == null) continue;
-        const currency = pair.split("/")[0];
         await sql`
           INSERT INTO fx_rates (currency, as_of, rate)
-          VALUES (${currency}, ${now}, ${rate})
+          VALUES (${currency}, ${now}, ${q.regularMarketPrice})
           ON CONFLICT (currency, as_of) DO UPDATE
             SET rate = EXCLUDED.rate
         `;
@@ -194,6 +214,8 @@ export default async function handler(
       }
     }
 
+    const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
+
     res.status(200).end(
       JSON.stringify({
         ok: true,
@@ -201,6 +223,7 @@ export default async function handler(
         skipped,
         fxOk,
         tickers: work.length,
+        elapsed: `${elapsed}s`,
         errors,
       }),
     );

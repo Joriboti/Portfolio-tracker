@@ -282,6 +282,7 @@ export type Position = {
   totalCost: number;
   avgCost: number;
   realizedPL: number;
+  isOpen: boolean;
 };
 
 export function aggregatePositions(txns: Transaction[]): Position[] {
@@ -321,6 +322,7 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
   for (const [ticker, agg] of map) {
     const remaining = agg.buyShares - agg.soldShares;
     if (remaining <= 1e-6 && agg.realizedPL === 0) continue;
+    const isOpen = remaining > 1e-6;
     const avgCost = agg.buyShares > 0 ? agg.buyCost / agg.buyShares : 0;
     positions.push({
       ticker,
@@ -328,6 +330,7 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
       totalCost: avgCost * Math.max(remaining, 0),
       avgCost,
       realizedPL: agg.realizedPL,
+      isOpen,
     });
   }
 

@@ -129,13 +129,19 @@ export async function getPortfolio(userId: string): Promise<{
   };
 }
 
-// Manual trigger of the price-update cron (handy for first run before the
-// scheduled cron fires). Returns counts of refreshed quotes.
-export function refreshPrices(userId: string): Promise<{
+export type RefreshPricesResult = {
   ok: boolean;
   updated: number;
   tickers: number;
+  fxOk: number;
+  skipped?: string[];
   errors?: string[];
-}> {
+  elapsed?: string;
+};
+
+// Manual trigger of the price-update endpoint. Yahoo Finance has no
+// effective rate limit on the unofficial endpoints used by yahoo-finance2,
+// so a single invocation refreshes everything in one shot.
+export function refreshPrices(userId: string): Promise<RefreshPricesResult> {
   return jsonFetch("/api/prices-update", { method: "GET", userId });
 }
