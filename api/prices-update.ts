@@ -36,11 +36,6 @@ const TICKER_MAP: Record<string, string> = {
   NATURGY: "NTGY.MC",
   COLONIAL: "COL.MC",
   ACCIONA: "ANA.MC",
-  // Commodities (Yahoo continuous futures)
-  GOLD: "GC=F",
-  SILVER: "SI=F",
-  PLATINUM: "PL=F",
-  PALLADIUM: "PA=F",
   // Crypto (Yahoo "<symbol>-USD" format)
   BTC: "BTC-USD",
   ETH: "ETH-USD",
@@ -49,9 +44,18 @@ const TICKER_MAP: Record<string, string> = {
   DOT: "DOT-USD",
 };
 
-// Tickers to skip (unknown / unsupported on Yahoo).
+// Tickers to skip. Commodities are intentionally NOT mapped: Yahoo's
+// continuous-futures symbols (GC=F gold, SI=F silver, PL=F platinum,
+// PA=F palladium) quote the full troy-ounce price, but the user's broker
+// records these positions in a different unit (likely grams or fractions),
+// which would inflate the portfolio value by orders of magnitude. Until we
+// know the correct ETF / CFD ticker per holding, we leave them unfetched.
 const SKIP_TICKERS = new Set<string>([
   "NBUS",
+  "GOLD",
+  "SILVER",
+  "PLATINUM",
+  "PALLADIUM",
 ]);
 
 function mapTicker(raw: string): string | null {
@@ -111,6 +115,14 @@ export default async function handler(
     };
     const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
     yahooFinance.setGlobalConfig?.({ validation: { logErrors: false } });
+
+    // Wipe any stale rows for tickers we no longer try to fetch — otherwise
+    // an old (and possibly wrong-unit) price keeps surfacing on the
+    // dashboard even though we won't refresh it.
+    const skipList = Array.from(SKIP_TICKERS);
+    if (skipList.length > 0) {
+      await sql`DELETE FROM prices WHERE UPPER(ticker) = ANY(${skipList}::text[])`;
+    }
 
     const tickers = (await sql`
       SELECT DISTINCT ticker FROM transactions
