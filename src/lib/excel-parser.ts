@@ -285,11 +285,46 @@ export type Position = {
   isOpen: boolean;
 };
 
+// Drop transactions that are byte-for-byte the same record. The user's
+// brokerage exports sometimes list the same buy in two sheets (e.g.
+// "Portfolio 1" and "Portfolio 2"), which would double-count cost basis
+// and inflate avg-cost. We dedupe on every numeric/date field but ignore
+// the `portfolio` source so cross-sheet duplicates collapse.
+function dedupeTransactions(txns: Transaction[]): Transaction[] {
+  const seen = new Set<string>();
+  const out: Transaction[] = [];
+  for (const t of txns) {
+    const key = [
+      t.ticker,
+      t.shares,
+      t.buyPrice ?? "",
+      t.buyValue ?? "",
+      t.buyDate ?? "",
+      t.sellShares ?? "",
+      t.sellPrice ?? "",
+      t.sellValue ?? "",
+      t.sellDate ?? "",
+      t.result ?? "",
+    ].join("|");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(t);
+  }
+  return out;
+}
+
+// Dust threshold: any remaining position worth less than this many EUR at
+// cost is treated as effectively closed. Catches share-fraction residues
+// from partial sales (e.g. 0.0001 SMCI shares left over) without hiding
+// genuinely small but valuable holdings (e.g. 0.001 BTC).
+const DUST_COST_EUR = 1;
+
 export function aggregatePositions(txns: Transaction[]): Position[] {
   // Aggregate using FIFO-ish weighted average. Simple model:
   //   - Sum buy shares & cost.
   //   - Subtract sell shares (proportional cost reduction).
   //   - Realized P&L = sum of `result` from sell rows.
+  const deduped = dedupeTransactions(txns);
   const map = new Map<
     string,
     {
@@ -300,7 +335,7 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
     }
   >();
 
-  for (const t of txns) {
+  for (const t of deduped) {
     const cur = map.get(t.ticker) ?? {
       buyShares: 0,
       buyCost: 0,
@@ -322,12 +357,16 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
   for (const [ticker, agg] of map) {
     const remaining = agg.buyShares - agg.soldShares;
     if (remaining <= 1e-6 && agg.realizedPL === 0) continue;
-    const isOpen = remaining > 1e-6;
     const avgCost = agg.buyShares > 0 ? agg.buyCost / agg.buyShares : 0;
+    const remainingValue = avgCost * Math.max(remaining, 0);
+    // A position counts as "open" only if there's a meaningful amount of
+    // cost left in it. This collapses dust residues (e.g. 0.0001 shares
+    // left after a sale) into the closed bucket.
+    const isOpen = remainingValue >= DUST_COST_EUR;
     positions.push({
       ticker,
       shares: Math.max(remaining, 0),
-      totalCost: avgCost * Math.max(remaining, 0),
+      totalCost: remainingValue,
       avgCost,
       realizedPL: agg.realizedPL,
       isOpen,

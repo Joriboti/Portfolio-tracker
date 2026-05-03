@@ -17,7 +17,7 @@ const TICKER_MAP: Record<string, string> = {
   ABERCROMBIE: "ANF",
   PINDUODUO: "PDD",
   SABADELL: "SAB.MC",
-  IAG: "IAG.L",
+  IAG: "IAG.MC", // BME, not LSE — IAG is dual-listed but the user holds it locally
   BBVA: "BBVA.MC",
   SANTANDER: "SAN.MC",
   TELEFONICA: "TEF.MC",
