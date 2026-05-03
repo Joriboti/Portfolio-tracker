@@ -139,25 +139,29 @@ function DashboardInner() {
     );
   }
 
-  // Dividends and realised P&L are recorded in the user's account currency
-  // already (TR/T212 exports them in account currency), so we don't FX
-  // convert them here.
+  // The source Excel comes from Trading 212 / similar EU brokers, which
+  // export every column in the user's account currency (EUR). So cost
+  // basis, dividends, and realised P&L are all already EUR — no FX
+  // conversion needed for them. Yahoo on the other hand returns prices
+  // in the listing currency (USD for HIMS, EUR for IAG.MC, …), so the
+  // ONLY thing we convert is `quote.price`.
   const totalDividends = data.dividends.reduce((s, d) => s + d.amount, 0);
   const realizedPL = allPositions.reduce((s, p) => s + p.realizedPL, 0);
 
-  // For market value + cost basis we DO convert: each position's
-  // quote.currency tells us the listing currency, and we treat the cost
-  // basis as quoted in the same currency (since the source Excel records
-  // the listing-currency price).
   let totalValue = 0;
   let totalCost = 0;
   for (const p of openPositions) {
     const quote = quotes[p.ticker];
-    const ccy = quote?.currency ?? null;
     if (quote) {
-      totalValue += toDisplay(quote.price * p.shares, ccy, currency, fxRates);
+      const priceInDisplay = toDisplay(
+        quote.price,
+        quote.currency ?? null,
+        currency,
+        fxRates,
+      );
+      totalValue += priceInDisplay * p.shares;
     }
-    totalCost += toDisplay(p.totalCost, ccy, currency, fxRates);
+    totalCost += p.totalCost;
   }
   const unrealized = totalValue > 0 ? totalValue - totalCost : 0;
 
@@ -291,29 +295,33 @@ function PositionsTable({
       <tbody>
         {positions.map((p) => {
           const quote = quotes[p.ticker];
-          const ccy = quote?.currency ?? null;
-          const avgCostDisp = toDisplay(p.avgCost, ccy, currency, fxRates);
-          const totalCostDisp = toDisplay(p.totalCost, ccy, currency, fxRates);
+          // Cost basis is already in the user's account currency (EUR);
+          // only the live Yahoo price needs FX conversion.
           const currentPriceDisp = quote
-            ? toDisplay(quote.price, ccy, currency, fxRates)
+            ? toDisplay(
+                quote.price,
+                quote.currency ?? null,
+                currency,
+                fxRates,
+              )
             : null;
           const marketValue =
             currentPriceDisp != null ? currentPriceDisp * p.shares : null;
-          const pl = marketValue != null ? marketValue - totalCostDisp : null;
+          const pl = marketValue != null ? marketValue - p.totalCost : null;
           const plPct =
-            pl != null && totalCostDisp > 0 ? pl / totalCostDisp : null;
+            pl != null && p.totalCost > 0 ? pl / p.totalCost : null;
           return (
             <tr key={p.ticker}>
               <td className="font-medium">{p.ticker}</td>
               <td className="text-right">{p.shares.toFixed(4)}</td>
-              <td className="text-right">{formatMoney(avgCostDisp, currency)}</td>
+              <td className="text-right">{formatMoney(p.avgCost, currency)}</td>
               <td className="text-right">
                 {currentPriceDisp != null
                   ? formatMoney(currentPriceDisp, currency)
                   : "—"}
               </td>
               <td className="text-right">{formatMoney(marketValue, currency)}</td>
-              <td className="text-right">{formatMoney(totalCostDisp, currency)}</td>
+              <td className="text-right">{formatMoney(p.totalCost, currency)}</td>
               <td
                 className={`text-right ${
                   pl == null
