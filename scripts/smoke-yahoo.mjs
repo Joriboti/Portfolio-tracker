@@ -7,19 +7,14 @@ yahooFinance.suppressNotices?.(["yahooSurvey"]);
 yahooFinance.setGlobalConfig?.({ validation: { logErrors: false } });
 
 const SAMPLES = [
-  "TSLA",
-  "AAPL",
+  "IAG.MC",
+  "IAG.L",
+  "IAG.MX",
   "BBVA.MC",
   "SAB.MC",
-  "IAG.L",
-  "ASML.AS",
-  "GC=F", // gold futures
-  "SI=F", // silver futures
-  "BTC-USD",
-  "ETH-USD",
-  "EURUSD=X",
-  "GBPUSD=X",
-  "CHFUSD=X",
+  "HIMS",
+  "HOOD",
+  "MU",
 ];
 
 const t0 = Date.now();

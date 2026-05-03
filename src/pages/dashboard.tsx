@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { aggregatePositions, type Position } from "@/lib/excel-parser";
-import { formatMoney, formatPct, type Currency } from "@/lib/currency";
+import { convert, formatMoney, formatPct, type Currency } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
 import { getPortfolio, getPrices, refreshPrices, type PriceQuote } from "@/lib/api";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -10,12 +10,29 @@ import { useUser } from "@/hooks/useUser";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
+// Convert an amount from a position's source currency to the user's
+// display currency. The transactions in the source Excel are recorded in
+// the listing currency of each ticker (USD for HIMS, EUR for IAG.MC, …),
+// so we lean on the latest Yahoo quote's currency as the source for both
+// cost basis and current price. Without this every USD-listed position
+// gets summed in EUR as if no FX existed.
+function toDisplay(
+  amount: number,
+  fromCurrency: string | null | undefined,
+  display: Currency,
+  fxRates: Record<string, number>,
+): number {
+  if (!fromCurrency || fromCurrency === display) return amount;
+  return convert(amount, fromCurrency as Currency, display, fxRates);
+}
+
 function DashboardInner() {
   const { t } = useTranslation();
   const { currency } = useDisplayCurrency();
   const { user } = useUser();
   const [data, setData] = useState<DashboardData | null>(null);
   const [quotes, setQuotes] = useState<Record<string, PriceQuote>>({});
+  const [fxRates, setFxRates] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,10 +43,11 @@ function DashboardInner() {
     try {
       await refreshPrices(user.id);
       const tickers = openPositions.map((p) => p.ticker);
-      const { quotes } = await getPrices(tickers);
+      const res = await getPrices(tickers);
       const map: Record<string, PriceQuote> = {};
-      for (const q of quotes) map[q.ticker] = q;
+      for (const q of res.quotes) map[q.ticker] = q;
       setQuotes(map);
+      setFxRates(res.fxRates);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -80,12 +98,16 @@ function DashboardInner() {
     if (openPositions.length === 0) return;
     const tickers = openPositions.map((p) => p.ticker);
     getPrices(tickers)
-      .then(({ quotes }) => {
+      .then(({ quotes, fxRates }) => {
         const map: Record<string, PriceQuote> = {};
         for (const q of quotes) map[q.ticker] = q;
         setQuotes(map);
+        setFxRates(fxRates);
       })
-      .catch(() => setQuotes({}));
+      .catch(() => {
+        setQuotes({});
+        setFxRates({});
+      });
   }, [openPositions]);
 
   if (loading) {
@@ -117,15 +139,25 @@ function DashboardInner() {
     );
   }
 
+  // Dividends and realised P&L are recorded in the user's account currency
+  // already (TR/T212 exports them in account currency), so we don't FX
+  // convert them here.
   const totalDividends = data.dividends.reduce((s, d) => s + d.amount, 0);
   const realizedPL = allPositions.reduce((s, p) => s + p.realizedPL, 0);
 
+  // For market value + cost basis we DO convert: each position's
+  // quote.currency tells us the listing currency, and we treat the cost
+  // basis as quoted in the same currency (since the source Excel records
+  // the listing-currency price).
   let totalValue = 0;
   let totalCost = 0;
   for (const p of openPositions) {
     const quote = quotes[p.ticker];
-    if (quote) totalValue += quote.price * p.shares;
-    totalCost += p.totalCost;
+    const ccy = quote?.currency ?? null;
+    if (quote) {
+      totalValue += toDisplay(quote.price * p.shares, ccy, currency, fxRates);
+    }
+    totalCost += toDisplay(p.totalCost, ccy, currency, fxRates);
   }
   const unrealized = totalValue > 0 ? totalValue - totalCost : 0;
 
@@ -176,7 +208,12 @@ function DashboardInner() {
           <h2 className="text-lg font-medium text-slate-900 mb-3">
             {t("dashboard.positions")}
           </h2>
-          <PositionsTable positions={openPositions} quotes={quotes} currency={currency} />
+          <PositionsTable
+            positions={openPositions}
+            quotes={quotes}
+            currency={currency}
+            fxRates={fxRates}
+          />
         </section>
       )}
 
@@ -229,10 +266,12 @@ function PositionsTable({
   positions,
   quotes,
   currency,
+  fxRates,
 }: {
   positions: Position[];
   quotes: Record<string, PriceQuote>;
   currency: Currency;
+  fxRates: Record<string, number>;
 }) {
   const { t } = useTranslation();
   return (
@@ -252,19 +291,29 @@ function PositionsTable({
       <tbody>
         {positions.map((p) => {
           const quote = quotes[p.ticker];
-          const marketValue = quote ? quote.price * p.shares : null;
-          const pl = marketValue != null ? marketValue - p.totalCost : null;
-          const plPct = pl != null && p.totalCost > 0 ? pl / p.totalCost : null;
+          const ccy = quote?.currency ?? null;
+          const avgCostDisp = toDisplay(p.avgCost, ccy, currency, fxRates);
+          const totalCostDisp = toDisplay(p.totalCost, ccy, currency, fxRates);
+          const currentPriceDisp = quote
+            ? toDisplay(quote.price, ccy, currency, fxRates)
+            : null;
+          const marketValue =
+            currentPriceDisp != null ? currentPriceDisp * p.shares : null;
+          const pl = marketValue != null ? marketValue - totalCostDisp : null;
+          const plPct =
+            pl != null && totalCostDisp > 0 ? pl / totalCostDisp : null;
           return (
             <tr key={p.ticker}>
               <td className="font-medium">{p.ticker}</td>
               <td className="text-right">{p.shares.toFixed(4)}</td>
-              <td className="text-right">{formatMoney(p.avgCost, currency)}</td>
+              <td className="text-right">{formatMoney(avgCostDisp, currency)}</td>
               <td className="text-right">
-                {quote ? formatMoney(quote.price, currency) : "—"}
+                {currentPriceDisp != null
+                  ? formatMoney(currentPriceDisp, currency)
+                  : "—"}
               </td>
               <td className="text-right">{formatMoney(marketValue, currency)}</td>
-              <td className="text-right">{formatMoney(p.totalCost, currency)}</td>
+              <td className="text-right">{formatMoney(totalCostDisp, currency)}</td>
               <td
                 className={`text-right ${
                   pl == null

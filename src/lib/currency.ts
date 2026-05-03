@@ -26,8 +26,9 @@ export function formatPct(
 }
 
 // Convert an amount expressed in `from` currency to `to` using a map of
-// {SYMBOL: rateAgainstUSD}. We treat USD as pivot; the price API returns
-// EUR/USD, GBP/USD, etc.
+// {SYMBOL: rate} where rate = "price of SYMBOL in USD" (e.g. EUR rate = 1.17
+// means 1 EUR = 1.17 USD — the format Yahoo returns for EURUSD=X). We use
+// USD as pivot: amount × rate(from) → USD, then USD ÷ rate(to) → to.
 export function convert(
   amount: number,
   from: Currency,
@@ -38,7 +39,7 @@ export function convert(
   const rateFrom = from === "USD" ? 1 : ratesAgainstUSD[from];
   const rateTo = to === "USD" ? 1 : ratesAgainstUSD[to];
   if (!rateFrom || !rateTo) return amount;
-  // amount in `from` -> USD -> `to`
-  const inUSD = amount / rateFrom;
-  return inUSD * rateTo;
+  // amount in `from` → USD → `to`
+  const inUSD = from === "USD" ? amount : amount * rateFrom;
+  return to === "USD" ? inUSD : inUSD / rateTo;
 }

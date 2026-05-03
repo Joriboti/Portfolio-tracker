@@ -81,13 +81,17 @@ function normaliseQuote(q: PriceQuote): PriceQuote {
 
 export async function getPrices(
   tickers: string[],
-): Promise<{ quotes: PriceQuote[] }> {
-  if (tickers.length === 0) return { quotes: [] };
+): Promise<{ quotes: PriceQuote[]; fxRates: Record<string, number> }> {
+  if (tickers.length === 0) return { quotes: [], fxRates: {} };
   const params = new URLSearchParams({ symbols: tickers.join(",") });
-  const data = await jsonFetch<{ quotes: PriceQuote[] }>(
-    `/api/prices-current?${params.toString()}`,
-  );
-  return { quotes: data.quotes.map(normaliseQuote) };
+  const data = await jsonFetch<{
+    quotes: PriceQuote[];
+    fxRates?: Record<string, number>;
+  }>(`/api/prices-current?${params.toString()}`);
+  return {
+    quotes: data.quotes.map(normaliseQuote),
+    fxRates: data.fxRates ?? {},
+  };
 }
 
 export function importPortfolio(
