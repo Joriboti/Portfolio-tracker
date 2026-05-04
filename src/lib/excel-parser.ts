@@ -31,12 +31,25 @@ export type WealthEntry = {
   value: number;
 };
 
+export type ExcludedRow = {
+  ticker: string;
+  portfolio: string;
+  row: number; // 1-based, so it matches the row number Excel shows
+  color: string; // hex without alpha (e.g. "D0E0E3")
+};
+
 export type ParsedWorkbook = {
   transactions: Transaction[];
   dividends: Dividend[];
   interests: Interest[];
   wealth: WealthEntry[];
   warnings: string[];
+  /**
+   * Rows the user explicitly opted out of by giving column A a coloured
+   * fill in the source spreadsheet. Surfaced on the upload preview so the
+   * user can sanity-check what's being skipped.
+   */
+  excluded: ExcludedRow[];
 };
 
 const PORTFOLIO_SHEETS = [
@@ -93,6 +106,31 @@ function asString(v: unknown): string | null {
   return s.length ? s : null;
 }
 
+// SheetJS exposes per-cell styles via `cell.s` when read with
+// `cellStyles: true`. We treat any solid fill on column A as "the user
+// asked to exclude this row from the portfolio." That convention is
+// documented on the upload page.
+type CellStyle = {
+  patternType?: string;
+  fgColor?: { rgb?: string };
+  bgColor?: { rgb?: string };
+};
+type StyledCell = { v?: unknown; s?: CellStyle };
+
+function getRowExclusionColor(
+  sheet: XLSX.WorkSheet,
+  rowIndex: number,
+): string | null {
+  const addr = XLSX.utils.encode_cell({ r: rowIndex, c: 0 });
+  const cell = sheet[addr] as StyledCell | undefined;
+  const style = cell?.s;
+  if (!style || style.patternType !== "solid") return null;
+  const rgb = style.fgColor?.rgb ?? style.bgColor?.rgb;
+  if (!rgb) return null;
+  // Strip alpha prefix if present ("FFD0E0E3" -> "D0E0E3").
+  return rgb.length === 8 ? rgb.slice(2) : rgb;
+}
+
 function findHeaderRow(matrix: unknown[][]): number {
   for (let i = 0; i < Math.min(matrix.length, 10); i++) {
     const row = matrix[i] ?? [];
@@ -107,16 +145,17 @@ function findHeaderRow(matrix: unknown[][]): number {
 function parsePortfolioSheet(
   sheet: XLSX.WorkSheet,
   portfolioName: string,
-): { txns: Transaction[]; warnings: string[] } {
+): { txns: Transaction[]; warnings: string[]; excluded: ExcludedRow[] } {
   const matrix = rowsToMatrix(sheet);
   const headerRow = findHeaderRow(matrix);
   const warnings: string[] = [];
+  const excluded: ExcludedRow[] = [];
 
   if (headerRow === -1) {
     warnings.push(
       `Sheet "${portfolioName}": no header row with "Nom" + "titols" found.`,
     );
-    return { txns: [], warnings };
+    return { txns: [], warnings, excluded };
   }
 
   const txns: Transaction[] = [];
@@ -124,6 +163,19 @@ function parsePortfolioSheet(
     const row = matrix[i] ?? [];
     const ticker = asString(row[0]);
     if (!ticker) continue;
+
+    // Highlighted column-A => user-marked exclusion. Skip the row but
+    // remember it so the upload preview can show what was dropped.
+    const exclusionColor = getRowExclusionColor(sheet, i);
+    if (exclusionColor) {
+      excluded.push({
+        ticker,
+        portfolio: portfolioName,
+        row: i + 1,
+        color: exclusionColor,
+      });
+      continue;
+    }
 
     const buyShares = asNumber(row[1]);
     const buyPrice = asNumber(row[2]);
@@ -155,7 +207,7 @@ function parsePortfolioSheet(
     });
   }
 
-  return { txns, warnings };
+  return { txns, warnings, excluded };
 }
 
 function parseDividendsSheet(sheet: XLSX.WorkSheet): {
@@ -242,19 +294,28 @@ function parseWealthSheet(sheet: XLSX.WorkSheet): WealthEntry[] {
 }
 
 export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
-  const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
+  // `cellStyles: true` is what makes per-cell `s` (style) available, which
+  // we use to detect rows the user marked with a coloured fill in column A
+  // to opt out of the import.
+  const workbook = XLSX.read(buffer, {
+    type: "array",
+    cellDates: false,
+    cellStyles: true,
+  });
   const transactions: Transaction[] = [];
   const warnings: string[] = [];
+  const excluded: ExcludedRow[] = [];
 
   for (const name of workbook.SheetNames) {
     const lower = name.trim().toLowerCase();
     if (lower.startsWith("portfolio")) {
-      const { txns, warnings: w } = parsePortfolioSheet(
+      const { txns, warnings: w, excluded: ex } = parsePortfolioSheet(
         workbook.Sheets[name],
         name.trim(),
       );
       transactions.push(...txns);
       warnings.push(...w);
+      excluded.push(...ex);
     }
   }
 
@@ -273,7 +334,7 @@ export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
   // Suppress unused symbol warning for the lookup helper
   void PORTFOLIO_SHEETS;
 
-  return { transactions, dividends, interests, wealth, warnings };
+  return { transactions, dividends, interests, wealth, warnings, excluded };
 }
 
 export type Position = {

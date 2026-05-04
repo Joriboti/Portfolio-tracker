@@ -40,6 +40,8 @@
     "confirm": "Importar a la meva cartera",
     "cancel": "Cancel·lar",
     "summary": "{{count}} transaccions, {{tickers}} tickers únics",
+    "excludedTitle": "{{count}} files excloses (marcades amb color a l'Excel)",
+    "excludedHint": "Pots excloure files concretes pintant la cel·la del ticker (columna A) amb qualsevol color de fons. Aquestes no s'importaran al portfoli.",
     "errors": {
       "noSheets": "No s'ha trobat cap full reconegut a l'Excel.",
       "parseFailed": "No s'ha pogut llegir el fitxer. Comprova que segueixi el format correcte."

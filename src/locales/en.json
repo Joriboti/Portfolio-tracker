@@ -40,6 +40,8 @@
     "confirm": "Import into my portfolio",
     "cancel": "Cancel",
     "summary": "{{count}} transactions, {{tickers}} unique tickers",
+    "excludedTitle": "{{count}} rows excluded (marked with colour in the spreadsheet)",
+    "excludedHint": "You can opt out of specific rows by giving the ticker cell (column A) any background colour. Those rows won't be imported into the portfolio.",
     "errors": {
       "noSheets": "No recognized sheet was found in the Excel.",
       "parseFailed": "Could not read the file. Make sure it follows the expected format."

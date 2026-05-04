@@ -124,6 +124,31 @@ function UploadInner() {
             </ul>
           )}
 
+          {parsed.excluded.length > 0 && (
+            <div className="mt-4 rounded-md border border-sky-200 bg-sky-50 p-3 text-sm">
+              <p className="font-medium text-sky-900">
+                {t("upload.excludedTitle", { count: parsed.excluded.length })}
+              </p>
+              <p className="mt-1 text-xs text-sky-800">
+                {t("upload.excludedHint")}
+              </p>
+              <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-sky-900 sm:grid-cols-3">
+                {parsed.excluded.map((e, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span
+                      className="inline-block h-3 w-3 rounded-sm border border-sky-300"
+                      style={{ backgroundColor: `#${e.color}` }}
+                    />
+                    <span className="font-medium">{e.ticker}</span>
+                    <span className="text-sky-700/70">
+                      ({e.portfolio} · row {e.row})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="mt-4 max-h-72 overflow-auto rounded-md border border-slate-200">
             <table className="table-base">
               <thead className="bg-slate-50 sticky top-0">
