@@ -5,13 +5,8 @@ import * as XLSX from "xlsx";
 import { readFileSync } from "node:fs";
 
 const PATH = "C:/Users/barov/Documents/Moviments Jordi.xlsx";
-const FOCUS = new Set([
-  "PYPL",
-  "CPRX",
-  "PALLADIUM",
-  "NBUS",
-  "NBIS",
-]);
+// Set to null to dump everything; an array filters to those tickers.
+const FOCUS = null;
 
 const buf = readFileSync(PATH);
 const wb = XLSX.read(buf, { type: "buffer", cellDates: false });
@@ -61,7 +56,7 @@ for (const sheetName of wb.SheetNames) {
     const row = matrix[i] ?? [];
     const ticker = String(row[0] ?? "").trim();
     if (!ticker) continue;
-    if (!FOCUS.has(ticker.toUpperCase())) continue;
+    if (FOCUS && !FOCUS.has(ticker.toUpperCase())) continue;
 
     const buyShares = row[1];
     const buyPrice = row[2];

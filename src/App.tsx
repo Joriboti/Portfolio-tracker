@@ -4,6 +4,7 @@ import { HomePage } from "@/pages/home";
 import { AuthPage } from "@/pages/auth";
 import { AccountPage } from "@/pages/account";
 import { DashboardPage } from "@/pages/dashboard";
+import { DebugPage } from "@/pages/debug";
 import { UploadPage } from "@/pages/upload";
 import { HowToPreparePage } from "@/pages/how-to-prepare";
 import { DisclaimerPage } from "@/pages/disclaimer";
@@ -14,6 +15,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/debug" element={<DebugPage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/how-to-prepare" element={<HowToPreparePage />} />
         <Route path="/disclaimer" element={<DisclaimerPage />} />
