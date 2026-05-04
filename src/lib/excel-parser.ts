@@ -319,56 +319,97 @@ function dedupeTransactions(txns: Transaction[]): Transaction[] {
 // genuinely small but valuable holdings (e.g. 0.001 BTC).
 const DUST_COST_EUR = 1;
 
-export function aggregatePositions(txns: Transaction[]): Position[] {
-  // Aggregate using FIFO-ish weighted average. Simple model:
-  //   - Sum buy shares & cost.
-  //   - Subtract sell shares (proportional cost reduction).
-  //   - Realized P&L = sum of `result` from sell rows.
-  const deduped = dedupeTransactions(txns);
-  const map = new Map<
-    string,
-    {
-      buyShares: number;
-      buyCost: number;
-      soldShares: number;
-      realizedPL: number;
-    }
-  >();
+type Lot = { shares: number; cost: number };
+type Event =
+  | { kind: "buy"; date: string; shares: number; cost: number }
+  | { kind: "sell"; date: string; shares: number; result: number };
 
+export function aggregatePositions(txns: Transaction[]): Position[] {
+  // FIFO lot accounting. Each buy adds a lot; each sell consumes shares
+  // from the OLDEST lots first, removing their proportional cost basis.
+  // The avg cost shown for an open position is the weighted average of
+  // the lots that actually remain — so a ticker that was fully sold and
+  // later rebought at different prices reflects only the new lots, like
+  // Trading 212 / IBKR / etc. would show. Realized P&L still sums the
+  // broker-reported `result` column directly.
+  const deduped = dedupeTransactions(txns);
+
+  const byTicker = new Map<string, Transaction[]>();
   for (const t of deduped) {
-    const cur = map.get(t.ticker) ?? {
-      buyShares: 0,
-      buyCost: 0,
-      soldShares: 0,
-      realizedPL: 0,
-    };
-    if (t.buyPrice != null && t.shares > 0) {
-      cur.buyShares += t.shares;
-      cur.buyCost += t.buyValue ?? t.shares * t.buyPrice;
-    }
-    if (t.sellShares != null) {
-      cur.soldShares += t.sellShares;
-      cur.realizedPL += t.result ?? 0;
-    }
-    map.set(t.ticker, cur);
+    const list = byTicker.get(t.ticker) ?? [];
+    list.push(t);
+    byTicker.set(t.ticker, list);
   }
 
   const positions: Position[] = [];
-  for (const [ticker, agg] of map) {
-    const remaining = agg.buyShares - agg.soldShares;
-    if (remaining <= 1e-6 && agg.realizedPL === 0) continue;
-    const avgCost = agg.buyShares > 0 ? agg.buyCost / agg.buyShares : 0;
-    const remainingValue = avgCost * Math.max(remaining, 0);
+  for (const [ticker, tlist] of byTicker) {
+    const events: Event[] = [];
+    for (const t of tlist) {
+      if (t.buyPrice != null && t.shares > 0) {
+        events.push({
+          kind: "buy",
+          date: t.buyDate ?? "9999-12-31",
+          shares: t.shares,
+          cost: t.buyValue ?? t.shares * t.buyPrice,
+        });
+      }
+      if (t.sellShares != null && t.sellShares > 0) {
+        events.push({
+          kind: "sell",
+          date: t.sellDate ?? "9999-12-31",
+          shares: t.sellShares,
+          result: t.result ?? 0,
+        });
+      }
+    }
+    // Sort events chronologically. Buys before sells on the same day so
+    // a same-day buy-and-sell can be matched against the new lot.
+    events.sort((a, b) => {
+      const cmp = a.date.localeCompare(b.date);
+      if (cmp !== 0) return cmp;
+      return a.kind === "buy" ? -1 : 1;
+    });
+
+    const lots: Lot[] = [];
+    let realizedPL = 0;
+
+    for (const ev of events) {
+      if (ev.kind === "buy") {
+        lots.push({ shares: ev.shares, cost: ev.cost });
+        continue;
+      }
+      let remaining = ev.shares;
+      while (remaining > 1e-9 && lots.length > 0) {
+        const lot = lots[0];
+        if (lot.shares <= remaining + 1e-9) {
+          remaining -= lot.shares;
+          lots.shift();
+        } else {
+          const pct = remaining / lot.shares;
+          lot.cost = lot.cost - lot.cost * pct;
+          lot.shares = lot.shares - remaining;
+          remaining = 0;
+        }
+      }
+      realizedPL += ev.result;
+    }
+
+    const remainingShares = lots.reduce((s, l) => s + l.shares, 0);
+    const remainingCost = lots.reduce((s, l) => s + l.cost, 0);
+
+    if (remainingShares <= 1e-6 && realizedPL === 0) continue;
+
+    const avgCost = remainingShares > 0 ? remainingCost / remainingShares : 0;
     // A position counts as "open" only if there's a meaningful amount of
-    // cost left in it. This collapses dust residues (e.g. 0.0001 shares
-    // left after a sale) into the closed bucket.
-    const isOpen = remainingValue >= DUST_COST_EUR;
+    // cost left in it. Collapses dust (e.g. 0.0001 shares left over from
+    // rounding in a "sold all" transaction) into the closed bucket.
+    const isOpen = remainingCost >= DUST_COST_EUR;
     positions.push({
       ticker,
-      shares: Math.max(remaining, 0),
-      totalCost: remainingValue,
+      shares: Math.max(remainingShares, 0),
+      totalCost: Math.max(remainingCost, 0),
       avgCost,
-      realizedPL: agg.realizedPL,
+      realizedPL,
       isOpen,
     });
   }

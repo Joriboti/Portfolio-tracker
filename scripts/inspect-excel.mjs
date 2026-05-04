@@ -5,7 +5,13 @@ import * as XLSX from "xlsx";
 import { readFileSync } from "node:fs";
 
 const PATH = "C:/Users/barov/Documents/Moviments Jordi.xlsx";
-const FOCUS = new Set(["HIMS", "HOOD", "MU", "IAG", "SMCI"]);
+const FOCUS = new Set([
+  "PYPL",
+  "CPRX",
+  "PALLADIUM",
+  "NBUS",
+  "NBIS",
+]);
 
 const buf = readFileSync(PATH);
 const wb = XLSX.read(buf, { type: "buffer", cellDates: false });

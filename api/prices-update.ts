@@ -42,20 +42,24 @@ const TICKER_MAP: Record<string, string> = {
   ADA: "ADA-USD",
   SOL: "SOL-USD",
   DOT: "DOT-USD",
+  // The user's broker records the Nebius Group ticker as "NBUS" (typo)
+  // — Yahoo's actual symbol is NBIS.
+  NBUS: "NBIS",
+  NBIS: "NBIS",
+  // The user holds physical-palladium ETC (iShares, listed on Borsa
+  // Italiana). Yahoo: SPDM.MI, price ~36 EUR — matches the ~34.61 EUR
+  // avg-cost recorded in the broker export.
+  PALLADIUM: "SPDM.MI",
 };
 
-// Tickers to skip. Commodities are intentionally NOT mapped: Yahoo's
-// continuous-futures symbols (GC=F gold, SI=F silver, PL=F platinum,
-// PA=F palladium) quote the full troy-ounce price, but the user's broker
-// records these positions in a different unit (likely grams or fractions),
-// which would inflate the portfolio value by orders of magnitude. Until we
-// know the correct ETF / CFD ticker per holding, we leave them unfetched.
+// Tickers to skip. Yahoo's continuous-futures symbols (GC=F gold, SI=F
+// silver, PL=F platinum) quote the full troy-ounce price while the broker
+// records these positions in a different unit, so the resulting market
+// value would be inflated by orders of magnitude.
 const SKIP_TICKERS = new Set<string>([
-  "NBUS",
   "GOLD",
   "SILVER",
   "PLATINUM",
-  "PALLADIUM",
 ]);
 
 function mapTicker(raw: string): string | null {

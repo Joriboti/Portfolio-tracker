@@ -7,14 +7,15 @@ yahooFinance.suppressNotices?.(["yahooSurvey"]);
 yahooFinance.setGlobalConfig?.({ validation: { logErrors: false } });
 
 const SAMPLES = [
-  "IAG.MC",
-  "IAG.L",
-  "IAG.MX",
-  "BBVA.MC",
-  "SAB.MC",
-  "HIMS",
-  "HOOD",
-  "MU",
+  // Physical palladium ETFs — try several to see what Yahoo returns
+  "PHPD.L",   // WisdomTree Physical Palladium (London, USD-quoted in p)
+  "PHPD.MI",  // Milan
+  "PALL",     // abrdn Physical Palladium NYSE Arca
+  "WPAL.SW",  // Swiss
+  "PHPM.L",   // Royal Mint Physical Palladium
+  "0W30.L",   // alt code
+  // Nebius Group (the real ticker behind the user's "NBUS" typo)
+  "NBIS",
 ];
 
 const t0 = Date.now();
