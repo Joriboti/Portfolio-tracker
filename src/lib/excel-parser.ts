@@ -100,6 +100,33 @@ function asNumber(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+// Date columns get special treatment because `cellStyles: true` (which we
+// need for the row-exclusion feature) makes `sheet_to_json` return JS
+// Date objects for date-typed cells *despite* `cellDates: false`. A plain
+// `asNumber(row[i])` therefore yields null and the FIFO sort sends every
+// transaction to "9999-12-31", scrambling cost basis. This helper accepts
+// the cell as either an Excel serial (number), a Date object (interpreted
+// in local time so the spreadsheet's calendar day is preserved), or a
+// pre-formatted ISO string, and always emits an ISO yyyy-mm-dd or null.
+function asDateISO(v: unknown): string | null {
+  if (v == null || v === "") return null;
+  if (v instanceof Date) {
+    if (Number.isNaN(v.getTime())) return null;
+    const yyyy = v.getFullYear();
+    const mm = String(v.getMonth() + 1).padStart(2, "0");
+    const dd = String(v.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  if (typeof v === "number") return excelSerialToISO(v);
+  if (typeof v === "string") {
+    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+    const n = parseFloat(v.replace(",", "."));
+    if (Number.isFinite(n)) return excelSerialToISO(n);
+  }
+  return null;
+}
+
 function asString(v: unknown): string | null {
   if (v == null) return null;
   const s = String(v).trim();
@@ -180,12 +207,12 @@ function parsePortfolioSheet(
     const buyShares = asNumber(row[1]);
     const buyPrice = asNumber(row[2]);
     const buyValue = asNumber(row[3]);
-    const buyDate = asNumber(row[4]);
+    const buyDate = asDateISO(row[4]);
 
     const sellShares = asNumber(row[5]);
     const sellPrice = asNumber(row[6]);
     const sellValue = asNumber(row[7]);
-    const sellDate = asNumber(row[8]);
+    const sellDate = asDateISO(row[8]);
     const result = asNumber(row[9]);
 
     const isBuy = buyShares != null && buyPrice != null;
@@ -197,11 +224,11 @@ function parsePortfolioSheet(
       shares: isBuy ? (buyShares ?? 0) : 0,
       buyPrice: isBuy ? buyPrice : null,
       buyValue: isBuy ? buyValue : null,
-      buyDate: isBuy && buyDate != null ? excelSerialToISO(buyDate) : null,
+      buyDate: isBuy ? buyDate : null,
       sellShares: isSell ? sellShares : null,
       sellPrice: isSell ? sellPrice : null,
       sellValue: isSell ? sellValue : null,
-      sellDate: isSell && sellDate != null ? excelSerialToISO(sellDate) : null,
+      sellDate: isSell ? sellDate : null,
       result,
       portfolio: portfolioName,
     });
@@ -224,18 +251,18 @@ function parseDividendsSheet(sheet: XLSX.WorkSheet): {
   for (const row of matrix) {
     if (!row) continue;
 
-    const intDate = asNumber(row[0]);
+    const intDate = asDateISO(row[0]);
     const intAmount = asNumber(row[1]);
     if (intDate != null && intAmount != null) {
       interests.push({
-        date: excelSerialToISO(intDate),
+        date: intDate,
         amount: intAmount,
       });
     }
 
     const divTicker = asString(row[4]);
     const divAmount = asNumber(row[5]);
-    const divDate = asNumber(row[6]);
+    const divDate = asDateISO(row[6]);
     if (
       divTicker &&
       divTicker.toLowerCase() !== "dividends" &&
@@ -244,7 +271,7 @@ function parseDividendsSheet(sheet: XLSX.WorkSheet): {
       dividends.push({
         ticker: divTicker,
         amount: divAmount,
-        date: divDate != null ? excelSerialToISO(divDate) : null,
+        date: divDate,
       });
     }
   }
