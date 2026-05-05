@@ -377,23 +377,30 @@ function ClosedPositionsTable({
         </tr>
       </thead>
       <tbody>
-        {sorted.map((p) => (
-          <tr key={p.ticker}>
-            <td className="font-medium">{p.ticker}</td>
-            <td className="text-right">{formatMoney(p.avgCost, currency)}</td>
-            <td
-              className={`text-right ${
-                p.realizedPL > 0
-                  ? "text-brand-700"
-                  : p.realizedPL < 0
-                    ? "text-rose-600"
-                    : ""
-              }`}
-            >
-              {formatMoney(p.realizedPL, currency)}
-            </td>
-          </tr>
-        ))}
+        {sorted.map((p) => {
+          // For closed positions the FIFO `avgCost` is either 0 (no
+          // remaining lots) or skewed by rounding-dust; the historical
+          // weighted-average across all original buys is what the user
+          // means by "what did I pay for this".
+          const displayAvg = p.historicalAvgCost || p.avgCost;
+          return (
+            <tr key={p.ticker}>
+              <td className="font-medium">{p.ticker}</td>
+              <td className="text-right">{formatMoney(displayAvg, currency)}</td>
+              <td
+                className={`text-right ${
+                  p.realizedPL > 0
+                    ? "text-brand-700"
+                    : p.realizedPL < 0
+                      ? "text-rose-600"
+                      : ""
+                }`}
+              >
+                {formatMoney(p.realizedPL, currency)}
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

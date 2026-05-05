@@ -371,6 +371,14 @@ export type Position = {
   avgCost: number;
   realizedPL: number;
   isOpen: boolean;
+  /**
+   * Weighted average buy price across ALL historical buys for the
+   * ticker (not just the FIFO lots that remain). Used for closed
+   * positions where `avgCost` is meaningless because there are no
+   * remaining lots — this lets the closed table still show "I bought
+   * this at X on average" rather than 0,00 € or a dust-induced number.
+   */
+  historicalAvgCost: number;
 };
 
 // Drop transactions that are byte-for-byte the same record. The user's
@@ -460,10 +468,17 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
 
     const lots: Lot[] = [];
     let realizedPL = 0;
+    // Track the historical buy totals before any FIFO consumption, so
+    // we can still report a meaningful "average buy price" for closed
+    // positions where the FIFO lots are gone.
+    let buyTotalShares = 0;
+    let buyTotalCost = 0;
 
     for (const ev of events) {
       if (ev.kind === "buy") {
         lots.push({ shares: ev.shares, cost: ev.cost });
+        buyTotalShares += ev.shares;
+        buyTotalCost += ev.cost;
         continue;
       }
       let remaining = ev.shares;
@@ -488,6 +503,8 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
     if (remainingShares <= 1e-6 && realizedPL === 0) continue;
 
     const avgCost = remainingShares > 0 ? remainingCost / remainingShares : 0;
+    const historicalAvgCost =
+      buyTotalShares > 0 ? buyTotalCost / buyTotalShares : 0;
     // A position counts as "open" only if there's a meaningful amount of
     // cost left in it. Collapses dust (e.g. 0.0001 shares left over from
     // rounding in a "sold all" transaction) into the closed bucket.
@@ -499,6 +516,7 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
       avgCost,
       realizedPL,
       isOpen,
+      historicalAvgCost,
     });
   }
 
