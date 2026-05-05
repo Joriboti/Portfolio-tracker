@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { AuthGuard } from "@/components/AuthGuard";
 import { HomePage } from "@/pages/home";
 import { AuthPage } from "@/pages/auth";
 import { AccountPage } from "@/pages/account";
@@ -9,21 +10,28 @@ import { UploadPage } from "@/pages/upload";
 import { HowToPreparePage } from "@/pages/how-to-prepare";
 import { DisclaimerPage } from "@/pages/disclaimer";
 
+// Wrap any page that should require an authenticated session. The auth
+// routes themselves stay public so the user can actually sign in.
+function Private({ children }: { children: React.ReactNode }) {
+  return <AuthGuard>{children}</AuthGuard>;
+}
+
 export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/debug" element={<DebugPage />} />
-        <Route path="/upload" element={<UploadPage />} />
-        <Route path="/how-to-prepare" element={<HowToPreparePage />} />
-        <Route path="/disclaimer" element={<DisclaimerPage />} />
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/account/:pathname" element={<AccountPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/:pathname" element={<AuthPage />} />
-        <Route path="*" element={<HomePage />} />
+
+        <Route path="/" element={<Private><HomePage /></Private>} />
+        <Route path="/dashboard" element={<Private><DashboardPage /></Private>} />
+        <Route path="/debug" element={<Private><DebugPage /></Private>} />
+        <Route path="/upload" element={<Private><UploadPage /></Private>} />
+        <Route path="/how-to-prepare" element={<Private><HowToPreparePage /></Private>} />
+        <Route path="/disclaimer" element={<Private><DisclaimerPage /></Private>} />
+        <Route path="/account" element={<Private><AccountPage /></Private>} />
+        <Route path="/account/:pathname" element={<Private><AccountPage /></Private>} />
+        <Route path="*" element={<Private><HomePage /></Private>} />
       </Route>
     </Routes>
   );
