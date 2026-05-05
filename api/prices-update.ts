@@ -62,10 +62,24 @@ const SKIP_TICKERS = new Set<string>([
   "PLATINUM",
 ]);
 
+// Must stay in sync with POSITION_ALIASES in src/lib/excel-parser.ts.
+// When a broker uses an alternate name for a ticker (e.g. "TESLA" instead
+// of "TSLA"), the position aggregator merges them under the canonical name.
+// Prices must be stored under that same canonical name so the dashboard
+// can look them up correctly.
+const TICKER_STORAGE_ALIASES: Record<string, string> = {
+  TESLA: "TSLA",
+};
+
 function mapTicker(raw: string): string | null {
   const key = raw.trim().toUpperCase();
   if (SKIP_TICKERS.has(key)) return null;
   return TICKER_MAP[key] ?? key;
+}
+
+function storageKey(original: string): string {
+  const key = original.trim().toUpperCase();
+  return TICKER_STORAGE_ALIASES[key] ?? key;
 }
 
 // "EUR/USD" -> "EURUSD=X" (Yahoo's FX symbol format).
@@ -216,10 +230,11 @@ export default async function handler(
         skipped.push(`${original} (${mapped})`);
         continue;
       }
+      const stored = storageKey(original);
       try {
         await sql`
           INSERT INTO prices (ticker, as_of, price, currency, source)
-          VALUES (${original}, ${now}, ${norm.price}, ${norm.currency}, 'yahoo')
+          VALUES (${stored}, ${now}, ${norm.price}, ${norm.currency}, 'yahoo')
           ON CONFLICT (ticker, as_of) DO UPDATE
             SET price = EXCLUDED.price,
                 currency = EXCLUDED.currency

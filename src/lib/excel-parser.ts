@@ -381,6 +381,19 @@ export type Position = {
   historicalAvgCost: number;
 };
 
+// Some brokerage exports use a longer name for a well-known ticker (e.g.
+// "TESLA" instead of "TSLA"). These aliases are applied at the position-
+// aggregation level so that buys and sells for the same company are always
+// matched against each other regardless of which name the broker used.
+const POSITION_ALIASES: Record<string, string> = {
+  TESLA: "TSLA",
+};
+
+function normalizeTicker(raw: string): string {
+  const upper = raw.trim().toUpperCase();
+  return POSITION_ALIASES[upper] ?? upper;
+}
+
 // Drop transactions that are byte-for-byte the same record. The user's
 // brokerage exports sometimes list the same buy in two sheets (e.g.
 // "Portfolio 1" and "Portfolio 2"), which would double-count cost basis
@@ -432,9 +445,10 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
 
   const byTicker = new Map<string, Transaction[]>();
   for (const t of deduped) {
-    const list = byTicker.get(t.ticker) ?? [];
+    const ticker = normalizeTicker(t.ticker);
+    const list = byTicker.get(ticker) ?? [];
     list.push(t);
-    byTicker.set(t.ticker, list);
+    byTicker.set(ticker, list);
   }
 
   const positions: Position[] = [];
@@ -444,7 +458,12 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
       if (t.buyPrice != null && t.shares > 0) {
         events.push({
           kind: "buy",
-          date: t.buyDate ?? "9999-12-31",
+          // Null buy dates are placed at the very beginning of history so
+          // they participate in FIFO and can be consumed by subsequent sells
+          // (a null date means the broker omitted it, not that it's in the
+          // future). Null sell dates remain at 9999 — if we don't know when
+          // a sale happened we conservatively place it last.
+          date: t.buyDate ?? "1900-01-01",
           shares: t.shares,
           cost: t.buyValue ?? t.shares * t.buyPrice,
         });
@@ -473,12 +492,27 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
     // positions where the FIFO lots are gone.
     let buyTotalShares = 0;
     let buyTotalCost = 0;
+    // "Owed" shares accumulate when a sell arrives before any matching buy
+    // lot exists (e.g. a position opened before the Excel history starts,
+    // or a trade whose buy and sell rows appear out of date order). The owed
+    // counter absorbs the FRONT of subsequent buy lots so that those shares
+    // do not artificially inflate the open position.
+    let owedShares = 0;
 
     for (const ev of events) {
       if (ev.kind === "buy") {
-        lots.push({ shares: ev.shares, cost: ev.cost });
         buyTotalShares += ev.shares;
         buyTotalCost += ev.cost;
+        if (owedShares > 0) {
+          const absorbed = Math.min(owedShares, ev.shares);
+          owedShares -= absorbed;
+          const remainder = ev.shares - absorbed;
+          if (remainder > 1e-9) {
+            lots.push({ shares: remainder, cost: ev.cost * (remainder / ev.shares) });
+          }
+        } else {
+          lots.push({ shares: ev.shares, cost: ev.cost });
+        }
         continue;
       }
       let remaining = ev.shares;
@@ -494,6 +528,9 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
           remaining = 0;
         }
       }
+      // Shares that couldn't be matched against any lot — record the debt so
+      // future buys can cover them without creating phantom open positions.
+      if (remaining > 1e-9) owedShares += remaining;
       realizedPL += ev.result;
     }
 
