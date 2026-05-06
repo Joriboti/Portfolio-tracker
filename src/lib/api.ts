@@ -1,4 +1,4 @@
-import type { Transaction, Dividend, Interest, WealthEntry } from "./excel-parser";
+import type { Transaction, Dividend, Interest, WealthEntry, DividendEvent } from "./excel-parser";
 
 export type PriceQuote = {
   ticker: string;
@@ -79,6 +79,10 @@ function normaliseQuote(q: PriceQuote): PriceQuote {
   return { ...q, price: numReq(q.price) };
 }
 
+function normaliseDividendEvent(e: DividendEvent): DividendEvent {
+  return { ...e, amount: numReq(e.amount) };
+}
+
 export async function getPrices(
   tickers: string[],
 ): Promise<{ quotes: PriceQuote[]; fxRates: Record<string, number> }> {
@@ -115,6 +119,7 @@ export async function getPortfolio(userId: string): Promise<{
   dividends: Dividend[];
   interests: Interest[];
   wealth: WealthEntry[];
+  dividendEvents: DividendEvent[];
   lastPriceUpdate: string | null;
 }> {
   const data = await jsonFetch<{
@@ -122,6 +127,7 @@ export async function getPortfolio(userId: string): Promise<{
     dividends: Dividend[];
     interests: Interest[];
     wealth: WealthEntry[];
+    dividendEvents: DividendEvent[];
     lastPriceUpdate: string | null;
   }>("/api/portfolio-get", { userId });
   return {
@@ -129,6 +135,7 @@ export async function getPortfolio(userId: string): Promise<{
     dividends: (data.dividends ?? []).map(normaliseDividend),
     interests: (data.interests ?? []).map(normaliseInterest),
     wealth: (data.wealth ?? []).map(normaliseWealth),
+    dividendEvents: (data.dividendEvents ?? []).map(normaliseDividendEvent),
     lastPriceUpdate: data.lastPriceUpdate,
   };
 }
@@ -148,4 +155,10 @@ export type RefreshPricesResult = {
 // so a single invocation refreshes everything in one shot.
 export function refreshPrices(userId: string): Promise<RefreshPricesResult> {
   return jsonFetch("/api/prices-update", { method: "GET", userId });
+}
+
+export function refreshDividends(
+  userId: string,
+): Promise<{ ok: boolean; tickersWithDividends?: number; totalEvents?: number }> {
+  return jsonFetch("/api/dividends-update", { method: "GET", userId });
 }

@@ -1,10 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { aggregatePositions, type Position } from "@/lib/excel-parser";
+import {
+  aggregatePositions,
+  computeAutoDividends,
+  type Position,
+  type ComputedDividend,
+} from "@/lib/excel-parser";
 import { convert, formatMoney, formatPct, type Currency } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
-import { getPortfolio, getPrices, refreshPrices, type PriceQuote } from "@/lib/api";
+import {
+  getPortfolio,
+  getPrices,
+  refreshPrices,
+  refreshDividends,
+  type PriceQuote,
+} from "@/lib/api";
 import { AuthGuard } from "@/components/AuthGuard";
 import { useUser } from "@/hooks/useUser";
 
@@ -37,17 +48,23 @@ function DashboardInner() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  async function handleRefreshPrices() {
+  async function handleRefresh() {
     if (!user || refreshing) return;
     setRefreshing(true);
     try {
-      await refreshPrices(user.id);
-      const tickers = openPositions.map((p) => p.ticker);
-      const res = await getPrices(tickers);
+      await Promise.all([
+        refreshPrices(user.id),
+        refreshDividends(user.id),
+      ]);
+      const [priceRes, portfolioRes] = await Promise.all([
+        getPrices(openPositions.map((p) => p.ticker)),
+        getPortfolio(user.id),
+      ]);
       const map: Record<string, PriceQuote> = {};
-      for (const q of res.quotes) map[q.ticker] = q;
+      for (const q of priceRes.quotes) map[q.ticker] = q;
       setQuotes(map);
-      setFxRates(res.fxRates);
+      setFxRates(priceRes.fxRates);
+      setData(portfolioRes);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -72,6 +89,7 @@ function DashboardInner() {
           dividends: [],
           interests: [],
           wealth: [],
+          dividendEvents: [],
           lastPriceUpdate: null,
         });
       })
@@ -93,6 +111,20 @@ function DashboardInner() {
     () => allPositions.filter((p) => !p.isOpen),
     [allPositions],
   );
+
+  const autoDividends = useMemo(
+    () =>
+      data ? computeAutoDividends(data.transactions, data.dividendEvents) : [],
+    [data],
+  );
+
+  const autoDividendsTotal = useMemo(() => {
+    let total = 0;
+    for (const d of autoDividends) {
+      total += toDisplay(d.total, d.currency, currency, fxRates);
+    }
+    return total;
+  }, [autoDividends, currency, fxRates]);
 
   useEffect(() => {
     if (openPositions.length === 0) return;
@@ -139,13 +171,13 @@ function DashboardInner() {
     );
   }
 
-  // The source Excel comes from Trading 212 / similar EU brokers, which
-  // export every column in the user's account currency (EUR). So cost
-  // basis, dividends, and realised P&L are all already EUR — no FX
-  // conversion needed for them. Yahoo on the other hand returns prices
-  // in the listing currency (USD for HIMS, EUR for IAG.MC, …), so the
-  // ONLY thing we convert is `quote.price`.
-  const totalDividends = data.dividends.reduce((s, d) => s + d.amount, 0);
+  const manualDividendsTotal = data.dividends.reduce(
+    (s, d) => s + d.amount,
+    0,
+  );
+  const totalDividends =
+    autoDividends.length > 0 ? autoDividendsTotal : manualDividendsTotal;
+
   const realizedPL = allPositions.reduce((s, p) => s + p.realizedPL, 0);
 
   let totalValue = 0;
@@ -180,11 +212,11 @@ function DashboardInner() {
             </p>
           )}
           <button
-            onClick={() => void handleRefreshPrices()}
+            onClick={() => void handleRefresh()}
             disabled={refreshing}
             className="btn-ghost text-xs px-3 py-1.5"
           >
-            {refreshing ? t("common.loading") : "↻ Refresh prices"}
+            {refreshing ? t("common.loading") : t("dashboard.refresh")}
           </button>
         </div>
       </header>
@@ -227,6 +259,20 @@ function DashboardInner() {
             {t("dashboard.closedPositions")}
           </h2>
           <ClosedPositionsTable positions={closedPositions} currency={currency} />
+        </section>
+      )}
+
+      {autoDividends.length > 0 && (
+        <section className="card overflow-x-auto">
+          <h2 className="text-lg font-medium text-slate-900 mb-3">
+            {t("dashboard.dividendsSection")}
+          </h2>
+          <DividendsTable
+            dividends={autoDividends}
+            positions={allPositions}
+            currency={currency}
+            fxRates={fxRates}
+          />
         </section>
       )}
     </div>
@@ -378,10 +424,6 @@ function ClosedPositionsTable({
       </thead>
       <tbody>
         {sorted.map((p) => {
-          // For closed positions the FIFO `avgCost` is either 0 (no
-          // remaining lots) or skewed by rounding-dust; the historical
-          // weighted-average across all original buys is what the user
-          // means by "what did I pay for this".
           const displayAvg = p.historicalAvgCost || p.avgCost;
           return (
             <tr key={p.ticker}>
@@ -402,6 +444,93 @@ function ClosedPositionsTable({
           );
         })}
       </tbody>
+    </table>
+  );
+}
+
+type TickerDividendSummary = {
+  ticker: string;
+  payments: number;
+  total: number;
+  currency: string;
+};
+
+function DividendsTable({
+  dividends,
+  positions,
+  currency,
+  fxRates,
+}: {
+  dividends: ComputedDividend[];
+  positions: Position[];
+  currency: Currency;
+  fxRates: Record<string, number>;
+}) {
+  const { t } = useTranslation();
+
+  const byTicker = useMemo(() => {
+    const map = new Map<string, TickerDividendSummary>();
+    for (const d of dividends) {
+      const entry = map.get(d.ticker) ?? {
+        ticker: d.ticker,
+        payments: 0,
+        total: 0,
+        currency: d.currency,
+      };
+      entry.payments++;
+      entry.total += toDisplay(d.total, d.currency, currency, fxRates);
+      map.set(d.ticker, entry);
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }, [dividends, currency, fxRates]);
+
+  const costByTicker = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of positions) {
+      const existing = map.get(p.ticker) ?? 0;
+      map.set(p.ticker, existing + (p.totalCost > 0 ? p.totalCost : 0));
+    }
+    return map;
+  }, [positions]);
+
+  const grandTotal = byTicker.reduce((s, d) => s + d.total, 0);
+
+  return (
+    <table className="table-base">
+      <thead>
+        <tr>
+          <th>{t("dashboard.headers.ticker")}</th>
+          <th className="text-right">{t("dashboard.divHeaders.payments")}</th>
+          <th className="text-right">{t("dashboard.divHeaders.total")}</th>
+          <th className="text-right">{t("dashboard.divHeaders.yield")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {byTicker.map((d) => {
+          const cost = costByTicker.get(d.ticker) ?? 0;
+          const yieldOnCost = cost > 0 ? d.total / cost : null;
+          return (
+            <tr key={d.ticker}>
+              <td className="font-medium">{d.ticker}</td>
+              <td className="text-right">{d.payments}</td>
+              <td className="text-right text-brand-700">
+                {formatMoney(d.total, currency)}
+              </td>
+              <td className="text-right">{formatPct(yieldOnCost)}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+      <tfoot>
+        <tr className="font-semibold border-t border-slate-200">
+          <td>Total</td>
+          <td />
+          <td className="text-right text-brand-700">
+            {formatMoney(grandTotal, currency)}
+          </td>
+          <td />
+        </tr>
+      </tfoot>
     </table>
   );
 }

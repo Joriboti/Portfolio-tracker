@@ -364,6 +364,22 @@ export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
   return { transactions, dividends, interests, wealth, warnings, excluded };
 }
 
+export type DividendEvent = {
+  ticker: string;
+  exDate: string;
+  amount: number;
+  currency: string;
+};
+
+export type ComputedDividend = {
+  ticker: string;
+  exDate: string;
+  sharesHeld: number;
+  amountPerShare: number;
+  total: number;
+  currency: string;
+};
+
 export type Position = {
   ticker: string;
   shares: number;
@@ -558,4 +574,50 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
   }
 
   return positions.sort((a, b) => b.totalCost - a.totalCost);
+}
+
+export function computeAutoDividends(
+  txns: Transaction[],
+  events: DividendEvent[],
+): ComputedDividend[] {
+  const deduped = dedupeTransactions(txns);
+
+  const txnsByTicker = new Map<string, Transaction[]>();
+  for (const t of deduped) {
+    const ticker = normalizeTicker(t.ticker);
+    const list = txnsByTicker.get(ticker) ?? [];
+    list.push(t);
+    txnsByTicker.set(ticker, list);
+  }
+
+  const results: ComputedDividend[] = [];
+
+  for (const ev of events) {
+    const tickerTxns = txnsByTicker.get(ev.ticker);
+    if (!tickerTxns) continue;
+
+    let shares = 0;
+    for (const t of tickerTxns) {
+      if (t.buyPrice != null && t.shares > 0) {
+        if ((t.buyDate ?? "1900-01-01") < ev.exDate) shares += t.shares;
+      }
+      if (t.sellShares != null && t.sellShares > 0) {
+        if ((t.sellDate ?? "9999-12-31") < ev.exDate) shares -= t.sellShares;
+      }
+    }
+    shares = Math.max(shares, 0);
+
+    if (shares > 0) {
+      results.push({
+        ticker: ev.ticker,
+        exDate: ev.exDate,
+        sharesHeld: shares,
+        amountPerShare: ev.amount,
+        total: shares * ev.amount,
+        currency: ev.currency,
+      });
+    }
+  }
+
+  return results;
 }

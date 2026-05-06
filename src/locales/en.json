@@ -61,6 +61,8 @@
     "noPositions": "You don't have any positions yet. Upload an Excel to get started.",
     "lastUpdated": "Prices last updated: {{when}}",
     "currency": "Display currency",
+    "refresh": "↻ Refresh",
+    "dividendsSection": "Dividends received per ticker",
     "headers": {
       "ticker": "Ticker",
       "shares": "Shares",
@@ -70,6 +72,11 @@
       "cost": "Cost",
       "pl": "P&L",
       "plPct": "P&L %"
+    },
+    "divHeaders": {
+      "payments": "Payments",
+      "total": "Total received",
+      "yield": "Yield"
     }
   },
   "howTo": {

@@ -61,6 +61,8 @@
     "noPositions": "Encara no tens posicions. Puja un Excel per començar.",
     "lastUpdated": "Darrera actualització de preus: {{when}}",
     "currency": "Divisa de visualització",
+    "refresh": "↻ Actualitza",
+    "dividendsSection": "Dividends rebuts per ticker",
     "headers": {
       "ticker": "Ticker",
       "shares": "Títols",
@@ -70,6 +72,11 @@
       "cost": "Cost",
       "pl": "P&L",
       "plPct": "P&L %"
+    },
+    "divHeaders": {
+      "payments": "Pagaments",
+      "total": "Total rebut",
+      "yield": "Rendiment"
     }
   },
   "howTo": {

@@ -99,3 +99,17 @@ SELECT DISTINCT ON (currency)
   rate
 FROM fx_rates
 ORDER BY currency, as_of DESC;
+
+-- Per-ticker dividend history fetched from Yahoo Finance. Shared (no user_id).
+CREATE TABLE IF NOT EXISTS dividend_events (
+  ticker      TEXT NOT NULL,
+  ex_date     DATE NOT NULL,
+  amount      NUMERIC(20, 8) NOT NULL,
+  currency    TEXT NOT NULL DEFAULT 'USD',
+  source      TEXT NOT NULL DEFAULT 'yahoo',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (ticker, ex_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dividend_events_ticker
+  ON dividend_events (ticker);
