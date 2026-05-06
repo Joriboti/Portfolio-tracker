@@ -74,7 +74,10 @@ type YahooQuote = {
   currency?: string | null;
 };
 
-type DivHistRow = { date: Date | string; dividends: number };
+type ChartDivEvent = { date: Date | string; amount: number };
+type ChartResult = {
+  events?: { dividends?: ChartDivEvent[] };
+};
 
 export default async function handler(
   req: VercelRequest,
@@ -110,7 +113,7 @@ export default async function handler(
       opts?: { suppressNotices?: string[] },
     ) => {
       quote: (symbol: string | string[]) => Promise<unknown>;
-      historical: (
+      chart: (
         symbol: string,
         opts: Record<string, unknown>,
       ) => Promise<unknown>;
@@ -172,12 +175,13 @@ export default async function handler(
 
     for (const { original, mapped } of work) {
       try {
-        const history = (await yahooFinance.historical(mapped, {
+        const chartData = (await yahooFinance.chart(mapped, {
           period1: "2010-01-01",
-          events: "dividends",
-        })) as DivHistRow[];
+          events: "div",
+        })) as ChartResult;
 
-        if (!Array.isArray(history) || history.length === 0) {
+        const divEvents = chartData?.events?.dividends;
+        if (!Array.isArray(divEvents) || divEvents.length === 0) {
           skipped.push(`${original} (no dividends)`);
           continue;
         }
@@ -185,13 +189,13 @@ export default async function handler(
         const stored = storageKey(original);
         const { divisor, currency } = normalizeCurrency(mapped);
 
-        for (const row of history) {
-          if (!row.date || !row.dividends) continue;
+        for (const row of divEvents) {
+          if (!row.date || !row.amount) continue;
           const exDate =
             row.date instanceof Date
               ? row.date.toISOString().slice(0, 10)
               : String(row.date).slice(0, 10);
-          const amount = row.dividends / divisor;
+          const amount = row.amount / divisor;
 
           await sql`
             INSERT INTO dividend_events (ticker, ex_date, amount, currency, source)
