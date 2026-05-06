@@ -173,43 +173,52 @@ export default async function handler(
     const errors: string[] = [];
     const skipped: string[] = [];
 
-    for (const { original, mapped } of work) {
-      try {
-        const chartData = (await yahooFinance.chart(mapped, {
-          period1: "2010-01-01",
-          events: "div",
-        })) as ChartResult;
+    const BATCH = 8;
+    for (let i = 0; i < work.length; i += BATCH) {
+      const batch = work.slice(i, i + BATCH);
+      await Promise.all(
+        batch.map(async ({ original, mapped }) => {
+          try {
+            const chartData = (await yahooFinance.chart(mapped, {
+              period1: "2010-01-01",
+              events: "div",
+            })) as ChartResult;
 
-        const divEvents = chartData?.events?.dividends;
-        if (!Array.isArray(divEvents) || divEvents.length === 0) {
-          skipped.push(`${original} (no dividends)`);
-          continue;
-        }
+            const divEvents = chartData?.events?.dividends;
+            if (!Array.isArray(divEvents) || divEvents.length === 0) {
+              skipped.push(`${original} (no dividends)`);
+              return;
+            }
 
-        const stored = storageKey(original);
-        const { divisor, currency } = normalizeCurrency(mapped);
+            const stored = storageKey(original);
+            const { divisor, currency } = normalizeCurrency(mapped);
 
-        for (const row of divEvents) {
-          if (!row.date || !row.amount) continue;
-          const exDate =
-            row.date instanceof Date
-              ? row.date.toISOString().slice(0, 10)
-              : String(row.date).slice(0, 10);
-          const amount = row.amount / divisor;
+            const rows: Array<{ exDate: string; amount: number }> = [];
+            for (const row of divEvents) {
+              if (!row.date || !row.amount) continue;
+              const exDate =
+                row.date instanceof Date
+                  ? row.date.toISOString().slice(0, 10)
+                  : String(row.date).slice(0, 10);
+              rows.push({ exDate, amount: row.amount / divisor });
+            }
 
-          await sql`
-            INSERT INTO dividend_events (ticker, ex_date, amount, currency, source)
-            VALUES (${stored}, ${exDate}, ${amount}, ${currency}, 'yahoo')
-            ON CONFLICT (ticker, ex_date) DO UPDATE
-              SET amount = EXCLUDED.amount,
-                  currency = EXCLUDED.currency
-          `;
-          totalEvents++;
-        }
-        tickersWithDividends++;
-      } catch (e) {
-        errors.push(`${original}: ${(e as Error).message}`);
-      }
+            for (const { exDate, amount } of rows) {
+              await sql`
+                INSERT INTO dividend_events (ticker, ex_date, amount, currency, source)
+                VALUES (${stored}, ${exDate}, ${amount}, ${currency}, 'yahoo')
+                ON CONFLICT (ticker, ex_date) DO UPDATE
+                  SET amount = EXCLUDED.amount,
+                      currency = EXCLUDED.currency
+              `;
+            }
+            totalEvents += rows.length;
+            tickersWithDividends++;
+          } catch (e) {
+            errors.push(`${original}: ${(e as Error).message}`);
+          }
+        }),
+      );
     }
 
     const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
