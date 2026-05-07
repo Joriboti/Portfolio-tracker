@@ -63,6 +63,8 @@
     "currency": "Display currency",
     "refresh": "↻ Refresh",
     "dividendsSection": "Dividends received per ticker",
+    "yearAll": "All",
+    "yearPL": "Realized P&L {{year}}",
     "headers": {
       "ticker": "Ticker",
       "shares": "Shares",

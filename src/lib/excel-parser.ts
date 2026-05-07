@@ -576,6 +576,38 @@ export function aggregatePositions(txns: Transaction[]): Position[] {
   return positions.sort((a, b) => b.totalCost - a.totalCost);
 }
 
+export type YearlyPL = {
+  year: number;
+  total: number;
+  byTicker: { ticker: string; pl: number }[];
+};
+
+export function computeRealizedPLByYear(txns: Transaction[]): YearlyPL[] {
+  const deduped = dedupeTransactions(txns);
+  const yearMap = new Map<number, Map<string, number>>();
+
+  for (const t of deduped) {
+    if (t.sellShares == null || t.sellShares <= 0 || t.result == null) continue;
+    const year = t.sellDate ? parseInt(t.sellDate.slice(0, 4), 10) : null;
+    if (!year || !Number.isFinite(year)) continue;
+
+    const ticker = normalizeTicker(t.ticker);
+    if (!yearMap.has(year)) yearMap.set(year, new Map());
+    const tickerMap = yearMap.get(year)!;
+    tickerMap.set(ticker, (tickerMap.get(ticker) ?? 0) + t.result);
+  }
+
+  const results: YearlyPL[] = [];
+  for (const [year, tickerMap] of yearMap) {
+    const byTicker = [...tickerMap.entries()]
+      .map(([ticker, pl]) => ({ ticker, pl }))
+      .sort((a, b) => b.pl - a.pl);
+    results.push({ year, total: byTicker.reduce((s, t) => s + t.pl, 0), byTicker });
+  }
+
+  return results.sort((a, b) => b.year - a.year);
+}
+
 export function computeAutoDividends(
   txns: Transaction[],
   events: DividendEvent[],

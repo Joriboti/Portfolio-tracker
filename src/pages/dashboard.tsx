@@ -4,8 +4,10 @@ import { useTranslation } from "react-i18next";
 import {
   aggregatePositions,
   computeAutoDividends,
+  computeRealizedPLByYear,
   type Position,
   type ComputedDividend,
+  type YearlyPL,
 } from "@/lib/excel-parser";
 import { convert, formatMoney, formatPct, type Currency } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
@@ -47,6 +49,7 @@ function DashboardInner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
   async function handleRefresh() {
     if (!user || refreshing) return;
@@ -125,6 +128,11 @@ function DashboardInner() {
     }
     return total;
   }, [autoDividends, currency, fxRates]);
+
+  const yearlyPL = useMemo(
+    () => (data ? computeRealizedPLByYear(data.transactions) : []),
+    [data],
+  );
 
   useEffect(() => {
     if (openPositions.length === 0) return;
@@ -258,7 +266,20 @@ function DashboardInner() {
           <h2 className="text-lg font-medium text-slate-900 mb-3">
             {t("dashboard.closedPositions")}
           </h2>
-          <ClosedPositionsTable positions={closedPositions} currency={currency} />
+          {yearlyPL.length > 0 && (
+            <YearSelector
+              yearlyPL={yearlyPL}
+              selectedYear={selectedYear}
+              onSelect={setSelectedYear}
+              currency={currency}
+            />
+          )}
+          <ClosedPositionsTable
+            positions={closedPositions}
+            currency={currency}
+            yearlyPL={yearlyPL}
+            selectedYear={selectedYear}
+          />
         </section>
       )}
 
@@ -402,17 +423,102 @@ function PositionsTable({
   );
 }
 
-function ClosedPositionsTable({
-  positions,
+function YearSelector({
+  yearlyPL,
+  selectedYear,
+  onSelect,
   currency,
 }: {
-  positions: Position[];
+  yearlyPL: YearlyPL[];
+  selectedYear: number | null;
+  onSelect: (year: number | null) => void;
   currency: Currency;
 }) {
   const { t } = useTranslation();
-  const sorted = [...positions].sort(
-    (a, b) => Math.abs(b.realizedPL) - Math.abs(a.realizedPL),
+  const activeData = selectedYear
+    ? yearlyPL.find((y) => y.year === selectedYear)
+    : null;
+
+  return (
+    <div className="mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <button
+          onClick={() => onSelect(null)}
+          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            selectedYear === null
+              ? "bg-brand-600 text-white"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          {t("dashboard.yearAll")}
+        </button>
+        {yearlyPL.map((y) => (
+          <button
+            key={y.year}
+            onClick={() => onSelect(y.year === selectedYear ? null : y.year)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              selectedYear === y.year
+                ? "bg-brand-600 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {y.year}
+          </button>
+        ))}
+      </div>
+      {activeData && (
+        <p className={`text-sm font-semibold ${
+          activeData.total > 0 ? "text-brand-700" : activeData.total < 0 ? "text-rose-600" : "text-slate-900"
+        }`}>
+          {t("dashboard.yearPL", { year: activeData.year })}:{" "}
+          {formatMoney(activeData.total, currency)}
+        </p>
+      )}
+    </div>
   );
+}
+
+function ClosedPositionsTable({
+  positions,
+  currency,
+  yearlyPL,
+  selectedYear,
+}: {
+  positions: Position[];
+  currency: Currency;
+  yearlyPL?: YearlyPL[];
+  selectedYear?: number | null;
+}) {
+  const { t } = useTranslation();
+
+  const activeYearData = selectedYear
+    ? yearlyPL?.find((y) => y.year === selectedYear)
+    : null;
+
+  const rows = useMemo(() => {
+    if (!activeYearData) {
+      return [...positions]
+        .sort((a, b) => Math.abs(b.realizedPL) - Math.abs(a.realizedPL))
+        .map((p) => ({
+          ticker: p.ticker,
+          avgCost: p.historicalAvgCost || p.avgCost,
+          pl: p.realizedPL,
+        }));
+    }
+    return activeYearData.byTicker
+      .map((t) => {
+        const pos = positions.find((p) => p.ticker === t.ticker);
+        return {
+          ticker: t.ticker,
+          avgCost: pos ? pos.historicalAvgCost || pos.avgCost : 0,
+          pl: t.pl,
+        };
+      })
+      .sort((a, b) => Math.abs(b.pl) - Math.abs(a.pl));
+  }, [positions, activeYearData]);
+
+  const total = rows.reduce((s, r) => s + r.pl, 0);
+
   return (
     <table className="table-base">
       <thead>
@@ -423,27 +529,37 @@ function ClosedPositionsTable({
         </tr>
       </thead>
       <tbody>
-        {sorted.map((p) => {
-          const displayAvg = p.historicalAvgCost || p.avgCost;
-          return (
-            <tr key={p.ticker}>
-              <td className="font-medium">{p.ticker}</td>
-              <td className="text-right">{formatMoney(displayAvg, currency)}</td>
-              <td
-                className={`text-right ${
-                  p.realizedPL > 0
-                    ? "text-brand-700"
-                    : p.realizedPL < 0
-                      ? "text-rose-600"
-                      : ""
-                }`}
-              >
-                {formatMoney(p.realizedPL, currency)}
-              </td>
-            </tr>
-          );
-        })}
+        {rows.map((r) => (
+          <tr key={r.ticker}>
+            <td className="font-medium">{r.ticker}</td>
+            <td className="text-right">{formatMoney(r.avgCost, currency)}</td>
+            <td
+              className={`text-right ${
+                r.pl > 0
+                  ? "text-brand-700"
+                  : r.pl < 0
+                    ? "text-rose-600"
+                    : ""
+              }`}
+            >
+              {formatMoney(r.pl, currency)}
+            </td>
+          </tr>
+        ))}
       </tbody>
+      <tfoot>
+        <tr className="font-semibold border-t border-slate-200">
+          <td>Total</td>
+          <td />
+          <td
+            className={`text-right ${
+              total > 0 ? "text-brand-700" : total < 0 ? "text-rose-600" : ""
+            }`}
+          >
+            {formatMoney(total, currency)}
+          </td>
+        </tr>
+      </tfoot>
     </table>
   );
 }

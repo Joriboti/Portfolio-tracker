@@ -63,6 +63,8 @@
     "currency": "Divisa de visualització",
     "refresh": "↻ Actualitza",
     "dividendsSection": "Dividends rebuts per ticker",
+    "yearAll": "Tot",
+    "yearPL": "P&L realitzat {{year}}",
     "headers": {
       "ticker": "Ticker",
       "shares": "Títols",
