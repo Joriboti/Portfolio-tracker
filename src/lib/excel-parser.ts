@@ -867,8 +867,8 @@ export function computeAutoDividends(
 
     let shares = 0;
     for (const t of tickerTxns) {
-      if (t.buyPrice != null && t.shares > 0) {
-        if ((t.buyDate ?? "1900-01-01") < ev.exDate) shares += t.shares;
+      if (t.buyPrice != null && t.shares > 0 && t.buyDate != null) {
+        if (t.buyDate < ev.exDate) shares += t.shares;
       }
       if (t.sellShares != null && t.sellShares > 0) {
         if ((t.sellDate ?? "9999-12-31") < ev.exDate) shares -= t.sellShares;
