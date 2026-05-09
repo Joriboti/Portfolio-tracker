@@ -121,13 +121,23 @@ function DashboardInner() {
     [data],
   );
 
+  const openTickers = useMemo(
+    () => new Set(openPositions.map((p) => p.ticker)),
+    [openPositions],
+  );
+
+  const openAutoDividends = useMemo(
+    () => autoDividends.filter((d) => openTickers.has(d.ticker)),
+    [autoDividends, openTickers],
+  );
+
   const autoDividendsTotal = useMemo(() => {
     let total = 0;
-    for (const d of autoDividends) {
+    for (const d of openAutoDividends) {
       total += toDisplay(d.total, d.currency, currency, fxRates);
     }
     return total;
-  }, [autoDividends, currency, fxRates]);
+  }, [openAutoDividends, currency, fxRates]);
 
   const yearlyPL = useMemo(
     () => (data ? computeRealizedPLByYear(data.transactions) : []),
@@ -184,7 +194,7 @@ function DashboardInner() {
     0,
   );
   const totalDividends =
-    autoDividends.length > 0 ? autoDividendsTotal : manualDividendsTotal;
+    openAutoDividends.length > 0 ? autoDividendsTotal : manualDividendsTotal;
 
   const realizedPL = allPositions.reduce((s, p) => s + p.realizedPL, 0);
 
@@ -283,14 +293,14 @@ function DashboardInner() {
         </section>
       )}
 
-      {autoDividends.length > 0 && (
+      {openAutoDividends.length > 0 && (
         <section className="card overflow-x-auto">
           <h2 className="text-lg font-medium text-slate-900 mb-3">
             {t("dashboard.dividendsSection")}
           </h2>
           <DividendsTable
-            dividends={autoDividends}
-            positions={allPositions}
+            dividends={openAutoDividends}
+            positions={openPositions}
             currency={currency}
             fxRates={fxRates}
           />

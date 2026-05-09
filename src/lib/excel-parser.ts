@@ -158,15 +158,23 @@ function getRowExclusionColor(
   return rgb.length === 8 ? rgb.slice(2) : rgb;
 }
 
-function findHeaderRow(matrix: unknown[][]): number {
+type SheetFormat = "moviments" | "cartera";
+
+function findHeaderRow(
+  matrix: unknown[][],
+): { row: number; format: SheetFormat } | null {
   for (let i = 0; i < Math.min(matrix.length, 10); i++) {
     const row = matrix[i] ?? [];
     const cells = row.map((c) => String(c ?? "").toLowerCase());
     if (cells.some((c) => c === "nom") && cells.some((c) => c.includes("titol"))) {
-      return i;
+      return { row: i, format: "moviments" };
+    }
+    const col1 = cells[1] ?? "";
+    if (col1.includes("titol") && cells.some((c) => c.includes("preu"))) {
+      return { row: i, format: "cartera" };
     }
   }
-  return -1;
+  return null;
 }
 
 function parsePortfolioSheet(
@@ -174,11 +182,11 @@ function parsePortfolioSheet(
   portfolioName: string,
 ): { txns: Transaction[]; warnings: string[]; excluded: ExcludedRow[] } {
   const matrix = rowsToMatrix(sheet);
-  const headerRow = findHeaderRow(matrix);
+  const header = findHeaderRow(matrix);
   const warnings: string[] = [];
   const excluded: ExcludedRow[] = [];
 
-  if (headerRow === -1) {
+  if (!header) {
     warnings.push(
       `Sheet "${portfolioName}": no header row with "Nom" + "titols" found.`,
     );
@@ -186,13 +194,11 @@ function parsePortfolioSheet(
   }
 
   const txns: Transaction[] = [];
-  for (let i = headerRow + 1; i < matrix.length; i++) {
+  for (let i = header.row + 1; i < matrix.length; i++) {
     const row = matrix[i] ?? [];
     const ticker = asString(row[0]);
     if (!ticker) continue;
 
-    // Highlighted column-A => user-marked exclusion. Skip the row but
-    // remember it so the upload preview can show what was dropped.
     const exclusionColor = getRowExclusionColor(sheet, i);
     if (exclusionColor) {
       excluded.push({
@@ -200,6 +206,27 @@ function parsePortfolioSheet(
         portfolio: portfolioName,
         row: i + 1,
         color: exclusionColor,
+      });
+      continue;
+    }
+
+    if (header.format === "cartera") {
+      const shares = asNumber(row[1]);
+      const buyPrice = asNumber(row[2]);
+      const buyValue = asNumber(row[3]);
+      if (shares == null || shares <= 0 || buyPrice == null) continue;
+      txns.push({
+        ticker,
+        shares,
+        buyPrice,
+        buyValue,
+        buyDate: null,
+        sellShares: null,
+        sellPrice: null,
+        sellValue: null,
+        sellDate: null,
+        result: null,
+        portfolio: portfolioName,
       });
       continue;
     }
@@ -279,6 +306,51 @@ function parseDividendsSheet(sheet: XLSX.WorkSheet): {
   return { dividends, interests };
 }
 
+function parseFiscalitatSheet(sheet: XLSX.WorkSheet): Transaction[] {
+  const matrix = rowsToMatrix(sheet);
+  const txns: Transaction[] = [];
+  let currentYear: number | null = null;
+
+  for (const row of matrix) {
+    if (!row) continue;
+    const col0 = asString(row[0]);
+    if (!col0) continue;
+
+    const yearMatch = col0.match(/^VENDES\s+(\d{4})$/i);
+    if (yearMatch) {
+      currentYear = parseInt(yearMatch[1], 10);
+      continue;
+    }
+
+    if (currentYear == null) continue;
+
+    const shares = asNumber(row[1]);
+    const buyPrice = asNumber(row[2]);
+    const buyCost = asNumber(row[3]);
+    const sellPrice = asNumber(row[4]);
+    const sellValue = asNumber(row[5]);
+    const result = asNumber(row[6]);
+
+    if (shares == null || shares <= 0 || buyPrice == null) continue;
+
+    txns.push({
+      ticker: col0,
+      shares,
+      buyPrice,
+      buyValue: buyCost,
+      buyDate: null,
+      sellShares: shares,
+      sellPrice,
+      sellValue,
+      sellDate: `${currentYear}-07-01`,
+      result,
+      portfolio: "FISCALITAT",
+    });
+  }
+
+  return txns;
+}
+
 function parseWealthSheet(sheet: XLSX.WorkSheet): WealthEntry[] {
   const matrix = rowsToMatrix(sheet);
   const entries: WealthEntry[] = [];
@@ -333,6 +405,8 @@ export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
   const warnings: string[] = [];
   const excluded: ExcludedRow[] = [];
 
+  const skipSheets = new Set<string>();
+
   for (const name of workbook.SheetNames) {
     const lower = name.trim().toLowerCase();
     if (lower.startsWith("portfolio")) {
@@ -343,6 +417,38 @@ export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
       transactions.push(...txns);
       warnings.push(...w);
       excluded.push(...ex);
+      skipSheets.add(name);
+    }
+  }
+
+  // If no "Portfolio …" sheets matched, try the CARTERA PROVES format:
+  // any sheet whose header row has "Nº Titols" / "Titols" in col 1 and
+  // a FISCALITAT sheet with "VENDES XXXX" year sections.
+  if (transactions.length === 0) {
+    for (const name of workbook.SheetNames) {
+      const lower = name.trim().toLowerCase();
+      if (lower === "fiscalitat" || lower.includes("dades") || lower.includes("hoja")) continue;
+      const sheet = workbook.Sheets[name];
+      const matrix = rowsToMatrix(sheet);
+      const header = findHeaderRow(matrix);
+      if (header && header.format === "cartera") {
+        const { txns, warnings: w, excluded: ex } = parsePortfolioSheet(
+          sheet,
+          name.trim(),
+        );
+        transactions.push(...txns);
+        warnings.push(...w);
+        excluded.push(...ex);
+        skipSheets.add(name);
+      }
+    }
+
+    for (const name of workbook.SheetNames) {
+      if (name.trim().toLowerCase() === "fiscalitat") {
+        const sellTxns = parseFiscalitatSheet(workbook.Sheets[name]);
+        transactions.push(...sellTxns);
+        skipSheets.add(name);
+      }
     }
   }
 
@@ -358,7 +464,6 @@ export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
     warnings.push("No portfolio sheet was successfully parsed.");
   }
 
-  // Suppress unused symbol warning for the lookup helper
   void PORTFOLIO_SHEETS;
 
   return { transactions, dividends, interests, wealth, warnings, excluded };
