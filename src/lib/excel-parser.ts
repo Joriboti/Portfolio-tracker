@@ -133,6 +133,44 @@ function asString(v: unknown): string | null {
   return s.length ? s : null;
 }
 
+function asTickerString(v: unknown): string | null {
+  if (v == null || v instanceof Date) return null;
+  if (typeof v === "number") return null;
+  const s = String(v).trim();
+  if (!s.length) return null;
+
+  const lower = s.toLowerCase();
+  const NON_STOCK = [
+    /^hipoteca/,
+    /^plan\s/,
+    /^fp\s/,
+    /^cb\s/,
+    /^fondo/,
+    /monetari/,
+    /^empleo/,
+    /evoluc/,
+    /patrimoni/,
+    /^nens$/,
+    /^cartera/,
+    /^enviat$/,
+    /^retirat/,
+    /^transferencia$/,
+    /^venda\s/,
+    /^jordi/,
+    /^mama$/,
+    /^susi$/,
+    /^mum$/,
+    /bankinter\s/,
+    /^bbva\s+(monetari|empleo)/,
+    /^entrades\s/,
+  ];
+  for (const pat of NON_STOCK) {
+    if (pat.test(lower)) return null;
+  }
+
+  return s;
+}
+
 // SheetJS exposes per-cell styles via `cell.s` when read with
 // `cellStyles: true`. We treat any solid fill on column A as "the user
 // asked to exclude this row from the portfolio." That convention is
@@ -194,9 +232,25 @@ function parsePortfolioSheet(
   }
 
   const txns: Transaction[] = [];
+  let sellYear: number | null = null;
   for (let i = header.row + 1; i < matrix.length; i++) {
     const row = matrix[i] ?? [];
-    const ticker = asString(row[0]);
+
+    if (header.format === "cartera") {
+      const rawLabel = asString(row[0]);
+      if (rawLabel) {
+        const yearMatch = rawLabel.match(/^Vendes\s+(\d{4})$/i);
+        if (yearMatch) {
+          sellYear = parseInt(yearMatch[1], 10);
+          continue;
+        }
+      }
+    }
+
+    const ticker =
+      header.format === "cartera"
+        ? asTickerString(row[0])
+        : asString(row[0]);
     if (!ticker) continue;
 
     const exclusionColor = getRowExclusionColor(sheet, i);
@@ -211,23 +265,44 @@ function parsePortfolioSheet(
     }
 
     if (header.format === "cartera") {
+
       const shares = asNumber(row[1]);
       const buyPrice = asNumber(row[2]);
       const buyValue = asNumber(row[3]);
       if (shares == null || shares <= 0 || buyPrice == null) continue;
-      txns.push({
-        ticker,
-        shares,
-        buyPrice,
-        buyValue,
-        buyDate: null,
-        sellShares: null,
-        sellPrice: null,
-        sellValue: null,
-        sellDate: null,
-        result: null,
-        portfolio: portfolioName,
-      });
+
+      if (sellYear) {
+        const sellPrice = asNumber(row[4]);
+        const sellValue = asNumber(row[5]);
+        const result = asNumber(row[6]);
+        txns.push({
+          ticker,
+          shares,
+          buyPrice,
+          buyValue,
+          buyDate: null,
+          sellShares: shares,
+          sellPrice,
+          sellValue,
+          sellDate: `${sellYear}-07-01`,
+          result,
+          portfolio: portfolioName,
+        });
+      } else {
+        txns.push({
+          ticker,
+          shares,
+          buyPrice,
+          buyValue,
+          buyDate: null,
+          sellShares: null,
+          sellPrice: null,
+          sellValue: null,
+          sellDate: null,
+          result: null,
+          portfolio: portfolioName,
+        });
+      }
       continue;
     }
 
