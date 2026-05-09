@@ -861,7 +861,8 @@ export function computeAutoDividends(
   const results: ComputedDividend[] = [];
 
   for (const ev of events) {
-    const tickerTxns = txnsByTicker.get(ev.ticker);
+    const evTicker = normalizeTicker(ev.ticker);
+    const tickerTxns = txnsByTicker.get(evTicker);
     if (!tickerTxns) continue;
 
     let shares = 0;
@@ -877,7 +878,7 @@ export function computeAutoDividends(
 
     if (shares > 0) {
       results.push({
-        ticker: ev.ticker,
+        ticker: evTicker,
         exDate: ev.exDate,
         sharesHeld: shares,
         amountPerShare: ev.amount,
