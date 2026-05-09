@@ -582,7 +582,63 @@ export type Position = {
 // aggregation level so that buys and sells for the same company are always
 // matched against each other regardless of which name the broker used.
 const POSITION_ALIASES: Record<string, string> = {
+  // Duplicates within the spreadsheet (same stock, different label)
   TESLA: "TSLA",
+  "BANCO SANTANDER": "SAN",
+  CAIXABANK: "CABK",
+  CAIXABANC: "CABK",
+  ENAGAS: "ENG",
+  MAPFRE: "MAP",
+  GRIFOLS: "GRF",
+  REPSOL: "REP",
+  "GAS NATURAL": "NGY",
+  NATURGY: "NGY",
+
+  // US stocks — full name → ticker
+  ALIBABA: "BABA",
+  ALPHABET: "GOOGL",
+  AMAZON: "AMZN",
+  AMBARELLA: "AMBA",
+  APPLE: "AAPL",
+  "ASTERA LABS": "ALAB",
+  "AURA BIOSCIENCE": "AURA",
+  BIOGEN: "BIIB",
+  "CATALYST PHARMACEUTICAL": "CPRX",
+  "COMCAST CORP": "CMCSA",
+  "CONSTELLATION BRANDS": "STZ",
+  INTUIT: "INTU",
+  "JD.COM": "JD",
+  "MARVELL TECHNOLOGY": "MRVL",
+  MICRON: "MU",
+  "NEBIUS GROUP": "NBIS",
+  "NOVO NORDISK": "NVO",
+  NVIDIA: "NVDA",
+  PEPSICO: "PEP",
+  "PLUG POWER": "PLUG",
+  "RECURSION PHARMACEUTICAL": "RXRX",
+  "REGENERON PHARMACEUTICAL": "REGN",
+  RIVIAN: "RIVN",
+  "SERVE ROBOTICS": "SERV",
+  "SOUNDHOUND AI": "SOUN",
+  "TREND MICRO": "TMICY",
+  "ZETA GLOBAL": "ZETA",
+
+  // Spanish/European stocks — full/alt name → short ticker
+  "AEDAS HOMES": "AEDAS",
+  CELLNEX: "CLNX",
+  "PROSEGUR CASH": "CASH",
+  LOGISTA: "LOG",
+  MELIA: "MEL",
+  NEINOR: "HOME",
+  "ORYZON GENOMICS": "ORY",
+  "PUIG BRANDS": "PUIG",
+  SACYR: "SCYR",
+  SOLARIA: "SLR",
+  SOLTEC: "SOL",
+  TUBACEX: "TUB",
+  MEDIASET: "TL5",
+  "LAR ESPAÑA": "LRE",
+  LVMH: "MC",
 };
 
 function normalizeTicker(raw: string): string {
