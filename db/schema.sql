@@ -113,3 +113,20 @@ CREATE TABLE IF NOT EXISTS dividend_events (
 
 CREATE INDEX IF NOT EXISTS idx_dividend_events_ticker
   ON dividend_events (ticker);
+
+-- Weekly closing prices used by the analytics layer (beta/alpha/Sharpe).
+-- Shared across users (no user_id). Yahoo's `chart()` with interval='1wk'
+-- returns one row per week — we store the close indexed by the bar's end
+-- date.
+CREATE TABLE IF NOT EXISTS historical_prices (
+  ticker      TEXT NOT NULL,
+  week_date   DATE NOT NULL,
+  close       NUMERIC(20, 8) NOT NULL,
+  currency    TEXT NOT NULL DEFAULT 'USD',
+  source      TEXT NOT NULL DEFAULT 'yahoo',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (ticker, week_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_historical_prices_ticker_recent
+  ON historical_prices (ticker, week_date DESC);

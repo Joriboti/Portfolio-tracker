@@ -15,6 +15,10 @@
     {
       "path": "/api/prices-update",
       "schedule": "30 21 * * *"
+    },
+    {
+      "path": "/api/historical-backfill",
+      "schedule": "0 22 * * 6"
     }
   ]
 }

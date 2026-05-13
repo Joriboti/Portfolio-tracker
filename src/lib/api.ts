@@ -162,3 +162,44 @@ export function refreshDividends(
 ): Promise<{ ok: boolean; tickersWithDividends?: number; totalEvents?: number }> {
   return jsonFetch("/api/dividends-update", { method: "GET", userId });
 }
+
+export type AnalyticsMetrics = {
+  weeks: number;
+  beta: number;
+  alpha: number;
+  sharpe: number;
+  volatility: number;
+  maxDrawdown: number;
+  rSquared: number;
+  portfolioAnnualReturn: number;
+  marketAnnualReturn: number;
+};
+
+export type AnalyticsResponse = {
+  ok: boolean;
+  ready: boolean;
+  metrics?: AnalyticsMetrics | null;
+  excludedTickers?: string[];
+  includedTickers?: string[];
+  includedWeight?: number;
+  benchmark?: string;
+  riskFreeRate?: number;
+  reason?: string;
+};
+
+export function getAnalytics(
+  userId: string,
+  riskFreeRate?: number,
+): Promise<AnalyticsResponse> {
+  const qs =
+    riskFreeRate != null && Number.isFinite(riskFreeRate)
+      ? `?rf=${encodeURIComponent(String(riskFreeRate))}`
+      : "";
+  return jsonFetch<AnalyticsResponse>(`/api/analytics${qs}`, { userId });
+}
+
+export function refreshHistoricalPrices(
+  userId: string,
+): Promise<{ ok: boolean; tickersDone?: number; totalRows?: number; elapsed?: string }> {
+  return jsonFetch("/api/historical-backfill", { method: "GET", userId });
+}

@@ -21,6 +21,7 @@ import {
 import { AuthGuard } from "@/components/AuthGuard";
 import { useUser } from "@/hooks/useUser";
 import { PieChartModal } from "@/components/PieChartModal";
+import { AnalyticsCard } from "@/components/AnalyticsCard";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
@@ -330,6 +331,8 @@ function DashboardInner() {
           />
         </section>
       )}
+
+      {openPositions.length > 0 && user && <AnalyticsCard userId={user.id} />}
 
       {openAutoDividends.length > 0 && (
         <section className="card overflow-x-auto">
