@@ -120,9 +120,6 @@ const TICKER_MAP: Record<string, string> = {
   TEF: "TEF.MC",
   ITX: "ITX.MC",
   BME: "BME.MC",
-  ABE: "ABE.MC",
-  LDK: "LDK.MC",
-  IBR: "IBR.MC",
 
   // --- Crypto ---
   BTC: "BTC-USD",
@@ -147,6 +144,9 @@ const SKIP_TICKERS = new Set<string>([
   "FONS DE PENSIONS",
   "LYXOR VIX",
   "LYXOR DOBLE SHORT",
+  "ABE",
+  "LDK",
+  "IBR",
 ]);
 
 // Must stay in sync with POSITION_ALIASES in src/lib/excel-parser.ts.
