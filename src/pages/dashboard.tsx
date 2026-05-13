@@ -20,6 +20,7 @@ import {
 } from "@/lib/api";
 import { AuthGuard } from "@/components/AuthGuard";
 import { useUser } from "@/hooks/useUser";
+import { PieChartModal } from "@/components/PieChartModal";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
@@ -50,6 +51,7 @@ function DashboardInner() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [showPie, setShowPie] = useState(false);
 
   async function handleRefresh() {
     if (!user || refreshing) return;
@@ -239,6 +241,23 @@ function DashboardInner() {
         </div>
       </header>
 
+      {openPositions.length > 0 &&
+        openPositions.some((p) => !quotes[p.ticker]) && (
+          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+            <span>⚠</span>
+            <span>
+              {t("dashboard.missingPrices")}{" "}
+              <button
+                onClick={() => void handleRefresh()}
+                disabled={refreshing}
+                className="underline font-medium hover:text-amber-900"
+              >
+                {t("dashboard.refresh")}
+              </button>
+            </span>
+          </div>
+        )}
+
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label={t("dashboard.totalValue")} value={formatMoney(totalValue, currency)} />
         <Stat label={t("dashboard.totalCost")} value={formatMoney(totalCost, currency)} />
@@ -259,9 +278,17 @@ function DashboardInner() {
 
       {openPositions.length > 0 && (
         <section className="card overflow-x-auto">
-          <h2 className="text-lg font-medium text-slate-900 mb-3">
-            {t("dashboard.positions")}
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-medium text-slate-900">
+              {t("dashboard.positions")}
+            </h2>
+            <button
+              onClick={() => setShowPie(true)}
+              className="btn-ghost text-xs px-3 py-1.5"
+            >
+              {t("dashboard.pieButton")}
+            </button>
+          </div>
           <PositionsTable
             positions={openPositions}
             quotes={quotes}
@@ -269,6 +296,16 @@ function DashboardInner() {
             fxRates={fxRates}
           />
         </section>
+      )}
+
+      {showPie && (
+        <PieChartModal
+          positions={openPositions}
+          quotes={quotes}
+          currency={currency}
+          fxRates={fxRates}
+          onClose={() => setShowPie(false)}
+        />
       )}
 
       {closedPositions.length > 0 && (
@@ -286,6 +323,7 @@ function DashboardInner() {
           )}
           <ClosedPositionsTable
             positions={closedPositions}
+            allPositions={allPositions}
             currency={currency}
             yearlyPL={yearlyPL}
             selectedYear={selectedYear}
@@ -490,11 +528,13 @@ function YearSelector({
 
 function ClosedPositionsTable({
   positions,
+  allPositions,
   currency,
   yearlyPL,
   selectedYear,
 }: {
   positions: Position[];
+  allPositions: Position[];
   currency: Currency;
   yearlyPL?: YearlyPL[];
   selectedYear?: number | null;
@@ -517,7 +557,7 @@ function ClosedPositionsTable({
     }
     return activeYearData.byTicker
       .map((t) => {
-        const pos = positions.find((p) => p.ticker === t.ticker);
+        const pos = allPositions.find((p) => p.ticker === t.ticker);
         return {
           ticker: t.ticker,
           avgCost: pos ? pos.historicalAvgCost || pos.avgCost : 0,
@@ -525,7 +565,7 @@ function ClosedPositionsTable({
         };
       })
       .sort((a, b) => Math.abs(b.pl) - Math.abs(a.pl));
-  }, [positions, activeYearData]);
+  }, [positions, allPositions, activeYearData]);
 
   const total = rows.reduce((s, r) => s + r.pl, 0);
 
