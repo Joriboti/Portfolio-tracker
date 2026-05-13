@@ -40,7 +40,7 @@ function buildSlices(
   const total = raw.reduce((s, r) => s + r.value, 0);
   if (total <= 0) return [];
 
-  const BIG_LIMIT = 12;
+  const BIG_LIMIT = 16;
   let slices: Slice[];
   if (raw.length <= BIG_LIMIT) {
     slices = raw.map((r) => ({
@@ -70,7 +70,7 @@ function drawPie(
 ) {
   const dpr = window.devicePixelRatio || 1;
   const W = 700;
-  const H = 520;
+  const H = 580;
   canvas.width = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width = `${W}px`;
@@ -91,7 +91,7 @@ function drawPie(
   ctx.fillText(title, W / 2, 32);
 
   const cx = 200;
-  const cy = 270;
+  const cy = 300;
   const radius = 160;
 
   let angle = -Math.PI / 2;
