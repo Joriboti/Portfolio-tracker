@@ -75,6 +75,7 @@ const TICKER_STORAGE_ALIASES: Record<string, string> = {
   "LAR ESPAÑA": "LRE",
   LVMH: "MC",
   NBUS: "NBIS",
+  "PHYSICAL PALLADIUM ETF": "PPFA",
 };
 
 function storageKey(original: string): string {

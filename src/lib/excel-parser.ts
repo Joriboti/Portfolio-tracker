@@ -639,6 +639,7 @@ const POSITION_ALIASES: Record<string, string> = {
   MEDIASET: "TL5",
   "LAR ESPAÑA": "LRE",
   LVMH: "MC",
+  "PHYSICAL PALLADIUM ETF": "PPFA",
 };
 
 function normalizeTicker(raw: string): string {

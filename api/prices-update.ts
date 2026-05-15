@@ -40,6 +40,7 @@ const TICKER_MAP: Record<string, string> = {
   ACCIONA: "ANA.MC",
   NBUS: "NBIS",
   PALLADIUM: "SPDM.MI",
+  "PHYSICAL PALLADIUM ETF": "PPFA",
 
   // --- Original full names from "CARTERA PROVES" format ---
   "BANCO SANTANDER": "SAN.MC",
@@ -204,6 +205,7 @@ const TICKER_STORAGE_ALIASES: Record<string, string> = {
   "LAR ESPAÑA": "LRE",
   LVMH: "MC",
   NBUS: "NBIS",
+  "PHYSICAL PALLADIUM ETF": "PPFA",
 };
 
 function mapTicker(raw: string): string | null {

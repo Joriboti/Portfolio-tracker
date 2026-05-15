@@ -37,6 +37,7 @@ const TICKER_MAP: Record<string, string> = {
   ACCIONA: "ANA.MC",
   NBUS: "NBIS",
   PALLADIUM: "SPDM.MI",
+  "PHYSICAL PALLADIUM ETF": "PPFA",
   "BANCO SANTANDER": "SAN.MC",
   ENAGAS: "ENG.MC",
   "GAS NATURAL": "NTGY.MC",
@@ -189,6 +190,7 @@ const TICKER_STORAGE_ALIASES: Record<string, string> = {
   "LAR ESPAÑA": "LRE",
   LVMH: "MC",
   NBUS: "NBIS",
+  "PHYSICAL PALLADIUM ETF": "PPFA",
 };
 
 const SUB_UNIT_TO_MAJOR: Record<string, { major: string; divisor: number }> = {
