@@ -16,6 +16,72 @@ const BENCHMARK_KEY = "^GSPC";
 const DEFAULT_RISK_FREE = 0.03;
 const MIN_WEEKS = 26;
 
+// Mirror of TICKER_STORAGE_ALIASES from prices-update.ts /
+// historical-backfill.ts / dividends-update.ts. `transactions.ticker` keeps
+// the raw broker name ("TESLA"), but `historical_prices` and `latest_prices`
+// store under the short Yahoo symbol ("TSLA"). The analytics joins by
+// ticker, so we must normalize before joining.
+const TICKER_STORAGE_ALIASES: Record<string, string> = {
+  TESLA: "TSLA",
+  "BANCO SANTANDER": "SAN",
+  CAIXABANK: "CABK",
+  CAIXABANC: "CABK",
+  ENAGAS: "ENG",
+  MAPFRE: "MAP",
+  GRIFOLS: "GRF",
+  REPSOL: "REP",
+  "GAS NATURAL": "NGY",
+  NATURGY: "NGY",
+  ALIBABA: "BABA",
+  ALPHABET: "GOOGL",
+  AMAZON: "AMZN",
+  AMBARELLA: "AMBA",
+  APPLE: "AAPL",
+  "ASTERA LABS": "ALAB",
+  "AURA BIOSCIENCE": "AURA",
+  BIOGEN: "BIIB",
+  "CATALYST PHARMACEUTICAL": "CPRX",
+  "COMCAST CORP": "CMCSA",
+  "CONSTELLATION BRANDS": "STZ",
+  INTUIT: "INTU",
+  "JD.COM": "JD",
+  "MARVELL TECHNOLOGY": "MRVL",
+  MICRON: "MU",
+  "NEBIUS GROUP": "NBIS",
+  "NOVO NORDISK": "NVO",
+  NVIDIA: "NVDA",
+  PEPSICO: "PEP",
+  "PLUG POWER": "PLUG",
+  "RECURSION PHARMACEUTICAL": "RXRX",
+  "REGENERON PHARMACEUTICAL": "REGN",
+  RIVIAN: "RIVN",
+  "SERVE ROBOTICS": "SERV",
+  "SOUNDHOUND AI": "SOUN",
+  "TREND MICRO": "TMICY",
+  "ZETA GLOBAL": "ZETA",
+  "AEDAS HOMES": "AEDAS",
+  CELLNEX: "CLNX",
+  "PROSEGUR CASH": "CASH",
+  LOGISTA: "LOG",
+  MELIA: "MEL",
+  NEINOR: "HOME",
+  "ORYZON GENOMICS": "ORY",
+  "PUIG BRANDS": "PUIG",
+  SACYR: "SCYR",
+  SOLARIA: "SLR",
+  SOLTEC: "SOL",
+  TUBACEX: "TUB",
+  MEDIASET: "TL5",
+  "LAR ESPAÑA": "LRE",
+  LVMH: "MC",
+  NBUS: "NBIS",
+};
+
+function storageKey(original: string): string {
+  const key = original.trim().toUpperCase();
+  return TICKER_STORAGE_ALIASES[key] ?? key;
+}
+
 // ---------- inlined pure math (mirror of src/lib/analytics.ts) ----------
 
 type WeeklyPoint = { weekDate: string; close: number };
@@ -392,9 +458,12 @@ export default async function handler(
 
     // 2. Compute net shares per ticker (same logic as the parser, but
     // simpler: we only need open positions for weight derivation).
+    // Tickers are normalized to their storage key here so that "TESLA" and
+    // "TSLA" rows in `transactions` aggregate together AND so the downstream
+    // joins against `latest_prices` / `historical_prices` find the rows.
     const sharesByTicker = new Map<string, number>();
     for (const t of txnRows) {
-      const ticker = t.ticker.trim().toUpperCase();
+      const ticker = storageKey(t.ticker);
       const buyShares = toNum(t.shares);
       const sellShares = toNum(t.sellShares);
       const prev = sharesByTicker.get(ticker) ?? 0;
@@ -455,7 +524,7 @@ export default async function handler(
     // best-effort fallback.
     const costByTicker = new Map<string, number>();
     for (const t of txnRows) {
-      const ticker = t.ticker.trim().toUpperCase();
+      const ticker = storageKey(t.ticker);
       const cost = toNum(t.buyValue);
       costByTicker.set(ticker, (costByTicker.get(ticker) ?? 0) + cost);
     }
