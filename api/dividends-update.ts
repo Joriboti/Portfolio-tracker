@@ -30,7 +30,7 @@ const TICKER_MAP: Record<string, string> = {
   ACCIONA: "ANA.MC",
   NBUS: "NBIS",
   PALLADIUM: "SPDM.MI",
-  "PHYSICAL PALLADIUM ETF": "PPFA",
+  "PHYSICAL PALLADIUM ETF": "SPDM.MI",
 
   // --- Original full names from "CARTERA PROVES" format ---
   "BANCO SANTANDER": "SAN.MC",
