@@ -106,30 +106,23 @@ type AnalyticsResultLocal = {
   reweightedWeightSum: number;
 };
 
-function alignByDate(
-  seriesByName: Record<string, Map<string, number>>,
-): { dates: string[]; series: Record<string, number[]> } {
-  const names = Object.keys(seriesByName);
-  if (names.length === 0) return { dates: [], series: {} };
-  const [first, ...rest] = names.map((n) => seriesByName[n]);
-  const commonDates: string[] = [];
-  for (const date of first.keys()) {
-    let inAll = true;
-    for (const m of rest) {
-      if (!m.has(date)) {
-        inAll = false;
-        break;
-      }
+// For each date in `axis` (ascending), return the most recent close in
+// `points` (ascending by weekDate) with weekDate <= that axis date. As-of
+// alignment lets a mixed portfolio (US Mondays, crypto Sundays, European
+// holiday calendars) map onto the benchmark axis without requiring identical
+// date strings — a strict intersection collapses to ~0 for such portfolios.
+function asOfCloses(axis: string[], points: WeeklyPoint[]): number[] {
+  const out: number[] = [];
+  let i = 0;
+  let last = points.length > 0 ? points[0].close : 0;
+  for (const d of axis) {
+    while (i < points.length && points[i].weekDate <= d) {
+      last = points[i].close;
+      i++;
     }
-    if (inAll) commonDates.push(date);
+    out.push(last);
   }
-  commonDates.sort();
-  const series: Record<string, number[]> = {};
-  for (const name of names) {
-    const m = seriesByName[name];
-    series[name] = commonDates.map((d) => m.get(d) as number);
-  }
-  return { dates: commonDates, series };
+  return out;
 }
 
 function toReturns(prices: number[]): number[] {
@@ -298,14 +291,34 @@ function computeAnalytics(input: {
     for (const t of included) reweighted[t] = (weightByTicker[t] ?? 0) / includedWeight;
   }
 
-  const seriesByName: Record<string, Map<string, number>> = {};
-  seriesByName[benchmarkKey] = new Map(benchmarkSeries.map((p) => [p.weekDate, p.close]));
+  // As-of alignment to the benchmark's weekly axis (see asOfCloses). A strict
+  // same-date intersection collapses for mixed US/crypto/EU portfolios.
+  const sortedByName: Record<string, WeeklyPoint[]> = {};
+  sortedByName[benchmarkKey] = [...benchmarkSeries].sort((a, b) =>
+    a.weekDate.localeCompare(b.weekDate),
+  );
   for (const t of included) {
-    seriesByName[t] = new Map(pricesByTicker[t].map((p) => [p.weekDate, p.close]));
+    sortedByName[t] = [...pricesByTicker[t]].sort((a, b) =>
+      a.weekDate.localeCompare(b.weekDate),
+    );
   }
-  const { dates, series } = alignByDate(seriesByName);
-  if (dates.length < minWeeks) {
+
+  let windowStart = sortedByName[benchmarkKey][0].weekDate;
+  for (const t of included) {
+    const first = sortedByName[t][0].weekDate;
+    if (first > windowStart) windowStart = first;
+  }
+
+  const axis = sortedByName[benchmarkKey]
+    .map((p) => p.weekDate)
+    .filter((d) => d >= windowStart);
+  if (axis.length < minWeeks) {
     return { metrics: null, excludedTickers: excluded, includedTickers: [], reweightedWeightSum: 0 };
+  }
+
+  const series: Record<string, number[]> = {};
+  for (const name of [benchmarkKey, ...included]) {
+    series[name] = asOfCloses(axis, sortedByName[name]);
   }
 
   const returnsByTicker: Record<string, number[]> = {};

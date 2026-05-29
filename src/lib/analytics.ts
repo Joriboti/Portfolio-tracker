@@ -57,6 +57,33 @@ export function alignByDate(
 }
 
 /**
+ * For each date in `axis` (ascending), return the most recent close in
+ * `points` (ascending by weekDate) whose weekDate is <= that axis date.
+ *
+ * This "as-of" alignment is what lets a mixed portfolio work: US equities
+ * are dated to Mondays, crypto to Sundays, European exchanges observe
+ * different holidays. A strict same-date intersection collapses to near
+ * zero for such a portfolio; as-of alignment maps every ticker onto the
+ * benchmark's weekly axis without requiring identical date strings.
+ *
+ * Callers must guarantee axis[0] >= points[0].weekDate so a value is always
+ * defined (see the window logic in computeAnalytics).
+ */
+export function asOfCloses(axis: string[], points: WeeklyPoint[]): number[] {
+  const out: number[] = [];
+  let i = 0;
+  let last = points.length > 0 ? points[0].close : 0;
+  for (const d of axis) {
+    while (i < points.length && points[i].weekDate <= d) {
+      last = points[i].close;
+      i++;
+    }
+    out.push(last);
+  }
+  return out;
+}
+
+/**
  * Convert a price series to a return series: r_t = (p_t - p_{t-1}) / p_{t-1}.
  * Drops the first element (no prior price to compare to). Guards against
  * zero/negative prior prices (returns 0 for that step instead of NaN).
@@ -359,24 +386,44 @@ export function computeAnalytics(input: AnalyticsInput): AnalyticsResult {
     }
   }
 
-  // Build the date-aligned price matrix
-  const seriesByName: Record<string, Map<string, number>> = {};
-  seriesByName[benchmarkKey] = new Map(
-    benchmarkSeries.map((p) => [p.weekDate, p.close]),
+  // Align every series to the benchmark's weekly axis with an as-of lookup.
+  // We deliberately do NOT use a strict same-date intersection here: a mixed
+  // portfolio (US equities on Mondays, crypto on Sundays, European venues on
+  // their own holiday calendars) shares almost no exact dates, which would
+  // collapse the common window to near zero and yield no metrics at all.
+  const sortedByName: Record<string, WeeklyPoint[]> = {};
+  sortedByName[benchmarkKey] = [...benchmarkSeries].sort((a, b) =>
+    a.weekDate.localeCompare(b.weekDate),
   );
   for (const t of included) {
-    seriesByName[t] = new Map(
-      pricesByTicker[t].map((p) => [p.weekDate, p.close]),
+    sortedByName[t] = [...pricesByTicker[t]].sort((a, b) =>
+      a.weekDate.localeCompare(b.weekDate),
     );
   }
-  const { dates, series } = alignByDate(seriesByName);
-  if (dates.length < minWeeks) {
+
+  // The usable window starts at the latest "first date" across the benchmark
+  // and every included ticker, so an as-of close is always defined for each.
+  let windowStart = sortedByName[benchmarkKey][0].weekDate;
+  for (const t of included) {
+    const first = sortedByName[t][0].weekDate;
+    if (first > windowStart) windowStart = first;
+  }
+
+  const axis = sortedByName[benchmarkKey]
+    .map((p) => p.weekDate)
+    .filter((d) => d >= windowStart);
+  if (axis.length < minWeeks) {
     return {
       metrics: null,
       excludedTickers: excluded,
       includedTickers: [],
       reweightedWeightSum: 0,
     };
+  }
+
+  const series: Record<string, number[]> = {};
+  for (const name of [benchmarkKey, ...included]) {
+    series[name] = asOfCloses(axis, sortedByName[name]);
   }
 
   // Convert to returns
