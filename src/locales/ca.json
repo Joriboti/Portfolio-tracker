@@ -86,6 +86,29 @@
       "yield": "Rendiment"
     }
   },
+  "performance": {
+    "title": "Rendiment",
+    "totalGain": "Guany total des de l'inici",
+    "totalReturn": "Rendiment total",
+    "invested": "Capital invertit",
+    "currentValue": "Valor actual",
+    "unrealized": "Plusvàlua latent",
+    "realized": "Resultat realitzat",
+    "dividends": "Dividends",
+    "interests": "Interessos",
+    "sinceHint": "Guany total = plusvàlua latent (posicions obertes) + resultat realitzat + dividends + interessos. El rendiment total es calcula sobre el capital total invertit al llarg del temps.",
+    "byYear": "Rendiment per any",
+    "valueWindow": "Rendiment % disponible des de {{year}}",
+    "yearCol": "Any",
+    "returnCol": "Rendiment %",
+    "valueGainCol": "Guany de valor",
+    "realizedCol": "€ realitzats",
+    "ytd": "en curs",
+    "needsBackfill": "Per veure el rendiment % de cada any cal descarregar l'històric de preus.",
+    "valueError": "No s'ha pogut calcular el rendiment per valor",
+    "noYears": "Encara no hi ha dades per any.",
+    "byYearHint": "«Rendiment %» i «Guany de valor» reconstrueixen el valor de mercat de la cartera a final d'any (inclou plusvàlues latents, ~3 anys d'històric). «€ realitzats» són vendes tancades + dividends + interessos d'aquell any, exactes sobre tota la història."
+  },
   "analytics": {
     "title": "Anàlisi de la cartera",
     "benchmark": "Benchmark",

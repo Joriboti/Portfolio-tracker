@@ -18,10 +18,15 @@ import {
   refreshDividends,
   type PriceQuote,
 } from "@/lib/api";
+import {
+  computeSinceInception,
+  computeYearlyBreakdown,
+} from "@/lib/performance";
 import { AuthGuard } from "@/components/AuthGuard";
 import { useUser } from "@/hooks/useUser";
 import { PieChartModal } from "@/components/PieChartModal";
 import { AnalyticsCard } from "@/components/AnalyticsCard";
+import { PerformanceCard } from "@/components/PerformanceCard";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
@@ -147,6 +152,18 @@ function DashboardInner() {
     [data],
   );
 
+  const yearlyBreakdown = useMemo(
+    () =>
+      data
+        ? computeYearlyBreakdown(
+            data.transactions,
+            data.dividends,
+            data.interests,
+          )
+        : [],
+    [data],
+  );
+
   useEffect(() => {
     if (openPositions.length === 0) return;
     const tickers = openPositions.map((p) => p.ticker);
@@ -218,6 +235,15 @@ function DashboardInner() {
   }
   const unrealized = totalValue > 0 ? totalValue - totalCost : 0;
 
+  const since = computeSinceInception({
+    txns: data.transactions,
+    dividends: data.dividends,
+    interests: data.interests,
+    currentValue: totalValue,
+    openCost: totalCost,
+    realized: realizedPL,
+  });
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
       <header className="flex items-center justify-between gap-4 flex-wrap">
@@ -276,6 +302,15 @@ function DashboardInner() {
         />
         <Stat label={t("dashboard.dividends")} value={formatMoney(totalDividends, currency)} />
       </section>
+
+      {user && (
+        <PerformanceCard
+          userId={user.id}
+          since={since}
+          yearly={yearlyBreakdown}
+          currency={currency}
+        />
+      )}
 
       {openPositions.length > 0 && (
         <section className="card overflow-x-auto">

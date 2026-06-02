@@ -203,3 +203,29 @@ export function refreshHistoricalPrices(
 ): Promise<{ ok: boolean; tickersDone?: number; totalRows?: number; elapsed?: string }> {
   return jsonFetch("/api/historical-backfill", { method: "GET", userId });
 }
+
+export type YearReturn = {
+  year: number;
+  startValue: number;
+  endValue: number;
+  netFlow: number;
+  gain: number;
+  returnPct: number | null;
+  partial: boolean;
+};
+
+export type PerformanceResponse = {
+  ok: boolean;
+  ready: boolean;
+  reason?: string;
+  baseCurrency?: string;
+  firstYear?: number | null;
+  years?: YearReturn[];
+};
+
+// Value-based annual return (Modified Dietz), reconstructed server-side from
+// the historical price + FX tables. Complements the exact euros-realised
+// figures computed on the frontend (src/lib/performance.ts).
+export function getPerformance(userId: string): Promise<PerformanceResponse> {
+  return jsonFetch<PerformanceResponse>("/api/performance", { userId });
+}

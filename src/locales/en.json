@@ -86,6 +86,29 @@
       "yield": "Yield"
     }
   },
+  "performance": {
+    "title": "Performance",
+    "totalGain": "Total gain since inception",
+    "totalReturn": "Total return",
+    "invested": "Capital invested",
+    "currentValue": "Current value",
+    "unrealized": "Unrealized gain",
+    "realized": "Realized result",
+    "dividends": "Dividends",
+    "interests": "Interest",
+    "sinceHint": "Total gain = unrealized gain (open positions) + realized result + dividends + interest. Total return is computed over all capital invested over time.",
+    "byYear": "Return by year",
+    "valueWindow": "Return % available from {{year}}",
+    "yearCol": "Year",
+    "returnCol": "Return %",
+    "valueGainCol": "Value gain",
+    "realizedCol": "Realized €",
+    "ytd": "YTD",
+    "needsBackfill": "To see the % return for each year you need to download the price history.",
+    "valueError": "Could not compute value-based return",
+    "noYears": "No yearly data yet.",
+    "byYearHint": "“Return %” and “Value gain” reconstruct the portfolio's market value at year-end (includes unrealized gains, ~3 years of history). “Realized €” is closed sales + dividends + interest for that year, exact across all history."
+  },
   "analytics": {
     "title": "Portfolio analytics",
     "benchmark": "Benchmark",

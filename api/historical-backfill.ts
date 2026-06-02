@@ -203,6 +203,13 @@ const SUB_UNIT_TO_MAJOR: Record<string, { major: string; divisor: number }> = {
 // for refresh cadence. Stored under the literal "^GSPC" key.
 const BENCHMARK_SYMBOL = "^GSPC";
 
+// FX history feeds the value-based annual return (api/performance.ts), which
+// needs the EUR/USD (etc.) rate AS OF each historical date to convert USD- and
+// crypto-denominated holdings to EUR at the right point in time. Stored under
+// their literal Yahoo symbols so the consumer can read them directly.
+const FX_SYMBOLS = ["EURUSD=X", "GBPUSD=X", "CHFUSD=X"];
+const LITERAL_SYMBOLS = new Set<string>([BENCHMARK_SYMBOL, ...FX_SYMBOLS]);
+
 function mapTicker(raw: string): string | null {
   const key = raw.trim().toUpperCase();
   if (SKIP_TICKERS.has(key)) return null;
@@ -308,9 +315,10 @@ export default async function handler(
       seen.add(original);
       work.push({ original, mapped });
     }
-    // Benchmark is special-cased: stored under its Yahoo symbol so analytics
-    // can join directly without going through the storage alias map.
+    // Benchmark + FX are special-cased: stored under their Yahoo symbol so the
+    // consumers can join directly without going through the storage alias map.
     work.push({ original: BENCHMARK_SYMBOL, mapped: BENCHMARK_SYMBOL });
+    for (const fx of FX_SYMBOLS) work.push({ original: fx, mapped: fx });
 
     let tickersDone = 0;
     let totalRows = 0;
@@ -339,11 +347,12 @@ export default async function handler(
             const divisor = conv?.divisor ?? 1;
             const currency = conv?.major ?? rawCcy;
 
-            // For the benchmark we store under the literal symbol; for
-            // user tickers we apply the storage alias so analytics can
-            // join against the same key the transactions table uses.
-            const stored =
-              original === BENCHMARK_SYMBOL ? BENCHMARK_SYMBOL : storageKey(original);
+            // For the benchmark and FX pairs we store under the literal
+            // symbol; for user tickers we apply the storage alias so analytics
+            // can join against the same key the transactions table uses.
+            const stored = LITERAL_SYMBOLS.has(original)
+              ? original
+              : storageKey(original);
 
             const rows: Array<{ weekDate: string; close: number }> = [];
             for (const q of quotes) {
