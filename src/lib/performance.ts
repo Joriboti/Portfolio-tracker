@@ -1,5 +1,5 @@
 import type { Transaction, Dividend, Interest } from "./excel-parser";
-import { computeRealizedPLByYear } from "./excel-parser";
+import { computeRealizedPLByYear, dedupeTransactions } from "./excel-parser";
 
 // Pure, side-effect-free performance math used by the dashboard. All amounts
 // are treated in the user's account currency (EUR): transaction buy/sell
@@ -16,14 +16,28 @@ export type YearlyBreakdown = {
   total: number; // realized + dividends + interests
 };
 
-// Sum of every euro ever deployed into buys. Falls back to shares × buyPrice
-// when the broker omitted the line-total. This is the "capital invertit"
-// denominator for the since-inception return.
+// Sum of every euro ever deployed into buys (deduped — the broker sometimes
+// lists the same buy in two sheets). Falls back to shares × buyPrice when the
+// line-total is missing. This is the GROSS purchase total, not the money out
+// of pocket (see netInvested below).
 export function sumBuyCost(txns: Transaction[]): number {
   let total = 0;
-  for (const t of txns) {
+  for (const t of dedupeTransactions(txns)) {
     if (t.buyPrice != null && t.shares > 0) {
       total += t.buyValue ?? t.shares * t.buyPrice;
+    }
+  }
+  return total;
+}
+
+// Sum of every euro ever returned by sells (deduped). Used to derive the net
+// capital actually contributed: buys − sells. Money returned by a sale and
+// reinvested into another position should not be counted twice as "invested".
+export function sumSellProceeds(txns: Transaction[]): number {
+  let total = 0;
+  for (const t of dedupeTransactions(txns)) {
+    if (t.sellShares != null && t.sellShares > 0) {
+      total += t.sellValue ?? t.sellShares * (t.sellPrice ?? 0);
     }
   }
   return total;
@@ -74,7 +88,9 @@ export function computeYearlyBreakdown(
 }
 
 export type SinceInception = {
-  grossInvested: number; // lifetime buy cost (EUR)
+  grossInvested: number; // lifetime gross buy total (EUR), all operations
+  sellProceeds: number; // lifetime gross sell proceeds (EUR)
+  netInvested: number; // grossInvested − sellProceeds = money out of pocket
   openCost: number; // cost basis of currently open positions
   currentValue: number; // current market value of open positions
   unrealized: number; // currentValue − openCost
@@ -82,7 +98,7 @@ export type SinceInception = {
   dividends: number; // lifetime recorded dividends
   interests: number; // lifetime recorded interest
   totalGain: number; // unrealized + realized + dividends + interests
-  returnPct: number | null; // totalGain / grossInvested
+  returnPct: number | null; // totalGain / netInvested
 };
 
 export function computeSinceInception(input: {
@@ -94,12 +110,20 @@ export function computeSinceInception(input: {
   realized: number;
 }): SinceInception {
   const grossInvested = sumBuyCost(input.txns);
+  const sellProceeds = sumSellProceeds(input.txns);
+  // Net capital the user actually contributed from their own pocket. Capital
+  // recycled through a sale into a new position is not double-counted. With
+  // this base the identity holds: totalGain ≈ currentValue − netInvested
+  // (+ income), so the % return is economically meaningful.
+  const netInvested = grossInvested - sellProceeds;
   const dividends = input.dividends.reduce((s, d) => s + d.amount, 0);
   const interests = input.interests.reduce((s, i) => s + i.amount, 0);
   const unrealized = input.currentValue > 0 ? input.currentValue - input.openCost : 0;
   const totalGain = unrealized + input.realized + dividends + interests;
   return {
     grossInvested,
+    sellProceeds,
+    netInvested,
     openCost: input.openCost,
     currentValue: input.currentValue,
     unrealized,
@@ -107,6 +131,6 @@ export function computeSinceInception(input: {
     dividends,
     interests,
     totalGain,
-    returnPct: grossInvested > 0 ? totalGain / grossInvested : null,
+    returnPct: netInvested > 0 ? totalGain / netInvested : null,
   };
 }

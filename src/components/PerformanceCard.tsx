@@ -127,7 +127,7 @@ export function PerformanceCard({
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 text-sm">
-          <Mini label={t("performance.invested")} value={formatMoney(since.grossInvested, currency)} />
+          <Mini label={t("performance.netInvested")} value={formatMoney(since.netInvested, currency)} />
           <Mini label={t("performance.currentValue")} value={formatMoney(since.currentValue, currency)} />
           <Mini label={t("performance.unrealized")} value={formatMoney(since.unrealized, currency)} tone={since.unrealized} />
           <Mini label={t("performance.realized")} value={formatMoney(since.realized, currency)} tone={since.realized} />

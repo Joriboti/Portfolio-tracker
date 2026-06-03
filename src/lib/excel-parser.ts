@@ -652,7 +652,7 @@ function normalizeTicker(raw: string): string {
 // "Portfolio 1" and "Portfolio 2"), which would double-count cost basis
 // and inflate avg-cost. We dedupe on every numeric/date field but ignore
 // the `portfolio` source so cross-sheet duplicates collapse.
-function dedupeTransactions(txns: Transaction[]): Transaction[] {
+export function dedupeTransactions(txns: Transaction[]): Transaction[] {
   const seen = new Set<string>();
   const out: Transaction[] = [];
   for (const t of txns) {
