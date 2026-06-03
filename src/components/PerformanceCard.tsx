@@ -105,7 +105,7 @@ export function PerformanceCard({
 
       {/* ---- Since inception ---- */}
       <div className="rounded-lg bg-slate-50 p-4">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">
               {t("performance.totalGain")}
@@ -115,12 +115,23 @@ export function PerformanceCard({
             </p>
           </div>
           {since.returnPct != null && (
-            <div className="text-right">
+            <div>
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 {t("performance.totalReturn")}
               </p>
-              <p className={`mt-1 text-3xl font-semibold ${toneClass(since.returnPct)}`}>
+              <p className={`mt-1 text-2xl font-semibold ${toneClass(since.returnPct)}`}>
                 {formatPct(since.returnPct)}
+              </p>
+            </div>
+          )}
+          {since.irr != null && (
+            <div title={t("performance.irrHint")}>
+              <p className="text-xs uppercase tracking-wide text-slate-500">
+                {t("performance.irr")}
+                <span className="ml-1 text-slate-400 cursor-help">ⓘ</span>
+              </p>
+              <p className={`mt-1 text-2xl font-semibold ${toneClass(since.irr)}`}>
+                {formatPct(since.irr)}
               </p>
             </div>
           )}

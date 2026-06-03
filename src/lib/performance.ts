@@ -87,6 +87,114 @@ export function computeYearlyBreakdown(
   return out.sort((a, b) => b.year - a.year);
 }
 
+// Dated cash flow from the investor's perspective: negative = money out of
+// pocket (a buy), positive = money received (a sell, dividend, interest, or
+// the terminal market value if liquidated today).
+export type CashFlow = { date: string; amount: number };
+
+// Build the dated cash-flow series used for the money-weighted return (XIRR).
+// Buys with no recorded date fall back to the earliest known date (parser
+// convention: an undated buy was held "from the beginning"); undated sells
+// fall back to `asOf` (treated as recent). The terminal market value is added
+// by the caller.
+export function buildCashFlows(
+  txns: Transaction[],
+  dividends: Dividend[],
+  interests: Interest[],
+): CashFlow[] {
+  const deduped = dedupeTransactions(txns);
+  const dates: string[] = [];
+  for (const t of deduped) {
+    if (t.buyDate) dates.push(t.buyDate);
+    if (t.sellDate) dates.push(t.sellDate);
+  }
+  for (const d of dividends) if (d.date) dates.push(d.date);
+  for (const i of interests) if (i.date) dates.push(i.date);
+  const earliest = dates.length ? dates.reduce((a, b) => (a < b ? a : b)) : null;
+  const today = new Date().toISOString().slice(0, 10);
+
+  const flows: CashFlow[] = [];
+  for (const t of deduped) {
+    if (t.buyPrice != null && t.shares > 0) {
+      const amt = t.buyValue ?? t.shares * t.buyPrice;
+      if (amt > 0) flows.push({ date: t.buyDate ?? earliest ?? today, amount: -amt });
+    }
+    if (t.sellShares != null && t.sellShares > 0) {
+      const amt = t.sellValue ?? t.sellShares * (t.sellPrice ?? 0);
+      if (amt > 0) flows.push({ date: t.sellDate ?? today, amount: amt });
+    }
+  }
+  for (const d of dividends) if (d.amount > 0) flows.push({ date: d.date ?? today, amount: d.amount });
+  for (const i of interests) if (i.amount > 0) flows.push({ date: i.date ?? today, amount: i.amount });
+  return flows;
+}
+
+function yearsBetween(a: string, b: string): number {
+  const ta = Date.UTC(+a.slice(0, 4), +a.slice(5, 7) - 1, +a.slice(8, 10));
+  const tb = Date.UTC(+b.slice(0, 4), +b.slice(5, 7) - 1, +b.slice(8, 10));
+  return (tb - ta) / (365 * 86400000);
+}
+
+// Money-weighted annualised return (XIRR): the rate r that makes the dated
+// cash flows' net present value zero. Newton-Raphson from 10%, with a
+// bisection fallback for the cases where Newton diverges. Returns null when
+// the flows don't bracket a solution (e.g. all same sign).
+export function computeXIRR(flows: CashFlow[]): number | null {
+  if (flows.length < 2) return null;
+  const hasNeg = flows.some((f) => f.amount < 0);
+  const hasPos = flows.some((f) => f.amount > 0);
+  if (!hasNeg || !hasPos) return null;
+
+  const t0 = flows.reduce((m, f) => (f.date < m ? f.date : m), flows[0].date);
+  const ts = flows.map((f) => yearsBetween(t0, f.date));
+
+  const npv = (r: number): number => {
+    let s = 0;
+    for (let i = 0; i < flows.length; i++) s += flows[i].amount / Math.pow(1 + r, ts[i]);
+    return s;
+  };
+  const dNpv = (r: number): number => {
+    let s = 0;
+    for (let i = 0; i < flows.length; i++) {
+      s += (-ts[i] * flows[i].amount) / Math.pow(1 + r, ts[i] + 1);
+    }
+    return s;
+  };
+
+  // Newton-Raphson
+  let r = 0.1;
+  for (let i = 0; i < 60; i++) {
+    const f = npv(r);
+    const d = dNpv(r);
+    if (!Number.isFinite(f) || !Number.isFinite(d) || d === 0) break;
+    const next = r - f / d;
+    if (!Number.isFinite(next) || next <= -0.9999) break;
+    if (Math.abs(next - r) < 1e-7) return next;
+    r = next;
+  }
+
+  // Bisection fallback over a wide bracket.
+  let lo = -0.9999;
+  let hi = 100;
+  let flo = npv(lo);
+  let fhi = npv(hi);
+  if (!Number.isFinite(flo) || !Number.isFinite(fhi) || flo * fhi > 0) return null;
+  for (let i = 0; i < 200; i++) {
+    const mid = (lo + hi) / 2;
+    const fm = npv(mid);
+    if (!Number.isFinite(fm)) return null;
+    if (Math.abs(fm) < 1e-7) return mid;
+    if (flo * fm < 0) {
+      hi = mid;
+      fhi = fm;
+    } else {
+      lo = mid;
+      flo = fm;
+    }
+  }
+  return (lo + hi) / 2;
+}
+
 export type SinceInception = {
   grossInvested: number; // lifetime gross buy total (EUR), all operations
   sellProceeds: number; // lifetime gross sell proceeds (EUR)
@@ -98,7 +206,8 @@ export type SinceInception = {
   dividends: number; // lifetime recorded dividends
   interests: number; // lifetime recorded interest
   totalGain: number; // unrealized + realized + dividends + interests
-  returnPct: number | null; // totalGain / netInvested
+  returnPct: number | null; // totalGain / netInvested (cumulative, simple)
+  irr: number | null; // money-weighted annualised return (XIRR)
 };
 
 export function computeSinceInception(input: {
@@ -120,6 +229,21 @@ export function computeSinceInception(input: {
   const interests = input.interests.reduce((s, i) => s + i.amount, 0);
   const unrealized = input.currentValue > 0 ? input.currentValue - input.openCost : 0;
   const totalGain = unrealized + input.realized + dividends + interests;
+
+  // XIRR: dated cash flows plus the current market value as a terminal inflow
+  // (as if the portfolio were liquidated today). Only meaningful once there's
+  // a live valuation — without prices the terminal value is 0 and the rate
+  // would be nonsense, so we skip it.
+  let irr: number | null = null;
+  if (input.currentValue > 0) {
+    const flows = buildCashFlows(input.txns, input.dividends, input.interests);
+    flows.push({
+      date: new Date().toISOString().slice(0, 10),
+      amount: input.currentValue,
+    });
+    irr = computeXIRR(flows);
+  }
+
   return {
     grossInvested,
     sellProceeds,
@@ -132,5 +256,6 @@ export function computeSinceInception(input: {
     interests,
     totalGain,
     returnPct: netInvested > 0 ? totalGain / netInvested : null,
+    irr,
   };
 }

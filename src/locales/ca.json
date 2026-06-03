@@ -90,6 +90,8 @@
     "title": "Rendiment",
     "totalGain": "Guany total des de l'inici",
     "totalReturn": "Rendiment total",
+    "irr": "TIR (anual)",
+    "irrHint": "Taxa interna de retorn (XIRR): el rendiment anualitzat real que ha tingut el teu diner, tenint en compte QUAN vas posar i treure cada euro. És la mesura ponderada per diners de manual. A diferència del «Rendiment total» (acumulat), la TIR és un % per any.",
     "netInvested": "Capital aportat (net)",
     "currentValue": "Valor actual",
     "unrealized": "Plusvàlua latent",

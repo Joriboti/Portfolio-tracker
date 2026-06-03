@@ -90,6 +90,8 @@
     "title": "Performance",
     "totalGain": "Total gain since inception",
     "totalReturn": "Total return",
+    "irr": "IRR (annual)",
+    "irrHint": "Internal rate of return (XIRR): the real annualised return your money has earned, accounting for WHEN you put each euro in and took it out. It's the textbook money-weighted measure. Unlike “Total return” (cumulative), IRR is a % per year.",
     "netInvested": "Net capital invested",
     "currentValue": "Current value",
     "unrealized": "Unrealized gain",
