@@ -1,4 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import {
+  makeYahooClient,
+  refreshFundamentals,
+  type SqlClient,
+} from "./_fundamentals-core.js";
 
 // Backfills the `historical_prices` table with 3 years of weekly closes for
 // every ticker held by any user, plus the analytics benchmark (^GSPC).
@@ -392,6 +397,21 @@ export default async function handler(
       );
     }
 
+    // Piggy-back the weekly fundamentals refresh on this cron (Hobby plan:
+    // no cron slots left). Time-budgeted and fully isolated: any failure here
+    // — Yahoo, DB — is reported but never breaks the price backfill.
+    let fundamentals: Record<string, unknown> | null = null;
+    try {
+      const fundamentalsYahoo = await makeYahooClient();
+      fundamentals = (await refreshFundamentals(
+        sql as unknown as SqlClient,
+        fundamentalsYahoo,
+        startMs + 50_000,
+      )) as unknown as Record<string, unknown>;
+    } catch (e) {
+      fundamentals = { error: (e as Error).message };
+    }
+
     const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
 
     res.status(200).end(
@@ -403,6 +423,7 @@ export default async function handler(
         skipped,
         elapsed: `${elapsed}s`,
         errors,
+        fundamentals,
       }),
     );
   } catch (e) {

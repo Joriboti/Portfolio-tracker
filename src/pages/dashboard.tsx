@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -16,7 +16,10 @@ import {
   getPrices,
   refreshPrices,
   refreshDividends,
+  getFundamentals,
+  refreshFundamentals,
   type PriceQuote,
+  type Fundamentals,
 } from "@/lib/api";
 import {
   computeSinceInception,
@@ -59,6 +62,8 @@ function DashboardInner() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [showPie, setShowPie] = useState(false);
+  const [fundamentals, setFundamentals] = useState<Record<string, Fundamentals>>({});
+  const [fundRefreshing, setFundRefreshing] = useState(false);
 
   async function handleRefresh() {
     if (!user || refreshing) return;
@@ -179,7 +184,70 @@ function DashboardInner() {
         setQuotes({});
         setFxRates({});
       });
+    // Cached fundamentals (PER, P/B, …). Missing table / no rows → empty map,
+    // the PER card shows its "no data" state.
+    getFundamentals(tickers)
+      .then(setFundamentals)
+      .catch(() => setFundamentals({}));
   }, [openPositions]);
+
+  async function handleFundamentalsRefresh() {
+    if (!user || fundRefreshing) return;
+    setFundRefreshing(true);
+    try {
+      // The server refreshes stale-first within a time budget; `exhausted`
+      // means more tickers are pending, so keep going (bounded) until done.
+      for (let i = 0; i < 3; i++) {
+        const r = await refreshFundamentals(user.id);
+        if (!r.exhausted) break;
+      }
+      setFundamentals(
+        await getFundamentals(openPositions.map((p) => p.ticker)),
+      );
+    } catch {
+      /* per-ticker errors are already tolerated server-side; keep the UI calm */
+    } finally {
+      setFundRefreshing(false);
+    }
+  }
+
+  // Weighted harmonic mean PER over open positions with a valid trailing PE:
+  // PER = Σ(value_i) / Σ(value_i / PE_i). The only aggregation that is
+  // mathematically consistent for P/E ratios (an arithmetic mean of PERs
+  // overweights expensive stocks). Coverage = share of portfolio value the
+  // calculation actually represents (crypto / no-earnings tickers excluded).
+  const perStats = useMemo(() => {
+    let totalValue = 0;
+    let coveredValue = 0;
+    let invSum = 0;
+    for (const p of openPositions) {
+      const quote = quotes[p.ticker];
+      if (!quote) continue;
+      const v =
+        toDisplay(quote.price, quote.currency ?? null, currency, fxRates) *
+        p.shares;
+      if (v <= 0) continue;
+      totalValue += v;
+      const pe = fundamentals[p.ticker]?.trailingPe;
+      if (pe != null && pe > 0) {
+        coveredValue += v;
+        invSum += v / pe;
+      }
+    }
+    if (invSum <= 0 || totalValue <= 0) return null;
+    return {
+      per: coveredValue / invSum,
+      coverage: coveredValue / totalValue,
+    };
+  }, [openPositions, quotes, fundamentals, currency, fxRates]);
+
+  const fundamentalsUpdatedAt = useMemo(() => {
+    let latest: string | null = null;
+    for (const f of Object.values(fundamentals)) {
+      if (f.updatedAt && (!latest || f.updatedAt > latest)) latest = f.updatedAt;
+    }
+    return latest;
+  }, [fundamentals]);
 
   if (loading) {
     return (
@@ -286,7 +354,7 @@ function DashboardInner() {
           </div>
         )}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Stat label={t("dashboard.totalValue")} value={formatMoney(totalValue, currency)} />
         <Stat label={t("dashboard.totalCost")} value={formatMoney(totalCost, currency)} />
         <Stat
@@ -302,6 +370,11 @@ function DashboardInner() {
           negative={realizedPL < 0}
         />
         <Stat label={t("dashboard.dividends")} value={formatMoney(totalDividends, currency)} />
+        <PerStat
+          perStats={perStats}
+          refreshing={fundRefreshing}
+          onRefresh={() => void handleFundamentalsRefresh()}
+        />
       </section>
 
       {user && (
@@ -319,22 +392,41 @@ function DashboardInner() {
 
       {openPositions.length > 0 && (
         <section className="card overflow-x-auto">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
             <h2 className="text-lg font-medium text-slate-900">
               {t("dashboard.positions")}
             </h2>
-            <button
-              onClick={() => setShowPie(true)}
-              className="btn-ghost text-xs px-3 py-1.5"
-            >
-              {t("dashboard.pieButton")}
-            </button>
+            <div className="flex items-center gap-3 flex-wrap">
+              {fundamentalsUpdatedAt && (
+                <span className="text-xs text-slate-400">
+                  {t("fundamentals.updated", {
+                    when: new Date(fundamentalsUpdatedAt).toLocaleDateString(),
+                  })}
+                </span>
+              )}
+              <button
+                onClick={() => void handleFundamentalsRefresh()}
+                disabled={fundRefreshing}
+                className="btn-ghost text-xs px-3 py-1.5"
+              >
+                {fundRefreshing
+                  ? t("fundamentals.refreshing")
+                  : t("fundamentals.refresh")}
+              </button>
+              <button
+                onClick={() => setShowPie(true)}
+                className="btn-ghost text-xs px-3 py-1.5"
+              >
+                {t("dashboard.pieButton")}
+              </button>
+            </div>
           </div>
           <PositionsTable
             positions={openPositions}
             quotes={quotes}
             currency={currency}
             fxRates={fxRates}
+            fundamentals={fundamentals}
           />
         </section>
       )}
@@ -424,18 +516,73 @@ function Stat({
   );
 }
 
+// Summary card for the portfolio's weighted harmonic mean PER, with the
+// share of portfolio value the figure covers. Empty state doubles as the
+// call-to-action to fill the fundamentals cache.
+function PerStat({
+  perStats,
+  refreshing,
+  onRefresh,
+}: {
+  perStats: { per: number; coverage: number } | null;
+  refreshing: boolean;
+  onRefresh: () => void;
+}) {
+  const { t, i18n } = useTranslation();
+  return (
+    <div className="card">
+      <p className="text-xs uppercase tracking-wide text-slate-500">
+        {t("fundamentals.perCard")}
+      </p>
+      {perStats ? (
+        <>
+          <p className="mt-2 text-xl font-semibold text-slate-900">
+            {new Intl.NumberFormat(i18n.language, {
+              maximumFractionDigits: 1,
+            }).format(perStats.per)}
+          </p>
+          <p className="mt-1 text-[11px] text-slate-400">
+            {t("fundamentals.coverage", {
+              pct: Math.round(perStats.coverage * 100),
+            })}
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="mt-2 text-sm text-slate-400">
+            {t("fundamentals.noData")}
+          </p>
+          <button
+            onClick={onRefresh}
+            disabled={refreshing}
+            className="mt-1 text-xs text-brand-700 underline disabled:text-slate-400"
+          >
+            {refreshing
+              ? t("fundamentals.refreshing")
+              : t("fundamentals.refresh")}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function PositionsTable({
   positions,
   quotes,
   currency,
   fxRates,
+  fundamentals,
 }: {
   positions: Position[];
   quotes: Record<string, PriceQuote>;
   currency: Currency;
   fxRates: Record<string, number>;
+  fundamentals: Record<string, Fundamentals>;
 }) {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const hasFundamentals = Object.keys(fundamentals).length > 0;
   return (
     <table className="table-base">
       <thead>
@@ -468,49 +615,130 @@ function PositionsTable({
           const pl = marketValue != null ? marketValue - p.totalCost : null;
           const plPct =
             pl != null && p.totalCost > 0 ? pl / p.totalCost : null;
+          const fund = fundamentals[p.ticker];
+          const isExpanded = expanded === p.ticker;
           return (
-            <tr key={p.ticker}>
-              <td className="font-medium">{p.ticker}</td>
-              <td className="text-right">{p.shares.toFixed(4)}</td>
-              <td className="text-right">{formatMoney(p.avgCost, currency)}</td>
-              <td className="text-right">
-                {currentPriceDisp != null
-                  ? formatMoney(currentPriceDisp, currency)
-                  : "—"}
-              </td>
-              <td className="text-right">{formatMoney(marketValue, currency)}</td>
-              <td className="text-right">{formatMoney(p.totalCost, currency)}</td>
-              <td
-                className={`text-right ${
-                  pl == null
-                    ? ""
-                    : pl > 0
-                      ? "text-brand-700"
-                      : pl < 0
-                        ? "text-rose-600"
-                        : ""
-                }`}
+            <Fragment key={p.ticker}>
+              <tr
+                className={hasFundamentals ? "cursor-pointer hover:bg-slate-50" : ""}
+                onClick={
+                  hasFundamentals
+                    ? () => setExpanded(isExpanded ? null : p.ticker)
+                    : undefined
+                }
               >
-                {formatMoney(pl, currency)}
-              </td>
-              <td
-                className={`text-right ${
-                  plPct == null
-                    ? ""
-                    : plPct > 0
-                      ? "text-brand-700"
-                      : plPct < 0
-                        ? "text-rose-600"
-                        : ""
-                }`}
-              >
-                {formatPct(plPct)}
-              </td>
-            </tr>
+                <td className="font-medium">
+                  {hasFundamentals && (
+                    <span className="mr-1 inline-block w-3 text-slate-400">
+                      {isExpanded ? "▾" : "▸"}
+                    </span>
+                  )}
+                  {p.ticker}
+                </td>
+                <td className="text-right">{p.shares.toFixed(4)}</td>
+                <td className="text-right">{formatMoney(p.avgCost, currency)}</td>
+                <td className="text-right">
+                  {currentPriceDisp != null
+                    ? formatMoney(currentPriceDisp, currency)
+                    : "—"}
+                </td>
+                <td className="text-right">{formatMoney(marketValue, currency)}</td>
+                <td className="text-right">{formatMoney(p.totalCost, currency)}</td>
+                <td
+                  className={`text-right ${
+                    pl == null
+                      ? ""
+                      : pl > 0
+                        ? "text-brand-700"
+                        : pl < 0
+                          ? "text-rose-600"
+                          : ""
+                  }`}
+                >
+                  {formatMoney(pl, currency)}
+                </td>
+                <td
+                  className={`text-right ${
+                    plPct == null
+                      ? ""
+                      : plPct > 0
+                        ? "text-brand-700"
+                        : plPct < 0
+                          ? "text-rose-600"
+                          : ""
+                  }`}
+                >
+                  {formatPct(plPct)}
+                </td>
+              </tr>
+              {isExpanded && (
+                <tr className="bg-slate-50/70">
+                  <td colSpan={8} className="px-4 py-3">
+                    <FundamentalsDetail fund={fund} />
+                  </td>
+                </tr>
+              )}
+            </Fragment>
           );
         })}
       </tbody>
     </table>
+  );
+}
+
+function FundamentalsDetail({ fund }: { fund: Fundamentals | undefined }) {
+  const { t, i18n } = useTranslation();
+  if (!fund) {
+    return <p className="text-xs text-slate-400">{t("fundamentals.noneForTicker")}</p>;
+  }
+  const nf = (v: number | null, digits = 1): string =>
+    v == null
+      ? "—"
+      : new Intl.NumberFormat(i18n.language, {
+          maximumFractionDigits: digits,
+        }).format(v);
+  const metrics: Array<{ label: string; value: string }> = [
+    { label: t("fundamentals.per"), value: nf(fund.trailingPe) },
+    { label: t("fundamentals.forwardPe"), value: nf(fund.forwardPe) },
+    { label: t("fundamentals.priceToBook"), value: nf(fund.priceToBook, 2) },
+    { label: t("fundamentals.roe"), value: formatPct(fund.roe) },
+    { label: t("fundamentals.margin"), value: formatPct(fund.profitMargin) },
+    {
+      label: t("fundamentals.debtToEquity"),
+      // Yahoo reports D/E as a percentage-style number (e.g. 41.2); shown
+      // here as the conventional ratio (0.41).
+      value: fund.debtToEquity == null ? "—" : nf(fund.debtToEquity / 100, 2),
+    },
+    { label: t("fundamentals.yield"), value: formatPct(fund.dividendYield) },
+    {
+      label: t("fundamentals.marketCap"),
+      value:
+        fund.marketCap == null
+          ? "—"
+          : new Intl.NumberFormat(i18n.language, {
+              notation: "compact",
+              maximumFractionDigits: 1,
+            }).format(fund.marketCap) + (fund.currency ? ` ${fund.currency}` : ""),
+    },
+  ];
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4 lg:grid-cols-8">
+        {metrics.map((m) => (
+          <div key={m.label}>
+            <p className="text-[10px] uppercase tracking-wide text-slate-400">
+              {m.label}
+            </p>
+            <p className="text-sm font-medium text-slate-800">{m.value}</p>
+          </div>
+        ))}
+      </div>
+      {(fund.sector || fund.industry) && (
+        <p className="mt-2 text-xs text-slate-400">
+          {[fund.sector, fund.industry].filter(Boolean).join(" · ")}
+        </p>
+      )}
+    </div>
   );
 }
 
