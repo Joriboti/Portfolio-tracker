@@ -13,12 +13,19 @@ import { convert, formatMoney, type Currency } from "@/lib/currency";
 // converted to the display currency with the current FX rates, consistent
 // with how the dashboard converts its totals.
 
+type BenchPoint = { date: string; value: number };
+
 type State =
   | { kind: "loading" }
   | { kind: "error"; message: string }
   | { kind: "needs-backfill" }
   | { kind: "empty"; reason?: string }
-  | { kind: "ready"; series: HistoryPoint[]; warnings: string[] };
+  | {
+      kind: "ready";
+      series: HistoryPoint[];
+      benchmark: BenchPoint[] | null;
+      warnings: string[];
+    };
 
 const W = 920;
 const H = 300;
@@ -49,6 +56,7 @@ export function HistoryChart({
   const [state, setState] = useState<State>({ kind: "loading" });
   const [backfilling, setBackfilling] = useState(false);
   const [hover, setHover] = useState<number | null>(null);
+  const [showBenchmark, setShowBenchmark] = useState(true);
   const svgRef = useRef<SVGSVGElement>(null);
 
   const load = useCallback(async () => {
@@ -67,7 +75,12 @@ export function HistoryChart({
         }
         return;
       }
-      setState({ kind: "ready", series: res.series, warnings: res.warnings ?? [] });
+      setState({
+        kind: "ready",
+        series: res.series,
+        benchmark: res.benchmark ?? null,
+        warnings: res.warnings ?? [],
+      });
     } catch (e) {
       setState({ kind: "error", message: (e as Error).message });
     }
@@ -103,10 +116,14 @@ export function HistoryChart({
     const x0 = xs[0];
     const x1 = xs[xs.length - 1];
     const xSpan = Math.max(x1 - x0, 1);
+    const bench = showBenchmark ? state.benchmark : null;
+    const benchByDate = new Map<string, number>();
+    if (bench) for (const b of bench) benchByDate.set(b.date, b.value);
     let yMax = 0;
     for (const p of series) {
       yMax = Math.max(yMax, toDisp(p.value), toDisp(p.netCapital));
     }
+    if (bench) for (const b of bench) yMax = Math.max(yMax, toDisp(b.value));
     if (yMax <= 0) return null;
     yMax *= 1.05;
 
@@ -121,6 +138,14 @@ export function HistoryChart({
     const capitalPath = series
       .map((p, i) => `${i === 0 ? "M" : "L"}${px(xs[i]).toFixed(1)},${py(toDisp(p.netCapital)).toFixed(1)}`)
       .join("");
+    const benchPath = bench
+      ? bench
+          .map(
+            (b, i) =>
+              `${i === 0 ? "M" : "L"}${px(dateToMs(b.date)).toFixed(1)},${py(toDisp(b.value)).toFixed(1)}`,
+          )
+          .join("")
+      : null;
     // Area under the value line, for a subtle fill.
     const areaPath =
       valuePath +
@@ -146,8 +171,23 @@ export function HistoryChart({
       });
     }
 
-    return { series, xs, px, py, valuePath, capitalPath, areaPath, yTicks, xTicks, x0, xSpan, plotW };
-  }, [state, toDisp, i18n.language]);
+    return {
+      series,
+      xs,
+      px,
+      py,
+      valuePath,
+      capitalPath,
+      areaPath,
+      benchPath,
+      benchByDate,
+      yTicks,
+      xTicks,
+      x0,
+      xSpan,
+      plotW,
+    };
+  }, [state, toDisp, i18n.language, showBenchmark]);
 
   const handleMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
@@ -175,7 +215,7 @@ export function HistoryChart({
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         <h2 className="text-lg font-medium text-slate-900">{t("history.title")}</h2>
         {state.kind === "ready" && (
-          <div className="flex items-center gap-4 text-xs text-slate-500">
+          <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
             <span className="flex items-center gap-1.5">
               <span className="inline-block w-4 border-t-2 border-brand-600" />
               {t("history.valueSeries")}
@@ -184,6 +224,18 @@ export function HistoryChart({
               <span className="inline-block w-4 border-t-2 border-dashed border-slate-400" />
               {t("history.capitalSeries")}
             </span>
+            {state.benchmark && state.benchmark.length > 1 && (
+              <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showBenchmark}
+                  onChange={(e) => setShowBenchmark(e.target.checked)}
+                  className="accent-amber-500 h-3 w-3"
+                />
+                <span className="inline-block w-4 border-t-2 border-amber-400" />
+                {t("history.benchmarkSeries")}
+              </label>
+            )}
           </div>
         )}
       </div>
@@ -269,6 +321,9 @@ export function HistoryChart({
               ))}
               {/* value area + lines */}
               <path d={chart.areaPath} fill="#0d9488" opacity="0.07" />
+              {chart.benchPath && (
+                <path d={chart.benchPath} fill="none" stroke="#f59e0b" strokeWidth="1.5" opacity="0.75" />
+              )}
               <path d={chart.capitalPath} fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5 4" />
               <path d={chart.valuePath} fill="none" stroke="#0d9488" strokeWidth="2" />
               {/* hover marker */}
@@ -300,6 +355,7 @@ export function HistoryChart({
             {hover != null && (
               <ChartTooltip
                 point={chart.series[hover]}
+                benchValue={chart.benchByDate.get(chart.series[hover].date) ?? null}
                 xFrac={(chart.px(chart.xs[hover]) - PAD.left) / chart.plotW}
                 currency={currency}
                 toDisp={toDisp}
@@ -315,12 +371,14 @@ export function HistoryChart({
 
 function ChartTooltip({
   point,
+  benchValue,
   xFrac,
   currency,
   toDisp,
   locale,
 }: {
   point: HistoryPoint;
+  benchValue: number | null;
   xFrac: number;
   currency: Currency;
   toDisp: (v: number) => number;
@@ -363,6 +421,14 @@ function ChartTooltip({
           {formatMoney(pnl, currency)}
         </span>
       </p>
+      {benchValue != null && (
+        <p className="text-slate-600">
+          {t("history.benchmarkSeries")}:{" "}
+          <span className="font-semibold text-amber-600">
+            {formatMoney(toDisp(benchValue), currency)}
+          </span>
+        </p>
+      )}
     </div>
   );
 }
