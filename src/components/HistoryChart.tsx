@@ -57,6 +57,10 @@ export function HistoryChart({
   const [backfilling, setBackfilling] = useState(false);
   const [hover, setHover] = useState<number | null>(null);
   const [showBenchmark, setShowBenchmark] = useState(true);
+  // "value": absolute wealth (€) — contributions push the line up.
+  // "pnl": cumulative gain vs. contributed capital (TR-style) — drawdowns
+  // show up regardless of new money coming in.
+  const [mode, setMode] = useState<"value" | "pnl">("value");
   const svgRef = useRef<SVGSVGElement>(null);
 
   const load = useCallback(async () => {
@@ -116,28 +120,43 @@ export function HistoryChart({
     const x0 = xs[0];
     const x1 = xs[xs.length - 1];
     const xSpan = Math.max(x1 - x0, 1);
-    const bench = showBenchmark ? state.benchmark : null;
+    const isPnl = mode === "pnl";
+    const bench = !isPnl && showBenchmark ? state.benchmark : null;
     const benchByDate = new Map<string, number>();
     if (bench) for (const b of bench) benchByDate.set(b.date, b.value);
+
+    // Main series per mode: wealth in €, or cumulative gain (can be < 0).
+    const main = series.map((p) => toDisp(isPnl ? p.pnl : p.value));
+    let yMin = 0;
     let yMax = 0;
-    for (const p of series) {
-      yMax = Math.max(yMax, toDisp(p.value), toDisp(p.netCapital));
+    for (const v of main) {
+      yMin = Math.min(yMin, v);
+      yMax = Math.max(yMax, v);
     }
-    if (bench) for (const b of bench) yMax = Math.max(yMax, toDisp(b.value));
-    if (yMax <= 0) return null;
-    yMax *= 1.05;
+    if (!isPnl) {
+      yMin = 0;
+      for (const p of series) yMax = Math.max(yMax, toDisp(p.netCapital));
+      if (bench) for (const b of bench) yMax = Math.max(yMax, toDisp(b.value));
+    }
+    if (yMax <= yMin) return null;
+    const yPad = (yMax - yMin) * 0.05;
+    yMax += yPad;
+    if (yMin < 0) yMin -= yPad;
 
     const plotW = W - PAD.left - PAD.right;
     const plotH = H - PAD.top - PAD.bottom;
     const px = (ms: number) => PAD.left + ((ms - x0) / xSpan) * plotW;
-    const py = (v: number) => PAD.top + plotH - (v / yMax) * plotH;
+    const py = (v: number) =>
+      PAD.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
 
-    const valuePath = series
-      .map((p, i) => `${i === 0 ? "M" : "L"}${px(xs[i]).toFixed(1)},${py(toDisp(p.value)).toFixed(1)}`)
+    const valuePath = main
+      .map((v, i) => `${i === 0 ? "M" : "L"}${px(xs[i]).toFixed(1)},${py(v).toFixed(1)}`)
       .join("");
-    const capitalPath = series
-      .map((p, i) => `${i === 0 ? "M" : "L"}${px(xs[i]).toFixed(1)},${py(toDisp(p.netCapital)).toFixed(1)}`)
-      .join("");
+    const capitalPath = isPnl
+      ? null
+      : series
+          .map((p, i) => `${i === 0 ? "M" : "L"}${px(xs[i]).toFixed(1)},${py(toDisp(p.netCapital)).toFixed(1)}`)
+          .join("");
     const benchPath = bench
       ? bench
           .map(
@@ -146,16 +165,22 @@ export function HistoryChart({
           )
           .join("")
       : null;
-    // Area under the value line, for a subtle fill.
+    // Subtle fill between the main line and the zero baseline (= plot bottom
+    // in value mode, the dotted zero line in pnl mode).
+    const baseY = py(0);
     const areaPath =
       valuePath +
-      `L${px(x1).toFixed(1)},${(PAD.top + plotH).toFixed(1)}` +
-      `L${px(x0).toFixed(1)},${(PAD.top + plotH).toFixed(1)}Z`;
+      `L${px(x1).toFixed(1)},${baseY.toFixed(1)}` +
+      `L${px(x0).toFixed(1)},${baseY.toFixed(1)}Z`;
 
-    // ~5 y gridlines at round values.
+    // ~5 y gridlines at round values (zero gets its own dotted baseline).
     const yTicks: number[] = [];
-    const step = niceStep(yMax / 4);
-    for (let v = step; v < yMax; v += step) yTicks.push(v);
+    const step = niceStep((yMax - yMin) / 4);
+    for (let v = Math.ceil(yMin / step) * step; v < yMax; v += step) {
+      if (v !== 0 || !isPnl) {
+        if (v > yMin) yTicks.push(v);
+      }
+    }
 
     // ~6 x labels.
     const xTicks: Array<{ ms: number; label: string }> = [];
@@ -174,6 +199,9 @@ export function HistoryChart({
     return {
       series,
       xs,
+      main,
+      isPnl,
+      baseY,
       px,
       py,
       valuePath,
@@ -187,7 +215,7 @@ export function HistoryChart({
       xSpan,
       plotW,
     };
-  }, [state, toDisp, i18n.language, showBenchmark]);
+  }, [state, toDisp, i18n.language, showBenchmark, mode]);
 
   const handleMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
@@ -213,8 +241,27 @@ export function HistoryChart({
   return (
     <section className="card">
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-        <h2 className="text-lg font-medium text-slate-900">{t("history.title")}</h2>
-        {state.kind === "ready" && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <h2 className="text-lg font-medium text-slate-900">{t("history.title")}</h2>
+          {state.kind === "ready" && (
+            <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs">
+              {(["value", "pnl"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`px-2.5 py-1 ${
+                    mode === m
+                      ? "bg-brand-600 text-white"
+                      : "bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {t(m === "value" ? "history.modeValue" : "history.modePnl")}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {state.kind === "ready" && mode === "value" && (
           <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
             <span className="flex items-center gap-1.5">
               <span className="inline-block w-4 border-t-2 border-brand-600" />
@@ -237,6 +284,9 @@ export function HistoryChart({
               </label>
             )}
           </div>
+        )}
+        {state.kind === "ready" && mode === "pnl" && (
+          <PnlHeadline series={state.series} toDisp={toDisp} currency={currency} />
         )}
       </div>
 
@@ -321,10 +371,23 @@ export function HistoryChart({
               ))}
               {/* value area + lines */}
               <path d={chart.areaPath} fill="#0d9488" opacity="0.07" />
+              {chart.isPnl && (
+                <line
+                  x1={PAD.left}
+                  x2={W - PAD.right}
+                  y1={chart.baseY}
+                  y2={chart.baseY}
+                  stroke="#64748b"
+                  strokeWidth="1"
+                  strokeDasharray="2 3"
+                />
+              )}
               {chart.benchPath && (
                 <path d={chart.benchPath} fill="none" stroke="#f59e0b" strokeWidth="1.5" opacity="0.75" />
               )}
-              <path d={chart.capitalPath} fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5 4" />
+              {chart.capitalPath && (
+                <path d={chart.capitalPath} fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="5 4" />
+              )}
               <path d={chart.valuePath} fill="none" stroke="#0d9488" strokeWidth="2" />
               {/* hover marker */}
               {hover != null && (
@@ -339,16 +402,18 @@ export function HistoryChart({
                   />
                   <circle
                     cx={chart.px(chart.xs[hover])}
-                    cy={chart.py(toDisp(chart.series[hover].value))}
+                    cy={chart.py(chart.main[hover])}
                     r="3.5"
                     fill="#0d9488"
                   />
-                  <circle
-                    cx={chart.px(chart.xs[hover])}
-                    cy={chart.py(toDisp(chart.series[hover].netCapital))}
-                    r="3"
-                    fill="#94a3b8"
-                  />
+                  {!chart.isPnl && (
+                    <circle
+                      cx={chart.px(chart.xs[hover])}
+                      cy={chart.py(toDisp(chart.series[hover].netCapital))}
+                      r="3"
+                      fill="#94a3b8"
+                    />
+                  )}
                 </g>
               )}
             </svg>
@@ -366,6 +431,34 @@ export function HistoryChart({
         </>
       )}
     </section>
+  );
+}
+
+// TR-style headline for the gain mode: latest cumulative P&L and its % over
+// the capital contributed to date.
+function PnlHeadline({
+  series,
+  toDisp,
+  currency,
+}: {
+  series: HistoryPoint[];
+  toDisp: (v: number) => number;
+  currency: Currency;
+}) {
+  const last = series[series.length - 1];
+  const pnl = toDisp(last.pnl);
+  const cap = toDisp(last.netCapital);
+  const pct = cap > 0 ? (pnl / cap) * 100 : null;
+  const cls =
+    pnl > 0 ? "text-brand-700" : pnl < 0 ? "text-rose-600" : "text-slate-700";
+  return (
+    <p className={`text-sm font-semibold ${cls}`}>
+      {pnl > 0 ? "+" : ""}
+      {formatMoney(pnl, currency)}
+      {pct != null && (
+        <span className="font-normal"> ({pct.toFixed(2)} %)</span>
+      )}
+    </p>
   );
 }
 

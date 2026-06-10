@@ -135,6 +135,8 @@
   },
   "history": {
     "title": "Portfolio evolution",
+    "modeValue": "Value",
+    "modePnl": "Performance",
     "valueSeries": "Portfolio value",
     "capitalSeries": "Net capital invested",
     "benchmarkSeries": "S&P 500 (initial capital)",

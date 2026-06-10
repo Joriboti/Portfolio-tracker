@@ -135,6 +135,8 @@
   },
   "history": {
     "title": "Evolució de la cartera",
+    "modeValue": "Patrimoni",
+    "modePnl": "Rendiment",
     "valueSeries": "Valor de la cartera",
     "capitalSeries": "Capital net aportat",
     "benchmarkSeries": "S&P 500 (capital inicial)",
