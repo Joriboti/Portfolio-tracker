@@ -111,6 +111,23 @@
     "noYears": "No yearly data yet.",
     "byYearHint": "“Return %” and “Value gain” reconstruct the portfolio's market value at year-end (includes unrealized gains, ~3 years of history). “Realized €” is closed sales + dividends + interest for that year, exact across all history."
   },
+  "fundamentals": {
+    "perCard": "Portfolio avg P/E",
+    "coverage": "covers {{pct}}% of the portfolio",
+    "noData": "No data — refresh fundamentals",
+    "refresh": "Refresh fundamentals",
+    "refreshing": "Refreshing fundamentals...",
+    "updated": "Fundamentals: {{when}}",
+    "noneForTicker": "No fundamentals for this ticker. Try refreshing.",
+    "per": "P/E",
+    "forwardPe": "Forward P/E",
+    "priceToBook": "P/B",
+    "roe": "ROE",
+    "margin": "Net margin",
+    "debtToEquity": "Debt/Equity",
+    "yield": "Dividend yield",
+    "marketCap": "Market cap"
+  },
   "history": {
     "title": "Portfolio evolution",
     "valueSeries": "Portfolio value",

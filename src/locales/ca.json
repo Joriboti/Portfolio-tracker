@@ -111,6 +111,23 @@
     "noYears": "Encara no hi ha dades per any.",
     "byYearHint": "«Rendiment %» i «Guany de valor» reconstrueixen el valor de mercat de la cartera a final d'any (inclou plusvàlues latents, ~3 anys d'històric). «€ realitzats» són vendes tancades + dividends + interessos d'aquell any, exactes sobre tota la història."
   },
+  "fundamentals": {
+    "perCard": "PER mitjà cartera",
+    "coverage": "cobreix el {{pct}}% de la cartera",
+    "noData": "Sense dades — actualitza fonamentals",
+    "refresh": "Actualitza fonamentals",
+    "refreshing": "Actualitzant fonamentals...",
+    "updated": "Fonamentals: {{when}}",
+    "noneForTicker": "Sense fonamentals per aquest ticker. Prova d'actualitzar-los.",
+    "per": "PER",
+    "forwardPe": "PER forward",
+    "priceToBook": "P/B",
+    "roe": "ROE",
+    "margin": "Marge net",
+    "debtToEquity": "Deute/Capital",
+    "yield": "Yield dividend",
+    "marketCap": "Capitalització"
+  },
   "history": {
     "title": "Evolució de la cartera",
     "valueSeries": "Valor de la cartera",

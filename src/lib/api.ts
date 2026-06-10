@@ -254,3 +254,72 @@ export function getPortfolioHistory(
 ): Promise<PortfolioHistoryResponse> {
   return jsonFetch<PortfolioHistoryResponse>("/api/portfolio-history", { userId });
 }
+
+export type Fundamentals = {
+  ticker: string;
+  trailingPe: number | null;
+  forwardPe: number | null;
+  priceToBook: number | null;
+  roe: number | null;
+  profitMargin: number | null;
+  debtToEquity: number | null;
+  dividendYield: number | null;
+  marketCap: number | null;
+  eps: number | null;
+  sector: string | null;
+  industry: string | null;
+  currency: string | null;
+  updatedAt: string | null;
+};
+
+function normaliseFundamentals(f: Fundamentals): Fundamentals {
+  return {
+    ...f,
+    ticker: f.ticker.toUpperCase(),
+    trailingPe: num(f.trailingPe),
+    forwardPe: num(f.forwardPe),
+    priceToBook: num(f.priceToBook),
+    roe: num(f.roe),
+    profitMargin: num(f.profitMargin),
+    debtToEquity: num(f.debtToEquity),
+    dividendYield: num(f.dividendYield),
+    marketCap: num(f.marketCap),
+    eps: num(f.eps),
+  };
+}
+
+// Cached per-company fundamentals (PER, P/B, ROE, …) for the given position
+// tickers. Empty when the fundamentals table hasn't been filled yet.
+export async function getFundamentals(
+  tickers: string[],
+): Promise<Record<string, Fundamentals>> {
+  if (tickers.length === 0) return {};
+  const params = new URLSearchParams({ tickers: tickers.join(",") });
+  const data = await jsonFetch<{ fundamentals: Fundamentals[] }>(
+    `/api/fundamentals-get?${params.toString()}`,
+  );
+  const map: Record<string, Fundamentals> = {};
+  for (const f of data.fundamentals ?? []) {
+    const n = normaliseFundamentals(f);
+    map[n.ticker] = n;
+  }
+  return map;
+}
+
+export type FundamentalsRefreshResult = {
+  ok: boolean;
+  tickers?: number;
+  refreshed?: number;
+  errors?: string[];
+  exhausted?: boolean;
+  elapsed?: string;
+};
+
+// Manual trigger of the fundamentals refresh. Serial with per-ticker delay,
+// time-budgeted server-side: if the portfolio is large, call again to
+// continue (stale-first ordering makes repeated calls converge).
+export function refreshFundamentals(
+  userId: string,
+): Promise<FundamentalsRefreshResult> {
+  return jsonFetch("/api/fundamentals-refresh", { method: "GET", userId });
+}
