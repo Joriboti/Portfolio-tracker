@@ -3,7 +3,7 @@ import {
   makeYahooClient,
   refreshFundamentals,
   type SqlClient,
-} from "./_fundamentals-core";
+} from "./_fundamentals-core.js";
 
 // Backfills the `historical_prices` table with 3 years of weekly closes for
 // every ticker held by any user, plus the analytics benchmark (^GSPC).

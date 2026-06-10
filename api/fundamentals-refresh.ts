@@ -3,7 +3,7 @@ import {
   makeYahooClient,
   refreshFundamentals,
   type SqlClient,
-} from "./_fundamentals-core";
+} from "./_fundamentals-core.js";
 
 // Manual trigger for the fundamentals refresh (dashboard button). The weekly
 // cron path lives in api/historical-backfill.ts; both share the core in
