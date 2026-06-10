@@ -81,6 +81,8 @@ const TICKER_STORAGE_ALIASES: Record<string, string> = {
 
 const EUR_FX = "EURUSD=X";
 const FX_SYMBOLS = [EUR_FX, "GBPUSD=X", "CHFUSD=X"];
+// Same benchmark the analytics use; backfilled weekly under its literal key.
+const BENCHMARK_SYMBOL = "^GSPC";
 // currency → the historical_prices pseudo-ticker holding its USD rate.
 const CCY_FX_SYMBOL: Record<string, string> = {
   GBP: "GBPUSD=X",
@@ -279,16 +281,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const histRows = (await sql`
       SELECT ticker, to_char(week_date, 'YYYY-MM-DD') AS "weekDate", close, currency
       FROM historical_prices
-      WHERE ticker = ANY(${[...tickerList, ...FX_SYMBOLS]}::text[])
+      WHERE ticker = ANY(${[...tickerList, ...FX_SYMBOLS, BENCHMARK_SYMBOL]}::text[])
       ORDER BY ticker, week_date ASC
     `) as HistRow[];
 
     const priceByTicker = new Map<string, Point[]>();
     const ccyByTicker = new Map<string, string>();
     const fxBySymbol = new Map<string, Point[]>();
+    const benchmarkPts: Point[] = [];
     for (const r of histRows) {
       const tk = r.ticker.toUpperCase();
       const pt = { weekDate: r.weekDate, close: toNum(r.close) };
+      if (tk === BENCHMARK_SYMBOL) {
+        benchmarkPts.push(pt);
+        continue;
+      }
       if (FX_SYMBOLS.includes(tk)) {
         const arr = fxBySymbol.get(tk) ?? [];
         arr.push(pt);
@@ -483,6 +490,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       warnings.push("price-history-partial");
     }
 
+    // Optional S&P 500 comparison: the benchmark price path scaled so it
+    // starts at the first point's net capital — "what if the initial capital
+    // had gone into the index instead". Purely visual; later contributions
+    // are not simulated. Skipped when benchmark history is missing.
+    let benchmark: Array<{ date: string; value: number }> | null = null;
+    if (benchmarkPts.length > 0 && series.length > 1) {
+      const base = asOf(benchmarkPts, series[0].date);
+      const anchor = series[0].netCapital > 0 ? series[0].netCapital : series[0].value;
+      if (base != null && base > 0 && anchor > 0) {
+        benchmark = [];
+        for (const p of series) {
+          const close = asOf(benchmarkPts, p.date);
+          if (close == null || close <= 0) continue;
+          benchmark.push({ date: p.date, value: round2((close / base) * anchor) });
+        }
+        if (benchmark.length < 2) benchmark = null;
+      }
+    }
+
     const ready = series.length > 1;
     res.status(200).end(
       JSON.stringify({
@@ -492,6 +518,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         baseCurrency: "EUR",
         firstTxnDate,
         series,
+        benchmark,
         warnings,
       }),
     );

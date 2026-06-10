@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Position } from "@/lib/excel-parser";
-import type { PriceQuote } from "@/lib/api";
+import type { PriceQuote, Fundamentals } from "@/lib/api";
 import type { Currency } from "@/lib/currency";
 import { convert, formatMoney } from "@/lib/currency";
 
@@ -14,12 +14,12 @@ const COLORS = [
   "#ef4444", "#3b82f6", "#10b981", "#f97316", "#a855f7",
 ];
 
-function buildSlices(
+function buildRawValues(
   positions: Position[],
   quotes: Record<string, PriceQuote>,
   currency: Currency,
   fxRates: Record<string, number>,
-): Slice[] {
+): { ticker: string; value: number }[] {
   const raw: { ticker: string; value: number }[] = [];
   for (const p of positions) {
     const q = quotes[p.ticker];
@@ -36,7 +36,16 @@ function buildSlices(
     if (value > 0) raw.push({ ticker: p.ticker, value });
   }
   raw.sort((a, b) => b.value - a.value);
+  return raw;
+}
 
+function buildSlices(
+  positions: Position[],
+  quotes: Record<string, PriceQuote>,
+  currency: Currency,
+  fxRates: Record<string, number>,
+): Slice[] {
+  const raw = buildRawValues(positions, quotes, currency, fxRates);
   const total = raw.reduce((s, r) => s + r.value, 0);
   if (total <= 0) return [];
 
@@ -60,6 +69,30 @@ function buildSlices(
     slices.push({ ticker: "Altres", value: restValue, pct: restValue / total });
   }
   return slices;
+}
+
+// Same allocation, grouped by the cached fundamentals sector. Positions with
+// no fundamentals row (or a null sector) fall into the catch-all bucket.
+function buildSectorSlices(
+  positions: Position[],
+  quotes: Record<string, PriceQuote>,
+  currency: Currency,
+  fxRates: Record<string, number>,
+  fundamentals: Record<string, Fundamentals>,
+  otherLabel: string,
+): Slice[] {
+  const raw = buildRawValues(positions, quotes, currency, fxRates);
+  const bySector = new Map<string, number>();
+  let total = 0;
+  for (const r of raw) {
+    const sector = fundamentals[r.ticker]?.sector ?? otherLabel;
+    bySector.set(sector, (bySector.get(sector) ?? 0) + r.value);
+    total += r.value;
+  }
+  if (total <= 0) return [];
+  return [...bySector.entries()]
+    .map(([sector, value]) => ({ ticker: sector, value, pct: value / total }))
+    .sort((a, b) => b.value - a.value);
 }
 
 function drawPie(
@@ -163,23 +196,47 @@ export function PieChartModal({
   quotes,
   currency,
   fxRates,
+  fundamentals,
   onClose,
 }: {
   positions: Position[];
   quotes: Record<string, PriceQuote>;
   currency: Currency;
   fxRates: Record<string, number>;
+  fundamentals?: Record<string, Fundamentals>;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const slices = buildSlices(positions, quotes, currency, fxRates);
+  const [mode, setMode] = useState<"tickers" | "sectors">("tickers");
+  const tickerSlices = buildSlices(positions, quotes, currency, fxRates);
+  const hasSectors =
+    fundamentals != null &&
+    Object.values(fundamentals).some((f) => f.sector != null);
+  const slices =
+    mode === "sectors" && fundamentals
+      ? buildSectorSlices(
+          positions,
+          quotes,
+          currency,
+          fxRates,
+          fundamentals,
+          t("dashboard.pieOther"),
+        )
+      : tickerSlices;
 
   useEffect(() => {
     if (canvasRef.current && slices.length > 0) {
-      drawPie(canvasRef.current, slices, currency, t("dashboard.pieTitle"));
+      drawPie(
+        canvasRef.current,
+        slices,
+        currency,
+        mode === "sectors"
+          ? t("dashboard.pieSectorTitle")
+          : t("dashboard.pieTitle"),
+      );
     }
-  }, [slices, currency, t]);
+  }, [slices, currency, mode, t]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -212,6 +269,25 @@ export function PieChartModal({
           &times;
         </button>
 
+        {hasSectors && (
+          <div className="flex justify-center gap-2 mb-2">
+            {(["tickers", "sectors"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  mode === m
+                    ? "bg-brand-600 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {m === "tickers"
+                  ? t("dashboard.pieByTicker")
+                  : t("dashboard.pieBySector")}
+              </button>
+            ))}
+          </div>
+        )}
         {slices.length > 0 ? (
           <>
             <canvas ref={canvasRef} className="mx-auto block" />

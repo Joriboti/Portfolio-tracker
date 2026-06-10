@@ -244,6 +244,8 @@ export type PortfolioHistoryResponse = {
   baseCurrency?: string;
   firstTxnDate?: string | null;
   series?: HistoryPoint[];
+  // S&P 500 path scaled to the initial net capital, for visual comparison.
+  benchmark?: Array<{ date: string; value: number }> | null;
   warnings?: string[];
 };
 

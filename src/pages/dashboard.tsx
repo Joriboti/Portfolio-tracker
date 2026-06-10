@@ -437,6 +437,7 @@ function DashboardInner() {
           quotes={quotes}
           currency={currency}
           fxRates={fxRates}
+          fundamentals={fundamentals}
           onClose={() => setShowPie(false)}
         />
       )}
@@ -674,7 +675,20 @@ function PositionsTable({
               {isExpanded && (
                 <tr className="bg-slate-50/70">
                   <td colSpan={8} className="px-4 py-3">
-                    <FundamentalsDetail fund={fund} />
+                    <FundamentalsDetail
+                      fund={fund}
+                      // Yield on cost: estimated annual dividends (yield ×
+                      // current price × shares) over the FIFO cost basis of
+                      // the open position.
+                      yieldOnCost={
+                        fund?.dividendYield != null &&
+                        currentPriceDisp != null &&
+                        p.totalCost > 0
+                          ? (fund.dividendYield * currentPriceDisp * p.shares) /
+                            p.totalCost
+                          : null
+                      }
+                    />
                   </td>
                 </tr>
               )}
@@ -686,7 +700,13 @@ function PositionsTable({
   );
 }
 
-function FundamentalsDetail({ fund }: { fund: Fundamentals | undefined }) {
+function FundamentalsDetail({
+  fund,
+  yieldOnCost,
+}: {
+  fund: Fundamentals | undefined;
+  yieldOnCost: number | null;
+}) {
   const { t, i18n } = useTranslation();
   if (!fund) {
     return <p className="text-xs text-slate-400">{t("fundamentals.noneForTicker")}</p>;
@@ -710,6 +730,7 @@ function FundamentalsDetail({ fund }: { fund: Fundamentals | undefined }) {
       value: fund.debtToEquity == null ? "—" : nf(fund.debtToEquity / 100, 2),
     },
     { label: t("fundamentals.yield"), value: formatPct(fund.dividendYield) },
+    { label: t("fundamentals.yieldOnCost"), value: formatPct(yieldOnCost) },
     {
       label: t("fundamentals.marketCap"),
       value:
@@ -723,7 +744,7 @@ function FundamentalsDetail({ fund }: { fund: Fundamentals | undefined }) {
   ];
   return (
     <div>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4 lg:grid-cols-8">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
         {metrics.map((m) => (
           <div key={m.label}>
             <p className="text-[10px] uppercase tracking-wide text-slate-400">
