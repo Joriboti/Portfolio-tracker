@@ -359,7 +359,14 @@ export default async function handler(
               ? original
               : storageKey(original);
 
-            const rows: Array<{ weekDate: string; close: number }> = [];
+            // Yahoo dates weekly bars at the period START (Monday for
+            // equities) while the close they carry is the END of the week.
+            // Shift each bar to the Friday of its week — capped at today for
+            // the in-progress week — so consumers don't see Friday's close
+            // stamped ~5 days early. Dedupe by date keeping the latest bar
+            // (the capped current-week bar can collide after shifting).
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const byDate = new Map<string, number>();
             for (const q of quotes) {
               const closeRaw = q.close ?? q.adjclose;
               if (closeRaw == null) continue;
@@ -368,9 +375,15 @@ export default async function handler(
               const d =
                 q.date instanceof Date ? q.date : new Date(String(q.date));
               if (Number.isNaN(d.getTime())) continue;
-              const weekDate = d.toISOString().slice(0, 10);
-              rows.push({ weekDate, close });
+              d.setUTCDate(d.getUTCDate() + ((5 - d.getUTCDay() + 7) % 7));
+              let weekDate = d.toISOString().slice(0, 10);
+              if (weekDate > todayStr) weekDate = todayStr;
+              byDate.set(weekDate, close);
             }
+            const rows = [...byDate.entries()].map(([weekDate, close]) => ({
+              weekDate,
+              close,
+            }));
 
             // Bulk insert via UNNEST: one round-trip per ticker instead
             // of one per row. 156 weeks × 50 tickers in individual INSERTs
@@ -379,6 +392,13 @@ export default async function handler(
             if (rows.length > 0) {
               const dateArr = rows.map((r) => r.weekDate);
               const closeArr = rows.map((r) => r.close);
+              // Drop rows on dates the fresh fetch no longer produces —
+              // notably the Monday-dated bars stored before the Friday shift.
+              await sql`
+                DELETE FROM historical_prices
+                WHERE ticker = ${stored}
+                  AND week_date <> ALL(${dateArr}::date[])
+              `;
               await sql`
                 INSERT INTO historical_prices (ticker, week_date, close, currency, source)
                 SELECT ${stored} AS ticker, d::date, c::numeric, ${currency} AS currency, 'yahoo' AS source
