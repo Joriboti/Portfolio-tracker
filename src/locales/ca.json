@@ -111,6 +111,16 @@
     "noYears": "Encara no hi ha dades per any.",
     "byYearHint": "«Rendiment %» i «Guany de valor» reconstrueixen el valor de mercat de la cartera a final d'any (inclou plusvàlues latents, ~3 anys d'històric). «€ realitzats» són vendes tancades + dividends + interessos d'aquell any, exactes sobre tota la història."
   },
+  "history": {
+    "title": "Evolució de la cartera",
+    "valueSeries": "Valor de la cartera",
+    "capitalSeries": "Capital net aportat",
+    "empty": "Encara no hi ha prou històric per dibuixar el gràfic. Prova de descarregar l'històric de preus.",
+    "needsBackfill": "Per veure l'evolució de la cartera cal descarregar l'històric de preus.",
+    "fxMissing": "Falta l'històric de divises: els valors en USD/GBP/CHF es converteixen amb un tipus aproximat. Descarrega l'històric per corregir-ho.",
+    "partialHistory": "L'històric disponible no cobreix tota la vida de la cartera; el gràfic mostra el rang disponible.",
+    "error": "No s'ha pogut carregar l'evolució"
+  },
   "analytics": {
     "title": "Anàlisi de la cartera",
     "benchmark": "Benchmark",

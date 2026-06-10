@@ -27,6 +27,7 @@ import { useUser } from "@/hooks/useUser";
 import { PieChartModal } from "@/components/PieChartModal";
 import { AnalyticsCard } from "@/components/AnalyticsCard";
 import { PerformanceCard } from "@/components/PerformanceCard";
+import { HistoryChart } from "@/components/HistoryChart";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
@@ -302,6 +303,10 @@ function DashboardInner() {
         />
         <Stat label={t("dashboard.dividends")} value={formatMoney(totalDividends, currency)} />
       </section>
+
+      {user && (
+        <HistoryChart userId={user.id} currency={currency} fxRates={fxRates} />
+      )}
 
       {user && (
         <PerformanceCard
