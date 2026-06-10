@@ -111,6 +111,16 @@
     "noYears": "No yearly data yet.",
     "byYearHint": "“Return %” and “Value gain” reconstruct the portfolio's market value at year-end (includes unrealized gains, ~3 years of history). “Realized €” is closed sales + dividends + interest for that year, exact across all history."
   },
+  "history": {
+    "title": "Portfolio evolution",
+    "valueSeries": "Portfolio value",
+    "capitalSeries": "Net capital invested",
+    "empty": "Not enough history to draw the chart yet. Try downloading the price history.",
+    "needsBackfill": "To see the portfolio evolution you need to download the price history.",
+    "fxMissing": "FX history is missing: USD/GBP/CHF values are converted with an approximate rate. Download the history to fix this.",
+    "partialHistory": "The available history doesn't cover the portfolio's full life; the chart shows the available range.",
+    "error": "Could not load the evolution"
+  },
   "analytics": {
     "title": "Portfolio analytics",
     "benchmark": "Benchmark",

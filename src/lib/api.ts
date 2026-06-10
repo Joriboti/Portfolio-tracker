@@ -229,3 +229,28 @@ export type PerformanceResponse = {
 export function getPerformance(userId: string): Promise<PerformanceResponse> {
   return jsonFetch<PerformanceResponse>("/api/performance", { userId });
 }
+
+export type HistoryPoint = {
+  date: string; // yyyy-mm-dd
+  value: number; // portfolio market value, EUR
+  netCapital: number; // cumulative buys − sells up to date, EUR
+  pnl: number; // value − netCapital
+};
+
+export type PortfolioHistoryResponse = {
+  ok: boolean;
+  ready: boolean;
+  reason?: string;
+  baseCurrency?: string;
+  firstTxnDate?: string | null;
+  series?: HistoryPoint[];
+  warnings?: string[];
+};
+
+// Weekly portfolio value vs. net contributed capital since inception,
+// reconstructed server-side from historical prices + FX (as-of alignment).
+export function getPortfolioHistory(
+  userId: string,
+): Promise<PortfolioHistoryResponse> {
+  return jsonFetch<PortfolioHistoryResponse>("/api/portfolio-history", { userId });
+}
