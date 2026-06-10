@@ -251,8 +251,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // Null buy date → held from before the window (parser convention):
       // shares and capital count from the very first point. Null sell date →
-      // not sold within the window: shares stay, proceeds land on the last
-      // point so the final net capital still equals the dashboard figure.
+      // sale happened but the date is unknown: both the shares and the
+      // proceeds land on the LAST point (today), so the final point reflects
+      // the truly-open positions and the final net capital equals the
+      // dashboard's "Capital aportat (net)" figure. Intermediate points keep
+      // the shares — the least-bad assumption without a date.
       if (shares > 0) {
         ensure(ticker).buys.push({ date: t.buyDate ?? "1900-01-01", shares });
         if (buyValue > 0) {
@@ -261,7 +264,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       if (sellShares > 0) {
         ensure(ticker).sells.push({
-          date: t.sellDate ?? "9999-12-31",
+          date: t.sellDate ?? today,
           shares: sellShares,
         });
         if (sellValue > 0) {
