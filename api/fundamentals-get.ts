@@ -56,6 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         dividend_yield AS "dividendYield",
         market_cap     AS "marketCap",
         eps,
+        forward_eps    AS "forwardEps",
         sector,
         industry,
         currency,

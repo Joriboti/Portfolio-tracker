@@ -276,6 +276,12 @@ export async function ensureFundamentalsTable(sql: SqlClient): Promise<void> {
       updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  // Additive column for DBs created before forward EPS was captured. Safe to
+  // run every time (IF NOT EXISTS).
+  await sql`
+    ALTER TABLE fundamentals
+      ADD COLUMN IF NOT EXISTS forward_eps NUMERIC(14, 4)
+  `;
 }
 
 export type FundamentalsRefreshStats = {
@@ -379,6 +385,14 @@ export async function refreshFundamentals(
       const dividendYield = pickNum(sd.dividendYield);
       const marketCap = pickNum(sd.marketCap) ?? pickNum(fd.marketCap);
       const eps = pickNum(ks.trailingEps);
+      // Forward EPS for the scenario valuation base. Yahoo exposes it under
+      // defaultKeyStatistics.forwardEps; financialData has no direct field, so
+      // fall back to deriving it from forward P/E + current price when needed.
+      const forwardEps =
+        pickNum(ks.forwardEps) ??
+        (forwardPe && forwardPe !== 0
+          ? (pickNum(fd.currentPrice) ?? 0) / forwardPe || null
+          : null);
       const sector = pickStr(ap.sector);
       const industry = pickStr(ap.industry);
       const currency = pickStr(fd.financialCurrency) ?? pickStr(sd.currency);
@@ -386,12 +400,12 @@ export async function refreshFundamentals(
       await sql`
         INSERT INTO fundamentals (
           ticker, trailing_pe, forward_pe, price_to_book, roe, profit_margin,
-          debt_to_equity, dividend_yield, market_cap, eps, sector, industry,
-          currency, updated_at
+          debt_to_equity, dividend_yield, market_cap, eps, forward_eps, sector,
+          industry, currency, updated_at
         ) VALUES (
           ${stored}, ${trailingPe}, ${forwardPe}, ${priceToBook}, ${roe},
           ${profitMargin}, ${debtToEquity}, ${dividendYield}, ${marketCap},
-          ${eps}, ${sector}, ${industry}, ${currency}, NOW()
+          ${eps}, ${forwardEps}, ${sector}, ${industry}, ${currency}, NOW()
         )
         ON CONFLICT (ticker) DO UPDATE SET
           trailing_pe = EXCLUDED.trailing_pe,
@@ -403,6 +417,7 @@ export async function refreshFundamentals(
           dividend_yield = EXCLUDED.dividend_yield,
           market_cap = EXCLUDED.market_cap,
           eps = EXCLUDED.eps,
+          forward_eps = EXCLUDED.forward_eps,
           sector = EXCLUDED.sector,
           industry = EXCLUDED.industry,
           currency = EXCLUDED.currency,
