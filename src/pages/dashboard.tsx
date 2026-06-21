@@ -31,6 +31,7 @@ import { PieChartModal } from "@/components/PieChartModal";
 import { AnalyticsCard } from "@/components/AnalyticsCard";
 import { PerformanceCard } from "@/components/PerformanceCard";
 import { HistoryChart } from "@/components/HistoryChart";
+import { ScenarioValuation } from "@/components/ScenarioValuation";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
@@ -427,6 +428,8 @@ function DashboardInner() {
             currency={currency}
             fxRates={fxRates}
             fundamentals={fundamentals}
+            userId={user?.id ?? null}
+            totalPortfolioValue={totalValue}
           />
         </section>
       )}
@@ -574,16 +577,19 @@ function PositionsTable({
   currency,
   fxRates,
   fundamentals,
+  userId,
+  totalPortfolioValue,
 }: {
   positions: Position[];
   quotes: Record<string, PriceQuote>;
   currency: Currency;
   fxRates: Record<string, number>;
   fundamentals: Record<string, Fundamentals>;
+  userId: string | null;
+  totalPortfolioValue: number;
 }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<string | null>(null);
-  const hasFundamentals = Object.keys(fundamentals).length > 0;
   return (
     <table className="table-base">
       <thead>
@@ -621,19 +627,13 @@ function PositionsTable({
           return (
             <Fragment key={p.ticker}>
               <tr
-                className={hasFundamentals ? "cursor-pointer hover:bg-slate-50" : ""}
-                onClick={
-                  hasFundamentals
-                    ? () => setExpanded(isExpanded ? null : p.ticker)
-                    : undefined
-                }
+                className="cursor-pointer hover:bg-slate-50"
+                onClick={() => setExpanded(isExpanded ? null : p.ticker)}
               >
                 <td className="font-medium">
-                  {hasFundamentals && (
-                    <span className="mr-1 inline-block w-3 text-slate-400">
-                      {isExpanded ? "▾" : "▸"}
-                    </span>
-                  )}
+                  <span className="mr-1 inline-block w-3 text-slate-400">
+                    {isExpanded ? "▾" : "▸"}
+                  </span>
                   {p.ticker}
                 </td>
                 <td className="text-right">{p.shares.toFixed(4)}</td>
@@ -675,20 +675,38 @@ function PositionsTable({
               {isExpanded && (
                 <tr className="bg-slate-50/70">
                   <td colSpan={8} className="px-4 py-3">
-                    <FundamentalsDetail
-                      fund={fund}
-                      // Yield on cost: estimated annual dividends (yield ×
-                      // current price × shares) over the FIFO cost basis of
-                      // the open position.
-                      yieldOnCost={
-                        fund?.dividendYield != null &&
-                        currentPriceDisp != null &&
-                        p.totalCost > 0
-                          ? (fund.dividendYield * currentPriceDisp * p.shares) /
-                            p.totalCost
-                          : null
-                      }
-                    />
+                    <div className="space-y-5">
+                      <FundamentalsDetail
+                        fund={fund}
+                        // Yield on cost: estimated annual dividends (yield ×
+                        // current price × shares) over the FIFO cost basis of
+                        // the open position.
+                        yieldOnCost={
+                          fund?.dividendYield != null &&
+                          currentPriceDisp != null &&
+                          p.totalCost > 0
+                            ? (fund.dividendYield * currentPriceDisp * p.shares) /
+                              p.totalCost
+                            : null
+                        }
+                      />
+                      {userId && (
+                        <div className="border-t border-slate-200 pt-4">
+                          <ScenarioValuation
+                            userId={userId}
+                            ticker={p.ticker}
+                            shares={p.shares}
+                            avgCostEur={p.avgCost}
+                            currentPrice={quote ? quote.price : null}
+                            quoteCurrency={quote?.currency ?? currency}
+                            fundamentals={fund}
+                            totalPortfolioValueEur={totalPortfolioValue}
+                            displayCurrency={currency}
+                            fxRates={fxRates}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )}

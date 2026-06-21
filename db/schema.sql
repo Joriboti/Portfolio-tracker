@@ -130,3 +130,22 @@ CREATE TABLE IF NOT EXISTS historical_prices (
 
 CREATE INDEX IF NOT EXISTS idx_historical_prices_ticker_recent
   ON historical_prices (ticker, week_date DESC);
+
+-- Per-user, per-holding scenario valuation model. The whole editable model
+-- (scenarios, horizon, DCA simulator, manual base-EPS override) is stored as
+-- a single JSONB document — it is always loaded and saved as a unit for one
+-- holding, so a flexible document beats rigid columns here. Keyed by the same
+-- storage-key ticker the positions table uses.
+CREATE TABLE IF NOT EXISTS holding_scenarios (
+  user_id     TEXT NOT NULL,
+  ticker      TEXT NOT NULL,
+  model       JSONB NOT NULL,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, ticker)
+);
+
+-- Forward EPS captured from Yahoo (defaultKeyStatistics.forwardEps), used to
+-- auto-fill the base forward EPS of the scenario valuation panel. Added after
+-- the fundamentals table shipped, so it's an additive ALTER for existing DBs.
+ALTER TABLE fundamentals
+  ADD COLUMN IF NOT EXISTS forward_eps NUMERIC(14, 4);

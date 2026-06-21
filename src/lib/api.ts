@@ -1,4 +1,5 @@
 import type { Transaction, Dividend, Interest, WealthEntry, DividendEvent } from "./excel-parser";
+import type { ValuationModel } from "./scenarioValuation";
 
 export type PriceQuote = {
   ticker: string;
@@ -268,6 +269,7 @@ export type Fundamentals = {
   dividendYield: number | null;
   marketCap: number | null;
   eps: number | null;
+  forwardEps: number | null;
   sector: string | null;
   industry: string | null;
   currency: string | null;
@@ -287,6 +289,7 @@ function normaliseFundamentals(f: Fundamentals): Fundamentals {
     dividendYield: num(f.dividendYield),
     marketCap: num(f.marketCap),
     eps: num(f.eps),
+    forwardEps: num(f.forwardEps),
   };
 }
 
@@ -324,4 +327,31 @@ export function refreshFundamentals(
   userId: string,
 ): Promise<FundamentalsRefreshResult> {
   return jsonFetch("/api/fundamentals-refresh", { method: "GET", userId });
+}
+
+// Load the saved scenario valuation model for one holding, or null when the
+// user hasn't created one yet.
+export async function getScenarioModel(
+  userId: string,
+  ticker: string,
+): Promise<ValuationModel | null> {
+  const params = new URLSearchParams({ ticker });
+  const data = await jsonFetch<{ model: ValuationModel | null }>(
+    `/api/scenarios?${params.toString()}`,
+    { userId },
+  );
+  return data.model ?? null;
+}
+
+// Upsert the scenario valuation model for one holding (debounced autosave).
+export function saveScenarioModel(
+  userId: string,
+  ticker: string,
+  model: ValuationModel,
+): Promise<{ ok: boolean }> {
+  return jsonFetch("/api/scenarios", {
+    method: "PUT",
+    body: JSON.stringify({ ticker, model }),
+    userId,
+  });
 }
