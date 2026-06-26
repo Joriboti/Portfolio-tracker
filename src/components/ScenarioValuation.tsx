@@ -715,5 +715,5 @@ function ValuationRuler({
 
 function tone(v: number | null | undefined): string {
   if (v == null) return "";
-  return v > 0 ? "text-brand-700" : v < 0 ? "text-rose-600" : "";
+  return v > 0 ? "text-emerald-600" : v < 0 ? "text-rose-600" : "";
 }

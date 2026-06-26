@@ -54,7 +54,7 @@ function Metric({
 }) {
   const color =
     tone === "positive"
-      ? "text-brand-700"
+      ? "text-emerald-600"
       : tone === "negative"
         ? "text-rose-600"
         : "text-slate-900";

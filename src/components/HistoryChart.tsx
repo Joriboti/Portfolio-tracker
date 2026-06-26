@@ -450,7 +450,7 @@ function PnlHeadline({
   const cap = toDisp(last.netCapital);
   const pct = cap > 0 ? (pnl / cap) * 100 : null;
   const cls =
-    pnl > 0 ? "text-brand-700" : pnl < 0 ? "text-rose-600" : "text-slate-700";
+    pnl > 0 ? "text-emerald-600" : pnl < 0 ? "text-rose-600" : "text-slate-700";
   return (
     <p className={`text-sm font-semibold ${cls}`}>
       {pnl > 0 ? "+" : ""}
@@ -508,7 +508,7 @@ function ChartTooltip({
         P&L:{" "}
         <span
           className={`font-semibold ${
-            pnl > 0 ? "text-brand-700" : pnl < 0 ? "text-rose-600" : "text-slate-900"
+            pnl > 0 ? "text-emerald-600" : pnl < 0 ? "text-rose-600" : "text-slate-900"
           }`}
         >
           {formatMoney(pnl, currency)}

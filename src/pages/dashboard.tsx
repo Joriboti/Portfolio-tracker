@@ -511,7 +511,7 @@ function Stat({
       <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
       <p
         className={`mt-2 text-xl font-semibold ${
-          positive ? "text-brand-700" : negative ? "text-rose-600" : "text-slate-900"
+          positive ? "text-emerald-600" : negative ? "text-rose-600" : "text-slate-900"
         }`}
       >
         {value}
@@ -650,7 +650,7 @@ function PositionsTable({
                     pl == null
                       ? ""
                       : pl > 0
-                        ? "text-brand-700"
+                        ? "text-emerald-600"
                         : pl < 0
                           ? "text-rose-600"
                           : ""
@@ -663,7 +663,7 @@ function PositionsTable({
                     plPct == null
                       ? ""
                       : plPct > 0
-                        ? "text-brand-700"
+                        ? "text-emerald-600"
                         : plPct < 0
                           ? "text-rose-600"
                           : ""
@@ -826,7 +826,7 @@ function YearSelector({
       </div>
       {activeData && (
         <p className={`text-sm font-semibold ${
-          activeData.total > 0 ? "text-brand-700" : activeData.total < 0 ? "text-rose-600" : "text-slate-900"
+          activeData.total > 0 ? "text-emerald-600" : activeData.total < 0 ? "text-rose-600" : "text-slate-900"
         }`}>
           {t("dashboard.yearPL", { year: activeData.year })}:{" "}
           {formatMoney(activeData.total, currency)}
@@ -896,7 +896,7 @@ function ClosedPositionsTable({
             <td
               className={`text-right ${
                 r.pl > 0
-                  ? "text-brand-700"
+                  ? "text-emerald-600"
                   : r.pl < 0
                     ? "text-rose-600"
                     : ""
@@ -913,7 +913,7 @@ function ClosedPositionsTable({
           <td />
           <td
             className={`text-right ${
-              total > 0 ? "text-brand-700" : total < 0 ? "text-rose-600" : ""
+              total > 0 ? "text-emerald-600" : total < 0 ? "text-rose-600" : ""
             }`}
           >
             {formatMoney(total, currency)}

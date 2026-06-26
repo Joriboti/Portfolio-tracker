@@ -16,7 +16,7 @@ type ValueState =
   | { kind: "ready"; years: YearReturn[]; firstYear: number | null };
 
 function toneClass(n: number): string {
-  return n > 0 ? "text-brand-700" : n < 0 ? "text-rose-600" : "text-slate-900";
+  return n > 0 ? "text-emerald-600" : n < 0 ? "text-rose-600" : "text-slate-900";
 }
 
 export function PerformanceCard({
