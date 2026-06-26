@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { Logo, Wordmark } from "./Logo";
 import { useUser } from "@/hooks/useUser";
 import { authClient } from "@/lib/auth";
 
@@ -23,14 +24,14 @@ export function Layout() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-6">
           <Link
             to="/"
-            className="font-semibold text-lg text-slate-900 flex items-center gap-2"
+            className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
           >
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-brand-500"></span>
-            {t("app.name")}
+            <Logo className="h-8 w-8" />
+            <Wordmark className="text-lg" />
           </Link>
           <nav className="hidden md:flex items-center gap-1 text-sm">
             <NavItem to="/dashboard" label={t("nav.dashboard")} />
@@ -70,7 +71,9 @@ export function Layout() {
       </main>
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-4 text-xs text-slate-500 flex justify-between">
-          <span>© {new Date().getFullYear()} Portfolio Tracker</span>
+          <span className="flex items-center gap-1.5">
+            <Logo className="h-4 w-4" />© {new Date().getFullYear()} TrimmTrack
+          </span>
           <Link to="/disclaimer" className="hover:text-slate-700">
             Disclaimer
           </Link>
