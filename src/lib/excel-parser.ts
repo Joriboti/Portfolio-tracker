@@ -57,8 +57,23 @@ const PORTFOLIO_SHEETS = [
   "Portfolio 2 (operacions i transaccions)",
   "Portfolio 2 (operacions)",
 ];
-const DIV_SHEET_CANDIDATES = ["Interessos i dividends", "Dividends"];
-const WEALTH_SHEET_CANDIDATES = ["Patrimoni", "Wealth"];
+const DIV_SHEET_CANDIDATES = [
+  "Interessos i dividends",
+  "Intereses y dividendos",
+  "Interest and dividends",
+  "Dividends",
+  "Dividendos",
+];
+const WEALTH_SHEET_CANDIDATES = [
+  "Patrimoni",
+  "Patrimonio",
+  "Wealth",
+  "Net worth",
+];
+
+// Sheet-name prefixes that mark a transactions/holdings sheet, across the
+// three supported languages ("Portfolio 1", "Cartera 1", "Portafolio"…).
+const PORTFOLIO_SHEET_PREFIXES = ["portfolio", "portafolio", "portafoli", "cartera"];
 
 // Excel serial date -> ISO string. Excel epoch starts 1900-01-01 (with the
 // well-known 1900 leap-year bug — we use the standard 25569 offset).
@@ -198,17 +213,90 @@ function getRowExclusionColor(
 
 type SheetFormat = "moviments" | "cartera";
 
+// Lowercase + strip diacritics so header matching is accent-insensitive.
+// The header column is "Nº títols" in some spreadsheets and "Nº titols" in
+// others; without this the accented "títols" fails an `includes("titol")`
+// check and the whole sheet is rejected ("no recognized sheet").
+function normalizeHeader(v: unknown): string {
+  return String(v ?? "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
+// Header vocabulary across Catalan / Spanish / English. Matched as substrings
+// after normalizeHeader (so accents and pluralisation don't matter). Column
+// ORDER is identical in every supported layout, so we only need to RECOGNISE
+// the header row — the individual columns are still read positionally.
+const HEADER_WORDS = {
+  // Column 0: the instrument identifier (e.g. "Nom" / "Nombre" / "Ticker").
+  name: [
+    "nom",
+    "nombre",
+    "name",
+    "ticker",
+    "simbol",
+    "symbol",
+    "valor",
+    "actiu",
+    "activo",
+    "asset",
+    "empresa",
+  ],
+  // Shares / units held ("títols" / "títulos" / "shares" / "acciones" …).
+  shares: [
+    "titol",
+    "titulo",
+    "title",
+    "accio",
+    "accion",
+    "share",
+    "participacio",
+    "participacion",
+    "quantitat",
+    "cantidad",
+    "quantity",
+    "unitats",
+    "unidades",
+    "unit",
+  ],
+  // Per-unit price ("Preu" / "Precio" / "Price").
+  price: ["preu", "precio", "price", "cotitzacio", "cotizacion", "quote"],
+  // Transaction date ("Data" / "Fecha" / "Date").
+  date: ["data", "fecha", "date"],
+};
+
+function cellHasAny(cell: string, words: string[]): boolean {
+  return words.some((w) => cell.includes(w));
+}
+
+function rowHasAny(cells: string[], words: string[]): boolean {
+  return cells.some((c) => cellHasAny(c, words));
+}
+
 function findHeaderRow(
   matrix: unknown[][],
 ): { row: number; format: SheetFormat } | null {
   for (let i = 0; i < Math.min(matrix.length, 10); i++) {
     const row = matrix[i] ?? [];
-    const cells = row.map((c) => String(c ?? "").toLowerCase());
-    if (cells.some((c) => c === "nom") && cells.some((c) => c.includes("titol"))) {
+    const cells = row.map((c) => normalizeHeader(c));
+    const col0 = cells[0] ?? "";
+    const col1 = cells[1] ?? "";
+
+    const nameInCol0 = cellHasAny(col0, HEADER_WORDS.name);
+    const sharesInCol1 = cellHasAny(col1, HEADER_WORDS.shares);
+    const sharesAnywhere = rowHasAny(cells, HEADER_WORDS.shares);
+    const priceAnywhere = rowHasAny(cells, HEADER_WORDS.price);
+    const dateAnywhere = rowHasAny(cells, HEADER_WORDS.date);
+
+    // "moviments": a dated transaction log. The defining trait vs the holdings
+    // snapshot is per-row buy/sell DATE columns, so require a date column.
+    if ((nameInCol0 || sharesInCol1) && sharesAnywhere && dateAnywhere) {
       return { row: i, format: "moviments" };
     }
-    const col1 = cells[1] ?? "";
-    if (col1.includes("titol") && cells.some((c) => c.includes("preu"))) {
+    // "cartera": a holdings snapshot — shares in col 1 and a price column,
+    // no per-row dates (those rows would have matched "moviments" above).
+    if (sharesInCol1 && priceAnywhere) {
       return { row: i, format: "cartera" };
     }
   }
@@ -232,6 +320,27 @@ function parsePortfolioSheet(
   }
 
   const txns: Transaction[] = [];
+
+  // The "colour column A to exclude this row" convention only makes sense as a
+  // SELECTIVE marker. Some spreadsheets fill EVERY data row with a table style
+  // or banding colour — there the fills are decorative, not opt-outs. Detect
+  // that case (colours covering a large share of rows) and ignore the fills
+  // entirely, so a styled sheet still imports instead of dropping every row.
+  let dataRowCount = 0;
+  let filledRowCount = 0;
+  for (let i = header.row + 1; i < matrix.length; i++) {
+    const row = matrix[i] ?? [];
+    const t =
+      header.format === "cartera" ? asTickerString(row[0]) : asString(row[0]);
+    if (!t) continue;
+    dataRowCount++;
+    if (getRowExclusionColor(sheet, i)) filledRowCount++;
+  }
+  const filledFraction = dataRowCount > 0 ? filledRowCount / dataRowCount : 0;
+  // Honour the fills as exclusions only when they mark a clear minority of
+  // rows; a third or more means it's decorative styling, not selective opt-out.
+  const honorExclusions = filledFraction < 0.34;
+
   let sellYear: number | null = null;
   for (let i = header.row + 1; i < matrix.length; i++) {
     const row = matrix[i] ?? [];
@@ -253,7 +362,7 @@ function parsePortfolioSheet(
         : asString(row[0]);
     if (!ticker) continue;
 
-    const exclusionColor = getRowExclusionColor(sheet, i);
+    const exclusionColor = honorExclusions ? getRowExclusionColor(sheet, i) : null;
     if (exclusionColor) {
       excluded.push({
         ticker,
@@ -365,9 +474,12 @@ function parseDividendsSheet(sheet: XLSX.WorkSheet): {
     const divTicker = asString(row[4]);
     const divAmount = asNumber(row[5]);
     const divDate = asDateISO(row[6]);
+    // Skip the "Dividends" / "Dividendos" header cell, and the "Acció" /
+    // "Acción" / "Stock" column label, so they aren't treated as a ticker.
+    const divHeaderLabels = ["dividend", "dividendo", "accio", "accion", "stock", "ticker"];
     if (
       divTicker &&
-      divTicker.toLowerCase() !== "dividends" &&
+      !cellHasAny(normalizeHeader(divTicker), divHeaderLabels) &&
       divAmount != null
     ) {
       dividends.push({
@@ -438,13 +550,23 @@ function parseWealthSheet(sheet: XLSX.WorkSheet): WealthEntry[] {
     const colC = asNumber(row[2]);
 
     if (colA) {
-      const lower = colA.toLowerCase();
-      if (lower.includes("accion") || lower.includes("stock")) {
+      const lower = normalizeHeader(colA);
+      if (
+        lower.includes("accio") || // accions / acciones
+        lower.includes("accion") ||
+        lower.includes("stock") ||
+        lower.includes("equit") || // equities
+        lower.includes("titol") ||
+        lower.includes("titulo")
+      ) {
         currentCategory = "stocks";
       } else if (
         lower.includes("efectiu") ||
+        lower.includes("efectivo") ||
         lower.includes("cash") ||
-        lower.includes("compte")
+        lower.includes("compte") ||
+        lower.includes("cuenta") ||
+        lower.includes("account")
       ) {
         currentCategory = "cash";
       }
@@ -484,7 +606,7 @@ export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
 
   for (const name of workbook.SheetNames) {
     const lower = name.trim().toLowerCase();
-    if (lower.startsWith("portfolio")) {
+    if (PORTFOLIO_SHEET_PREFIXES.some((p) => lower.startsWith(p))) {
       const { txns, warnings: w, excluded: ex } = parsePortfolioSheet(
         workbook.Sheets[name],
         name.trim(),
