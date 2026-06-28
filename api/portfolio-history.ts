@@ -490,23 +490,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       warnings.push("price-history-partial");
     }
 
-    // Optional S&P 500 comparison: the benchmark price path scaled so it
-    // starts at the first point's net capital — "what if the initial capital
-    // had gone into the index instead". Purely visual; later contributions
-    // are not simulated. Skipped when benchmark history is missing.
+    // Optional S&P 500 comparison: "what if the SAME cash flows had gone into
+    // the index instead". We simulate a shadow index position — each buy flow
+    // buys index units (amount ÷ index level at that date), each sell flow
+    // sells them — and value the accumulated units at every snapshot. Unlike a
+    // flat "initial capital × index growth" line, this tracks the portfolio's
+    // real contribution schedule, so it stays on the same scale as the value
+    // and net-capital lines instead of being squashed flat near zero.
     let benchmark: Array<{ date: string; value: number }> | null = null;
-    if (benchmarkPts.length > 0 && series.length > 1) {
-      const base = asOf(benchmarkPts, series[0].date);
-      const anchor = series[0].netCapital > 0 ? series[0].netCapital : series[0].value;
-      if (base != null && base > 0 && anchor > 0) {
-        benchmark = [];
-        for (const p of series) {
-          const close = asOf(benchmarkPts, p.date);
-          if (close == null || close <= 0) continue;
-          benchmark.push({ date: p.date, value: round2((close / base) * anchor) });
+    if (benchmarkPts.length > 0 && series.length > 1 && flows.length > 0) {
+      benchmark = [];
+      let units = 0;
+      let bi = 0;
+      for (const p of series) {
+        // Apply every flow dated on or before this snapshot.
+        while (bi < flows.length && flows[bi].date <= p.date) {
+          const lvl = asOf(benchmarkPts, flows[bi].date);
+          if (lvl != null && lvl > 0) {
+            units += flows[bi].amount / lvl;
+            if (units < 0) units = 0; // can't hold a negative index position
+          }
+          bi++;
         }
-        if (benchmark.length < 2) benchmark = null;
+        const lvl = asOf(benchmarkPts, p.date);
+        if (lvl == null || lvl <= 0) continue;
+        benchmark.push({ date: p.date, value: round2(units * lvl) });
       }
+      if (benchmark.length < 2) benchmark = null;
     }
 
     const ready = series.length > 1;

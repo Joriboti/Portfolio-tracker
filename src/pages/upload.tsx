@@ -3,7 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { parseWorkbook, type ParsedWorkbook } from "@/lib/excel-parser";
 import { hasAcceptedDisclaimer } from "./disclaimer";
-import { importPortfolio } from "@/lib/api";
+import {
+  importPortfolio,
+  refreshPrices,
+  refreshHistoricalPrices,
+} from "@/lib/api";
 import { AuthGuard } from "@/components/AuthGuard";
 import { useUser } from "@/hooks/useUser";
 
@@ -14,6 +18,7 @@ function UploadInner() {
   const [parsed, setParsed] = useState<ParsedWorkbook | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   if (!hasAcceptedDisclaimer()) {
@@ -49,17 +54,37 @@ function UploadInner() {
     setBusy(true);
     setError(null);
     try {
+      setStatus(t("upload.importing"));
       await importPortfolio(user.id, {
         transactions: parsed.transactions,
         dividends: parsed.dividends,
         interests: parsed.interests,
         wealth: parsed.wealth,
       });
+      // Refresh current prices and weekly history for the freshly imported
+      // tickers, so the dashboard's value chart, analytics and annual returns
+      // are correct immediately. Without this the value-based views show
+      // phantom losses (capital counted, but newly added tickers have no
+      // price history) until the weekly cron runs. Tolerant of failure — the
+      // crons will catch up and the import itself already succeeded.
+      setStatus(t("upload.fetchingPrices"));
+      try {
+        await refreshPrices(user.id);
+      } catch {
+        /* cron will catch up */
+      }
+      setStatus(t("upload.fetchingHistory"));
+      try {
+        await refreshHistoricalPrices(user.id);
+      } catch {
+        /* cron will catch up */
+      }
       navigate("/dashboard");
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
+      setStatus(null);
     }
   }
 
@@ -184,7 +209,7 @@ function UploadInner() {
               disabled={busy}
               className="btn-primary"
             >
-              {busy ? t("common.loading") : t("upload.confirm")}
+              {busy ? (status ?? t("common.loading")) : t("upload.confirm")}
             </button>
             <button
               onClick={() => {
