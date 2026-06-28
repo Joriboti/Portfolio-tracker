@@ -234,6 +234,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 1. Transactions → per-ticker share timeline + dated capital flows.
     const holdings = new Map<string, Holding>();
     const flows: Flow[] = [];
+    // Running totals per ticker to derive an average buy cost (EUR), used to
+    // value a holding at cost when it has no usable price history.
+    const costSumEur = new Map<string, number>();
+    const costShares = new Map<string, number>();
     const today = new Date().toISOString().slice(0, 10);
     const ensure = (t: string): Holding => {
       let h = holdings.get(t);
@@ -262,6 +266,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ensure(ticker).buys.push({ date: t.buyDate ?? "1900-01-01", shares });
         if (buyValue > 0) {
           flows.push({ date: t.buyDate ?? "1900-01-01", amount: buyValue });
+          costSumEur.set(ticker, (costSumEur.get(ticker) ?? 0) + buyValue);
+          costShares.set(ticker, (costShares.get(ticker) ?? 0) + shares);
         }
       }
       if (sellShares > 0) {
@@ -335,18 +341,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return s > 1e-9 ? s : 0;
     }
 
-    // Portfolio market value in EUR as-of date `d`, from weekly history.
+    // Average buy cost (EUR) per ticker — fallback valuation when no price.
+    function avgCostEur(ticker: string): number {
+      const sumV = costSumEur.get(ticker) ?? 0;
+      const sumS = costShares.get(ticker) ?? 0;
+      return sumS > 0 ? sumV / sumS : 0;
+    }
+
+    // Portfolio market value in EUR as-of date `d`, from weekly history. When a
+    // held ticker has no usable price (no history at all, or none as-of `d`),
+    // value its shares at their average purchase cost instead of dropping them
+    // — so an un-priceable ticker stays pnl-neutral rather than reading as a
+    // total loss and inventing a drawdown the user never had.
     function valueAt(d: string): number {
       let total = 0;
       for (const [ticker, h] of holdings) {
         const sh = netShares(h, d);
         if (sh <= 0) continue;
         const series = priceByTicker.get(ticker);
-        if (!series) continue;
-        const close = asOf(series, d);
-        if (close == null || close <= 0) continue;
-        const ccy = ccyByTicker.get(ticker) ?? "USD";
-        total += sh * close * fxToEUR(ccy, d);
+        const close = series ? asOf(series, d) : null;
+        if (close != null && close > 0) {
+          const ccy = ccyByTicker.get(ticker) ?? "USD";
+          total += sh * close * fxToEUR(ccy, d);
+        } else {
+          total += sh * avgCostEur(ticker);
+        }
       }
       return total;
     }

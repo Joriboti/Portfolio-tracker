@@ -136,6 +136,7 @@ function asOf(points: Point[], d: string): number | null {
 type TxnRow = {
   ticker: string;
   shares: string | number;
+  buyPrice: string | number | null;
   buyValue: string | number | null;
   buyDate: string | null;
   sellShares: string | number | null;
@@ -198,6 +199,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const txnRows = (await sql`
       SELECT
         ticker, shares,
+        buy_price AS "buyPrice",
         buy_value AS "buyValue",
         to_char(buy_date, 'YYYY-MM-DD') AS "buyDate",
         sell_shares AS "sellShares",
@@ -215,6 +217,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const holdings = new Map<string, Holding>();
     const flows: Flow[] = [];
+    // Running totals per ticker to derive an average buy cost (EUR), used to
+    // value a holding at cost when it has no usable price history.
+    const costSumEur = new Map<string, number>();
+    const costShares = new Map<string, number>();
     const ensure = (t: string): Holding => {
       let h = holdings.get(t);
       if (!h) {
@@ -227,7 +233,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     for (const t of txnRows) {
       const ticker = storageKey(t.ticker);
       const shares = toNum(t.shares);
-      const buyValue = toNum(t.buyValue);
+      const buyValue = toNum(t.buyValue) || shares * toNum(t.buyPrice);
       const sellShares = toNum(t.sellShares);
       const sellValue = toNum(t.sellValue) || sellShares * toNum(t.sellPrice);
 
@@ -237,6 +243,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const date = t.buyDate ?? "1900-01-01";
         ensure(ticker).buys.push({ date, shares });
         if (buyValue > 0 && t.buyDate) flows.push({ date: t.buyDate, amount: buyValue });
+        if (buyValue > 0) {
+          costSumEur.set(ticker, (costSumEur.get(ticker) ?? 0) + buyValue);
+          costShares.set(ticker, (costShares.get(ticker) ?? 0) + shares);
+        }
       }
       if (sellShares > 0) {
         const date = t.sellDate ?? "9999-12-31";
@@ -298,18 +308,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return s > 1e-9 ? s : 0;
     }
 
-    // Portfolio market value in EUR as-of date `d`.
+    // Average buy cost (EUR) per ticker — fallback valuation when no price.
+    function avgCostEur(ticker: string): number {
+      const sumV = costSumEur.get(ticker) ?? 0;
+      const sumS = costShares.get(ticker) ?? 0;
+      return sumS > 0 ? sumV / sumS : 0;
+    }
+
+    // Portfolio market value in EUR as-of date `d`. When a held ticker has no
+    // usable price (no history at all, or none as-of `d`), value its shares at
+    // their average purchase cost instead of dropping them — so an un-priceable
+    // ticker stays pnl-neutral rather than reading as a total loss and dragging
+    // the annual return negative.
     function valueAt(d: string): number {
       let total = 0;
       for (const [ticker, h] of holdings) {
         const sh = netShares(h, d);
         if (sh <= 0) continue;
         const series = priceByTicker.get(ticker);
-        if (!series) continue;
-        const close = asOf(series, d);
-        if (close == null || close <= 0) continue;
-        const ccy = ccyByTicker.get(ticker) ?? "USD";
-        total += sh * close * fxToEUR(ccy, d);
+        const close = series ? asOf(series, d) : null;
+        if (close != null && close > 0) {
+          const ccy = ccyByTicker.get(ticker) ?? "USD";
+          total += sh * close * fxToEUR(ccy, d);
+        } else {
+          total += sh * avgCostEur(ticker);
+        }
       }
       return total;
     }
