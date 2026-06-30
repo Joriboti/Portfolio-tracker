@@ -1,114 +1,101 @@
 import { describe, it, expect } from "vitest";
 import {
-  calculateDCF,
-  reverseDCF,
-  defaultGrowthRates,
-  type DCFInputs,
+  calculateSimpleDCF,
+  impliedGrowth,
+  defaultDcfConfig,
+  type SimpleDcfInputs,
 } from "./dcf";
 
-function baseInputs(over: Partial<DCFInputs> = {}): DCFInputs {
+function baseInputs(over: Partial<SimpleDcfInputs> = {}): SimpleDcfInputs {
   return {
-    baseFCF: 1000,
-    growthRates: [0.1, 0.08, 0.06, 0.05, 0.04],
-    wacc: 0.09,
-    terminalGrowth: 0.025,
-    netDebt: 0,
-    sharesOutstanding: 100,
+    baseMetric: 10,
+    growthRate: 0.1,
+    years: 5,
+    exitMultiple: 15,
+    desiredReturn: 0.1,
+    currentPrice: 100,
     ...over,
   };
 }
 
-describe("calculateDCF — basic maths", () => {
-  it("discounts a flat one-year projection exactly", () => {
-    // baseFCF 1000, +10% → 1100 at year 1, discounted at 10%.
-    const r = calculateDCF({
-      baseFCF: 1000,
-      growthRates: [0.1],
-      wacc: 0.1,
-      terminalGrowth: 0,
-      netDebt: 0,
-      sharesOutstanding: 1,
-    });
-    // explicit PV = 1100 / 1.1 = 1000
-    expect(r.pvExplicit).toBeCloseTo(1000, 6);
-    // terminal = 1100*(1+0)/(0.1-0) = 11000 ; PV = 11000/1.1^1 = 10000
-    expect(r.pvTerminal).toBeCloseTo(10000, 6);
-    expect(r.enterpriseValue).toBeCloseTo(11000, 6);
-    expect(r.equityValue).toBeCloseTo(11000, 6);
-    expect(r.fairValuePerShare).toBeCloseTo(11000, 6);
+describe("calculateSimpleDCF — basic maths", () => {
+  it("projects, applies the exit multiple and discounts exactly", () => {
+    const r = calculateSimpleDCF(baseInputs({ growthRate: 0.1, desiredReturn: 0.1 }));
+    // futureMetric = 10 * 1.1^5 = 16.1051
+    expect(r.futureMetric).toBeCloseTo(16.1051, 4);
+    // futurePrice = 16.1051 * 15 = 241.5765
+    expect(r.futurePrice).toBeCloseTo(241.5765, 3);
+    // growth == desiredReturn → discount cancels the metric growth:
+    // fairValue = base * mult = 150
+    expect(r.fairValue).toBeCloseTo(150, 6);
   });
 
-  it("subtracts net debt from enterprise value", () => {
-    const r = calculateDCF(baseInputs({ netDebt: 500 }));
-    expect(r.equityValue).toBeCloseTo(r.enterpriseValue - 500, 6);
+  it("computes upside vs price and implied return", () => {
+    const r = calculateSimpleDCF(baseInputs());
+    // fairValue 150 vs price 100 → +50%
+    expect(r.upsideVsPrice).toBeCloseTo(0.5, 6);
+    // implied return = (241.5765/100)^(1/5) - 1 ≈ 0.1932
+    expect(r.impliedReturn).toBeCloseTo(0.1932, 3);
   });
 
-  it("reports terminalWeight as pvTerminal / EV in (0,1)", () => {
-    const r = calculateDCF(baseInputs());
-    expect(r.terminalWeight).not.toBeNull();
-    expect(r.terminalWeight!).toBeGreaterThan(0);
-    expect(r.terminalWeight!).toBeLessThan(1);
-    expect(r.terminalWeight!).toBeCloseTo(r.pvTerminal / r.enterpriseValue, 10);
+  it("returns null ratios for a loss-making base (negative metric)", () => {
+    const r = calculateSimpleDCF(baseInputs({ baseMetric: -2 }));
+    expect(r.futurePrice).toBeLessThan(0);
+    expect(r.impliedReturn).toBeNull();
   });
 
-  it("returns null fairValue/terminalWeight when WACC ≤ g (singularity)", () => {
-    const r = calculateDCF(baseInputs({ wacc: 0.02, terminalGrowth: 0.025 }));
-    expect(r.pvTerminal).toBe(0);
-    expect(r.terminalWeight).toBeNull();
-    // EV degrades to the explicit PV only, equity still defined.
-    expect(r.enterpriseValue).toBeCloseTo(r.pvExplicit, 10);
-  });
-
-  it("returns null fairValue when shares are zero", () => {
-    const r = calculateDCF(baseInputs({ sharesOutstanding: 0 }));
-    expect(r.fairValuePerShare).toBeNull();
+  it("returns null ratios when price is unavailable", () => {
+    const r = calculateSimpleDCF(baseInputs({ currentPrice: null }));
+    expect(r.upsideVsPrice).toBeNull();
+    expect(r.impliedReturn).toBeNull();
   });
 });
 
-describe("reverseDCF — implied growth", () => {
-  it("recovers the growth that a forward DCF priced in", () => {
-    const inputs = baseInputs({ growthRates: Array(5).fill(0.12) });
-    const { fairValuePerShare } = calculateDCF(inputs);
-    const implied = reverseDCF({
-      currentPrice: fairValuePerShare!,
-      baseFCF: inputs.baseFCF,
-      wacc: inputs.wacc,
-      terminalGrowth: inputs.terminalGrowth,
-      netDebt: inputs.netDebt,
-      sharesOutstanding: inputs.sharesOutstanding,
-      years: 5,
+describe("impliedGrowth — reverse model", () => {
+  it("recovers the growth that the forward model priced in", () => {
+    const inputs = baseInputs({ growthRate: 0.13 });
+    const { fairValue } = calculateSimpleDCF(inputs);
+    const g = impliedGrowth({
+      currentPrice: fairValue, // price the model fair-values at 13% growth
+      baseMetric: inputs.baseMetric,
+      years: inputs.years,
+      exitMultiple: inputs.exitMultiple,
+      desiredReturn: inputs.desiredReturn,
     });
-    expect(implied).not.toBeNull();
-    expect(implied!).toBeCloseTo(0.12, 3);
+    expect(g).not.toBeNull();
+    expect(g!).toBeCloseTo(0.13, 6);
   });
 
-  it("returns null when the price is outside the search band", () => {
-    const implied = reverseDCF({
-      currentPrice: 1e12, // absurdly high → unreachable
-      baseFCF: 1000,
-      wacc: 0.09,
-      terminalGrowth: 0.025,
-      netDebt: 0,
-      sharesOutstanding: 100,
-    });
-    expect(implied).toBeNull();
+  it("returns null for a non-positive base metric", () => {
+    expect(
+      impliedGrowth({
+        currentPrice: 100,
+        baseMetric: 0,
+        years: 5,
+        exitMultiple: 15,
+        desiredReturn: 0.1,
+      }),
+    ).toBeNull();
   });
 
-  it("returns null when WACC ≤ terminal growth", () => {
-    const implied = reverseDCF({
-      currentPrice: 50,
-      baseFCF: 1000,
-      wacc: 0.02,
-      terminalGrowth: 0.025,
-      netDebt: 0,
-      sharesOutstanding: 100,
-    });
-    expect(implied).toBeNull();
+  it("returns null when price is unavailable", () => {
+    expect(
+      impliedGrowth({
+        currentPrice: null,
+        baseMetric: 10,
+        years: 5,
+        exitMultiple: 15,
+        desiredReturn: 0.1,
+      }),
+    ).toBeNull();
   });
 });
 
 describe("defaults", () => {
-  it("exposes a fading 5-year growth ramp", () => {
-    expect(defaultGrowthRates()).toEqual([0.1, 0.08, 0.06, 0.05, 0.04]);
+  it("ships EPS-based defaults", () => {
+    const c = defaultDcfConfig();
+    expect(c.metric).toBe("eps");
+    expect(c.years).toBe(5);
+    expect(c.exitMultiple).toBe(15);
   });
 });

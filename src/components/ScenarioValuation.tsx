@@ -9,11 +9,11 @@ import {
   type ValuationModel,
 } from "@/lib/scenarioValuation";
 import {
-  calculateDCF,
-  reverseDCF,
+  calculateSimpleDCF,
+  impliedGrowth,
   defaultDcfConfig,
-  TERMINAL_WEIGHT_WARN,
   type DcfConfig,
+  type DcfMetric,
 } from "@/lib/dcf";
 import {
   getScenarioModel,
@@ -103,10 +103,11 @@ export function ScenarioValuation({
     setModel((m) => (m ? fn(m) : m));
   }
 
-  // DCF assumptions live in the same persisted document. Older saved models
-  // predate the DCF panel, so fall back to defaults when `dcf` is missing.
+  // DCF assumptions live in the same persisted document. Merge over the
+  // defaults so models saved before this panel (or before its model changed)
+  // pick up any missing fields instead of carrying a partial config.
   function patchDcf(fn: (d: DcfConfig) => DcfConfig) {
-    patch((m) => ({ ...m, dcf: fn(m.dcf ?? defaultDcfConfig()) }));
+    patch((m) => ({ ...m, dcf: fn({ ...defaultDcfConfig(), ...(m.dcf ?? {}) }) }));
   }
 
   // Auto base forward EPS: real Yahoo forward EPS → trailing EPS → derived
@@ -185,7 +186,7 @@ export function ScenarioValuation({
 
       {tab === "dcf" && (
         <DcfTab
-          config={model.dcf ?? defaultDcfConfig()}
+          config={{ ...defaultDcfConfig(), ...model.dcf }}
           fundamentals={fundamentals}
           currentPrice={currentPrice}
           avgCostQc={avgCostQc}
@@ -196,7 +197,7 @@ export function ScenarioValuation({
 
       {tab === "reverse" && (
         <ReverseDcfTab
-          config={model.dcf ?? defaultDcfConfig()}
+          config={{ ...defaultDcfConfig(), ...model.dcf }}
           fundamentals={fundamentals}
           currentPrice={currentPrice}
           qc={qc}
@@ -793,42 +794,36 @@ function tone(v: number | null | undefined): string {
   return v > 0 ? "text-emerald-600" : v < 0 ? "text-rose-600" : "";
 }
 
-// ── DCF / Reverse-DCF ──────────────────────────────────────────────────────
+
+// ── Simple DCF / Reverse DCF (Qualtrim-style, per share) ───────────────────
 
 /**
- * Resolve the effective DCF inputs from the saved config + cached fundamentals.
- * All monetary figures are in the ticker's quote currency (Yahoo reports FCF /
- * debt / cash / market cap in the company's financial currency, which equals
- * the quote currency for the single-listing tickers we track). Overrides win
- * over the auto values; net debt defaults to 0 when Yahoo has neither figure.
+ * Resolve the effective per-share base metric from the saved config + cached
+ * fundamentals. EPS uses Yahoo's forward (then trailing) EPS; FCF/share derives
+ * freeCashflow / shares (shares fall back to marketCap / price). All figures
+ * are in the ticker's quote currency. A manual override always wins.
  */
-function deriveDcfInputs(
+function deriveBaseMetric(
   config: DcfConfig,
   f: Fundamentals | undefined,
   currentPrice: number | null,
 ) {
-  const baseFcfAuto = f?.freeCashflow ?? null;
-  const hasDebtFigures = f?.totalDebt != null || f?.totalCash != null;
-  const netDebtAuto = hasDebtFigures ? (f?.totalDebt ?? 0) - (f?.totalCash ?? 0) : null;
-  const sharesAuto =
-    f?.sharesOutstanding ??
-    (f?.marketCap != null && currentPrice != null && currentPrice !== 0
-      ? f.marketCap / currentPrice
-      : null);
-
-  const baseFCF = config.baseFcfOverride ?? baseFcfAuto;
-  const netDebt = config.netDebtOverride ?? netDebtAuto ?? 0;
-  const shares = config.sharesOverride ?? sharesAuto;
-
-  return {
-    baseFCF,
-    netDebt,
-    shares,
-    baseFcfAuto,
-    netDebtAuto,
-    sharesAuto,
-    missing: baseFCF == null || shares == null,
-  };
+  let baseAuto: number | null;
+  if (config.metric === "eps") {
+    baseAuto = f?.forwardEps ?? f?.eps ?? null;
+  } else {
+    const shares =
+      f?.sharesOutstanding ??
+      (f?.marketCap != null && currentPrice != null && currentPrice !== 0
+        ? f.marketCap / currentPrice
+        : null);
+    baseAuto =
+      f?.freeCashflow != null && shares != null && shares !== 0
+        ? f.freeCashflow / shares
+        : null;
+  }
+  const base = config.baseOverride ?? baseAuto;
+  return { base, baseAuto, missing: base == null };
 }
 
 /** Number input editing a decimal value as a percentage (stores the decimal). */
@@ -860,18 +855,50 @@ function PctField({
   );
 }
 
-/** Number input for an absolute monetary/share amount; "" clears the override. */
-function NumField({
+/** Plain numeric field with a label + optional suffix; never produces null. */
+function ValField({
+  label,
+  value,
+  step,
+  suffix,
+  min,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  step?: string;
+  suffix?: string;
+  min?: string;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[10px] uppercase tracking-wide text-slate-400">{label}</span>
+      <span className="inline-flex items-center gap-1">
+        <input
+          type="number"
+          step={step ?? "any"}
+          min={min}
+          className="w-24 rounded-md border border-slate-200 px-2 py-1 text-sm text-right"
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value) || 0)}
+        />
+        {suffix && <span className="text-xs text-slate-400">{suffix}</span>}
+      </span>
+    </label>
+  );
+}
+
+/** Override field for the per-share base metric; "" clears the override. */
+function BaseField({
   label,
   value,
   placeholder,
-  step,
   onChange,
 }: {
   label: string;
   value: number | null;
   placeholder?: string;
-  step?: string;
   onChange: (v: number | null) => void;
 }) {
   return (
@@ -879,8 +906,8 @@ function NumField({
       <span className="text-[10px] uppercase tracking-wide text-slate-400">{label}</span>
       <input
         type="number"
-        step={step ?? "any"}
-        className="w-32 rounded-md border border-slate-200 px-2 py-1 text-sm text-right"
+        step="0.01"
+        className="w-28 rounded-md border border-slate-200 px-2 py-1 text-sm text-right"
         value={value ?? ""}
         placeholder={placeholder}
         onChange={(e) => {
@@ -889,6 +916,32 @@ function NumField({
         }}
       />
     </label>
+  );
+}
+
+function MetricToggle({
+  metric,
+  onChange,
+}: {
+  metric: DcfMetric;
+  onChange: (m: DcfMetric) => void;
+}) {
+  const { t } = useTranslation();
+  const opts: DcfMetric[] = ["eps", "fcfShare"];
+  return (
+    <div className="inline-flex rounded-md border border-slate-200 p-0.5 text-xs">
+      {opts.map((m) => (
+        <button
+          key={m}
+          onClick={() => onChange(m)}
+          className={`rounded px-2.5 py-1 font-medium transition-colors ${
+            metric === m ? "bg-brand-600 text-white" : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          {t(`dcf.metric.${m}`)}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -907,128 +960,89 @@ function DcfTab({
   qc: Currency;
   onChange: (fn: (d: DcfConfig) => DcfConfig) => void;
 }) {
-  const { t } = useTranslation();
-  const d = deriveDcfInputs(config, fundamentals, currentPrice);
+  const { t, i18n } = useTranslation();
+  const { base, baseAuto, missing } = deriveBaseMetric(config, fundamentals, currentPrice);
+  const metricName = t(`dcf.metric.${config.metric}`);
+  const negative = base != null && base <= 0;
 
   const result = useMemo(() => {
-    if (currentPrice == null || d.baseFCF == null || d.shares == null) return null;
-    return calculateDCF({
-      baseFCF: d.baseFCF,
-      growthRates: config.growthRates,
-      wacc: config.wacc,
-      terminalGrowth: config.terminalGrowth,
-      netDebt: d.netDebt,
-      sharesOutstanding: d.shares,
+    if (base == null || base <= 0) return null;
+    return calculateSimpleDCF({
+      baseMetric: base,
+      growthRate: config.growthRate,
+      years: config.years,
+      exitMultiple: config.exitMultiple,
+      desiredReturn: config.desiredReturn,
+      currentPrice,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, d.baseFCF, d.shares, d.netDebt, currentPrice]);
+  }, [config, base, currentPrice]);
 
   const fmt = (v: number | null | undefined) => formatMoney(v ?? null, qc);
-  const fair = result?.fairValuePerShare ?? null;
-  const upsideVsPrice =
-    fair != null && currentPrice ? fair / currentPrice - 1 : null;
+  const nf = (v: number, d = 2) =>
+    new Intl.NumberFormat(i18n.language, { maximumFractionDigits: d }).format(v);
+  const fair = result?.fairValue ?? null;
   const upsideVsCost = fair != null && avgCostQc ? fair / avgCostQc - 1 : null;
-  const terminalRisky =
-    result?.terminalWeight != null && result.terminalWeight > TERMINAL_WEIGHT_WARN;
-
-  function setGrowthYear(idx: number, decimal: number) {
-    onChange((c) => ({
-      ...c,
-      growthRates: c.growthRates.map((g, i) => (i === idx ? decimal : g)),
-    }));
-  }
-  function addYear() {
-    onChange((c) => {
-      if (c.growthRates.length >= 10) return c;
-      const last = c.growthRates[c.growthRates.length - 1] ?? 0.04;
-      return { ...c, growthRates: [...c.growthRates, last] };
-    });
-  }
-  function removeYear() {
-    onChange((c) =>
-      c.growthRates.length > 1
-        ? { ...c, growthRates: c.growthRates.slice(0, -1) }
-        : c,
-    );
-  }
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">{t("dcf.intro")}</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="max-w-xl text-xs text-slate-500">{t("dcf.intro")}</p>
+        <MetricToggle
+          metric={config.metric}
+          onChange={(m) => onChange((c) => ({ ...c, metric: m, baseOverride: null }))}
+        />
+      </div>
 
       {/* Assumptions */}
       <div className="flex flex-wrap items-end gap-4">
-        <PctField
-          label={t("dcf.wacc")}
-          value={config.wacc}
-          onChange={(v) => onChange((c) => ({ ...c, wacc: v }))}
-        />
-        <PctField
-          label={t("dcf.terminalGrowth")}
-          value={config.terminalGrowth}
-          onChange={(v) => onChange((c) => ({ ...c, terminalGrowth: v }))}
-        />
-        <NumField
-          label={t("dcf.baseFcf", { currency: qc })}
-          value={config.baseFcfOverride ?? (d.baseFcfAuto != null ? Number(d.baseFcfAuto.toFixed(0)) : null)}
+        <BaseField
+          label={t("dcf.base", { metric: metricName, currency: qc })}
+          value={config.baseOverride ?? (baseAuto != null ? Number(baseAuto.toFixed(4)) : null)}
           placeholder={t("scenario.manual")}
-          onChange={(v) => onChange((c) => ({ ...c, baseFcfOverride: v }))}
+          onChange={(v) => onChange((c) => ({ ...c, baseOverride: v }))}
         />
-        <NumField
-          label={t("dcf.netDebt", { currency: qc })}
-          value={config.netDebtOverride ?? (d.netDebtAuto != null ? Number(d.netDebtAuto.toFixed(0)) : null)}
-          placeholder="0"
-          onChange={(v) => onChange((c) => ({ ...c, netDebtOverride: v }))}
+        <PctField
+          label={t("dcf.growth")}
+          value={config.growthRate}
+          step={0.5}
+          onChange={(v) => onChange((c) => ({ ...c, growthRate: v }))}
         />
-        <NumField
-          label={t("dcf.shares")}
-          value={config.sharesOverride ?? (d.sharesAuto != null ? Number(d.sharesAuto.toFixed(0)) : null)}
-          placeholder={t("scenario.manual")}
-          onChange={(v) => onChange((c) => ({ ...c, sharesOverride: v }))}
+        <ValField
+          label={t("dcf.horizon")}
+          value={config.years}
+          step="1"
+          min="1"
+          suffix={t("dcf.yearsShort")}
+          onChange={(v) => onChange((c) => ({ ...c, years: Math.max(1, Math.round(v)) }))}
+        />
+        <ValField
+          label={t("dcf.exitMultiple")}
+          value={config.exitMultiple}
+          step="0.5"
+          suffix="×"
+          onChange={(v) => onChange((c) => ({ ...c, exitMultiple: Math.max(0, v) }))}
+        />
+        <PctField
+          label={t("dcf.desiredReturn")}
+          value={config.desiredReturn}
+          step={0.5}
+          onChange={(v) => onChange((c) => ({ ...c, desiredReturn: v }))}
         />
       </div>
 
-      {/* Growth ramp */}
-      <div>
-        <p className="mb-1 text-[10px] uppercase tracking-wide text-slate-400">
-          {t("dcf.growthRamp")}
-        </p>
-        <div className="flex flex-wrap items-end gap-3">
-          {config.growthRates.map((g, i) => (
-            <PctField
-              key={i}
-              label={t("dcf.year", { n: i + 1 })}
-              value={g}
-              step={0.5}
-              onChange={(v) => setGrowthYear(i, v)}
-            />
-          ))}
-          <div className="flex items-center gap-1 pb-1">
-            <button
-              className="h-6 w-6 rounded border border-slate-200 text-slate-500 hover:bg-slate-50"
-              title={t("dcf.removeYear")}
-              onClick={removeYear}
-            >
-              −
-            </button>
-            <button
-              className="h-6 w-6 rounded border border-slate-200 text-slate-500 hover:bg-slate-50"
-              title={t("dcf.addYear")}
-              onClick={addYear}
-            >
-              +
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {d.missing && (
+      {missing && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          {t("dcf.missing")}
+          {t("dcf.missing", { metric: metricName })}
+        </div>
+      )}
+      {negative && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t("dcf.negative", { metric: metricName })}
         </div>
       )}
 
-      {result && !d.missing && (
+      {result && !missing && !negative && (
         <>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
@@ -1043,39 +1057,34 @@ function DcfTab({
               <p className="text-[10px] uppercase tracking-wide text-slate-400">
                 {t("dcf.vsPrice")}
               </p>
-              <p className={`text-xl font-semibold ${tone(upsideVsPrice)}`}>
-                {formatPct(upsideVsPrice)}
+              <p className={`text-xl font-semibold ${tone(result.upsideVsPrice)}`}>
+                {formatPct(result.upsideVsPrice)}
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 px-4 py-3">
               <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                {t("dcf.vsCost")}
+                {t("dcf.impliedReturn")}
               </p>
-              <p className={`text-xl font-semibold ${tone(upsideVsCost)}`}>
-                {formatPct(upsideVsCost)}
+              <p className={`text-xl font-semibold ${tone(result.impliedReturn)}`}>
+                {formatPct(result.impliedReturn)}
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
-            <Field label={t("dcf.enterpriseValue")} value={fmt(result.enterpriseValue)} />
-            <Field label={t("dcf.equityValue")} value={fmt(result.equityValue)} />
-            <Field label={t("dcf.pvExplicit")} value={fmt(result.pvExplicit)} />
-            <Field label={t("dcf.pvTerminal")} value={fmt(result.pvTerminal)} />
-          </div>
-
-          <div
-            className={`rounded-lg border px-3 py-2 text-xs ${
-              terminalRisky
-                ? "border-amber-200 bg-amber-50 text-amber-800"
-                : "border-slate-200 bg-slate-50/60 text-slate-500"
-            }`}
-          >
-            {t("dcf.terminalWeight")}:{" "}
-            <span className="font-semibold">
-              {formatPct(result.terminalWeight)}
-            </span>
-            {terminalRisky && ` — ${t("dcf.terminalWarn")}`}
+            <Field
+              label={t("dcf.futureMetric", { metric: metricName })}
+              value={nf(result.futureMetric)}
+            />
+            <Field
+              label={t("dcf.futurePrice", { years: config.years })}
+              value={fmt(result.futurePrice)}
+            />
+            <Field label={t("dcf.vsCost")} value={formatPct(upsideVsCost)} />
+            <Field
+              label={t("scenario.currentPrice")}
+              value={currentPrice != null ? fmt(currentPrice) : "—"}
+            />
           </div>
         </>
       )}
@@ -1097,56 +1106,71 @@ function ReverseDcfTab({
   onChange: (fn: (d: DcfConfig) => DcfConfig) => void;
 }) {
   const { t, i18n } = useTranslation();
-  const d = deriveDcfInputs(config, fundamentals, currentPrice);
-  const years = config.growthRates.length;
+  const { base, missing } = deriveBaseMetric(config, fundamentals, currentPrice);
+  const metricName = t(`dcf.metric.${config.metric}`);
+  const negative = base != null && base <= 0;
 
   const implied = useMemo(() => {
-    if (currentPrice == null || d.baseFCF == null || d.shares == null) return null;
-    return reverseDCF({
+    if (base == null || base <= 0) return null;
+    return impliedGrowth({
       currentPrice,
-      baseFCF: d.baseFCF,
-      wacc: config.wacc,
-      terminalGrowth: config.terminalGrowth,
-      netDebt: d.netDebt,
-      sharesOutstanding: d.shares,
-      years,
+      baseMetric: base,
+      years: config.years,
+      exitMultiple: config.exitMultiple,
+      desiredReturn: config.desiredReturn,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, d.baseFCF, d.shares, d.netDebt, currentPrice, years]);
-
-  // The growth the user assumes in the forward DCF, as a reference point.
-  const assumedAvg =
-    config.growthRates.reduce((s, g) => s + g, 0) / (config.growthRates.length || 1);
+  }, [config, base, currentPrice]);
 
   const nf1 = (v: number) =>
     new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 }).format(v * 100);
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">{t("dcf.reverseIntro")}</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="max-w-xl text-xs text-slate-500">{t("dcf.reverseIntro")}</p>
+        <MetricToggle
+          metric={config.metric}
+          onChange={(m) => onChange((c) => ({ ...c, metric: m, baseOverride: null }))}
+        />
+      </div>
 
-      {/* Shared assumptions (WACC, terminal g) — same config as the DCF tab. */}
+      {/* Shared assumptions (same config as the DCF tab). */}
       <div className="flex flex-wrap items-end gap-4">
-        <PctField
-          label={t("dcf.wacc")}
-          value={config.wacc}
-          onChange={(v) => onChange((c) => ({ ...c, wacc: v }))}
+        <ValField
+          label={t("dcf.exitMultiple")}
+          value={config.exitMultiple}
+          step="0.5"
+          suffix="×"
+          onChange={(v) => onChange((c) => ({ ...c, exitMultiple: Math.max(0, v) }))}
         />
         <PctField
-          label={t("dcf.terminalGrowth")}
-          value={config.terminalGrowth}
-          onChange={(v) => onChange((c) => ({ ...c, terminalGrowth: v }))}
+          label={t("dcf.desiredReturn")}
+          value={config.desiredReturn}
+          step={0.5}
+          onChange={(v) => onChange((c) => ({ ...c, desiredReturn: v }))}
         />
-        <Field label={t("dcf.horizon")} value={String(years)} />
+        <ValField
+          label={t("dcf.horizon")}
+          value={config.years}
+          step="1"
+          min="1"
+          suffix={t("dcf.yearsShort")}
+          onChange={(v) => onChange((c) => ({ ...c, years: Math.max(1, Math.round(v)) }))}
+        />
         <Field
           label={t("scenario.currentPrice")}
           value={currentPrice != null ? formatMoney(currentPrice, qc) : "—"}
         />
       </div>
 
-      {d.missing ? (
+      {missing ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          {t("dcf.missing")}
+          {t("dcf.missing", { metric: metricName })}
+        </div>
+      ) : negative ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t("dcf.negative", { metric: metricName })}
         </div>
       ) : implied == null ? (
         <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs text-slate-500">
@@ -1156,23 +1180,27 @@ function ReverseDcfTab({
         <>
           <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
             <p className="text-[10px] uppercase tracking-wide text-slate-400">
-              {t("dcf.impliedGrowth")}
+              {t("dcf.impliedGrowth", { metric: metricName })}
             </p>
             <p className="text-2xl font-bold" style={{ color: GOLD }}>
               {nf1(implied)}%
               <span className="ml-1 text-sm font-normal text-slate-400">
-                /{t("dcf.perYear")} · {years} {t("dcf.yearsShort")}
+                /{t("dcf.perYear")} · {config.years} {t("dcf.yearsShort")}
               </span>
             </p>
           </div>
           <p className="text-sm text-slate-600">
-            {t("dcf.reverseSentence", { implied: nf1(implied), years })}
+            {t("dcf.reverseSentence", {
+              metric: metricName,
+              implied: nf1(implied),
+              years: config.years,
+            })}
           </p>
           <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs text-slate-600">
             {t("dcf.reverseCompare", {
-              assumed: nf1(assumedAvg),
+              assumed: nf1(config.growthRate),
               verdict:
-                implied > assumedAvg
+                implied > config.growthRate
                   ? t("dcf.verdictOptimistic")
                   : t("dcf.verdictPessimistic"),
             })}
