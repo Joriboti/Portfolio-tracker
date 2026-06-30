@@ -175,6 +175,46 @@
     "evMarker": "EV",
     "rulerTitle": "Valuation ruler"
   },
+  "valuation": {
+    "title": "Valuation",
+    "tabs": {
+      "scenarios": "Scenarios",
+      "dcf": "DCF",
+      "reverse": "Reverse DCF"
+    }
+  },
+  "dcf": {
+    "intro": "Discounts projected free cash flow (FCF) to present value at the WACC. Base values are pre-filled from Yahoo data; you can override them.",
+    "wacc": "WACC",
+    "terminalGrowth": "Terminal growth (g)",
+    "baseFcf": "Base FCF ({{currency}})",
+    "netDebt": "Net debt ({{currency}})",
+    "shares": "Shares outstanding",
+    "growthRamp": "FCF growth per year",
+    "year": "Year {{n}}",
+    "addYear": "Add year",
+    "removeYear": "Remove year",
+    "missing": "Missing data for the DCF (base FCF or shares). Enter it manually or refresh fundamentals.",
+    "fairValue": "Fair value / share",
+    "vsPrice": "vs current price",
+    "vsCost": "vs avg cost",
+    "enterpriseValue": "Enterprise value (EV)",
+    "equityValue": "Equity value",
+    "pvExplicit": "PV explicit flows",
+    "pvTerminal": "PV terminal value",
+    "terminalWeight": "Terminal value weight",
+    "terminalWarn": "the model leans too much on far-off assumptions (fragile)",
+    "horizon": "Horizon (years)",
+    "reverseIntro": "The inverse: starting from the current price, what annual FCF growth must the company deliver to justify it? A great sanity check.",
+    "reverseUnsolvable": "The current price falls outside the reasonable growth range the model can solve for with these assumptions.",
+    "impliedGrowth": "Implied FCF growth",
+    "perYear": "yr",
+    "yearsShort": "yrs",
+    "reverseSentence": "The current price implies the market expects {{implied}}%/yr FCF growth for {{years}} years. Do you think that's achievable?",
+    "reverseCompare": "You assume {{assumed}}%/yr on average in the DCF → the market is {{verdict}} than your thesis.",
+    "verdictOptimistic": "more optimistic",
+    "verdictPessimistic": "more pessimistic"
+  },
   "history": {
     "title": "Portfolio evolution",
     "modeValue": "Value",

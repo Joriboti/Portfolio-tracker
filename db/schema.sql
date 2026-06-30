@@ -149,3 +149,15 @@ CREATE TABLE IF NOT EXISTS holding_scenarios (
 -- the fundamentals table shipped, so it's an additive ALTER for existing DBs.
 ALTER TABLE fundamentals
   ADD COLUMN IF NOT EXISTS forward_eps NUMERIC(14, 4);
+
+-- DCF / Reverse-DCF inputs captured from Yahoo (financialData.freeCashflow /
+-- totalDebt / totalCash, defaultKeyStatistics.sharesOutstanding). Absolute
+-- values in the company's financial currency. Additive for existing DBs.
+ALTER TABLE fundamentals
+  ADD COLUMN IF NOT EXISTS free_cashflow NUMERIC(24, 0);
+ALTER TABLE fundamentals
+  ADD COLUMN IF NOT EXISTS shares_outstanding NUMERIC(24, 0);
+ALTER TABLE fundamentals
+  ADD COLUMN IF NOT EXISTS total_debt NUMERIC(24, 0);
+ALTER TABLE fundamentals
+  ADD COLUMN IF NOT EXISTS total_cash NUMERIC(24, 0);

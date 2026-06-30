@@ -175,6 +175,46 @@
     "evMarker": "EV",
     "rulerTitle": "Regla de valoració"
   },
+  "valuation": {
+    "title": "Valoració",
+    "tabs": {
+      "scenarios": "Escenaris",
+      "dcf": "DCF",
+      "reverse": "Reverse DCF"
+    }
+  },
+  "dcf": {
+    "intro": "Descompte de fluxos de caixa lliures (FCF) projectats a valor present amb el WACC. Els valors base s'omplen amb les dades de Yahoo; pots sobreescriure'ls.",
+    "wacc": "WACC",
+    "terminalGrowth": "Creixement terminal (g)",
+    "baseFcf": "FCF base ({{currency}})",
+    "netDebt": "Deute net ({{currency}})",
+    "shares": "Accions en circulació",
+    "growthRamp": "Creixement del FCF per any",
+    "year": "Any {{n}}",
+    "addYear": "Afegeix any",
+    "removeYear": "Treu any",
+    "missing": "Falten dades per al DCF (FCF base o accions). Introdueix-les manualment o descarrega els fonamentals.",
+    "fairValue": "Valor just / acció",
+    "vsPrice": "vs preu actual",
+    "vsCost": "vs cost mitjà",
+    "enterpriseValue": "Valor empresa (EV)",
+    "equityValue": "Valor equity",
+    "pvExplicit": "VP fluxos explícits",
+    "pvTerminal": "VP valor terminal",
+    "terminalWeight": "Pes del valor terminal",
+    "terminalWarn": "el model depèn massa d'assumpcions llunyanes (fragilitat)",
+    "horizon": "Horitzó (anys)",
+    "reverseIntro": "A l'inrevés: partint del preu actual, quin creixement anual de FCF hauria de complir l'empresa per justificar-lo? Bon test de sanitat.",
+    "reverseUnsolvable": "El preu actual queda fora del rang de creixement raonable que el model pot resoldre amb aquestes assumpcions.",
+    "impliedGrowth": "Creixement de FCF implícit",
+    "perYear": "any",
+    "yearsShort": "anys",
+    "reverseSentence": "El preu actual implica que el mercat espera un creixement de FCF del {{implied}}%/any durant {{years}} anys. Creus que és assolible?",
+    "reverseCompare": "Tu assumeixes de mitjana un {{assumed}}%/any al DCF → el mercat és {{verdict}} respecte la teva tesi.",
+    "verdictOptimistic": "més optimista",
+    "verdictPessimistic": "més pessimista"
+  },
   "history": {
     "title": "Evolució de la cartera",
     "modeValue": "Patrimoni",

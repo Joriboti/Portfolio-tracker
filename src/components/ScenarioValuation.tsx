@@ -9,10 +9,19 @@ import {
   type ValuationModel,
 } from "@/lib/scenarioValuation";
 import {
+  calculateDCF,
+  reverseDCF,
+  defaultDcfConfig,
+  TERMINAL_WEIGHT_WARN,
+  type DcfConfig,
+} from "@/lib/dcf";
+import {
   getScenarioModel,
   saveScenarioModel,
   type Fundamentals,
 } from "@/lib/api";
+
+type ValuationTab = "scenarios" | "dcf" | "reverse";
 
 const GOLD = "#d4af37";
 const PRICE_COLOR = "#64748b"; // slate-500
@@ -51,6 +60,7 @@ export function ScenarioValuation({
   const { t, i18n } = useTranslation();
   const [model, setModel] = useState<ValuationModel | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [tab, setTab] = useState<ValuationTab>("scenarios");
   const dirtyRef = useRef(false);
 
   // Quote currency, falling back to the display currency when Yahoo didn't
@@ -91,6 +101,12 @@ export function ScenarioValuation({
     dirtyRef.current = true;
     setSaveState("saving");
     setModel((m) => (m ? fn(m) : m));
+  }
+
+  // DCF assumptions live in the same persisted document. Older saved models
+  // predate the DCF panel, so fall back to defaults when `dcf` is missing.
+  function patchDcf(fn: (d: DcfConfig) => DcfConfig) {
+    patch((m) => ({ ...m, dcf: fn(m.dcf ?? defaultDcfConfig()) }));
   }
 
   // Auto base forward EPS: real Yahoo forward EPS → trailing EPS → derived
@@ -160,11 +176,36 @@ export function ScenarioValuation({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h4 className="text-sm font-semibold text-slate-800">
-          {t("scenario.title")}
+          {t("valuation.title")}
         </h4>
         <SaveBadge state={saveState} />
       </div>
 
+      <TabBar tab={tab} onChange={setTab} />
+
+      {tab === "dcf" && (
+        <DcfTab
+          config={model.dcf ?? defaultDcfConfig()}
+          fundamentals={fundamentals}
+          currentPrice={currentPrice}
+          avgCostQc={avgCostQc}
+          qc={qc}
+          onChange={patchDcf}
+        />
+      )}
+
+      {tab === "reverse" && (
+        <ReverseDcfTab
+          config={model.dcf ?? defaultDcfConfig()}
+          fundamentals={fundamentals}
+          currentPrice={currentPrice}
+          qc={qc}
+          onChange={patchDcf}
+        />
+      )}
+
+      {tab === "scenarios" && (
+       <>
       {/* Position + fundamentals row */}
       <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
         <Field label={t("scenario.shares")} value={shares.toFixed(4)} />
@@ -266,6 +307,40 @@ export function ScenarioValuation({
           />
         </>
       )}
+       </>
+      )}
+    </div>
+  );
+}
+
+function TabBar({
+  tab,
+  onChange,
+}: {
+  tab: ValuationTab;
+  onChange: (t: ValuationTab) => void;
+}) {
+  const { t } = useTranslation();
+  const tabs: { id: ValuationTab; label: string }[] = [
+    { id: "scenarios", label: t("valuation.tabs.scenarios") },
+    { id: "dcf", label: t("valuation.tabs.dcf") },
+    { id: "reverse", label: t("valuation.tabs.reverse") },
+  ];
+  return (
+    <div className="flex flex-wrap gap-1 border-b border-slate-200">
+      {tabs.map((tb) => (
+        <button
+          key={tb.id}
+          onClick={() => onChange(tb.id)}
+          className={`-mb-px border-b-2 px-3 py-1.5 text-sm font-medium transition-colors ${
+            tab === tb.id
+              ? "border-brand-600 text-brand-700"
+              : "border-transparent text-slate-400 hover:text-slate-600"
+          }`}
+        >
+          {tb.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -716,4 +791,394 @@ function ValuationRuler({
 function tone(v: number | null | undefined): string {
   if (v == null) return "";
   return v > 0 ? "text-emerald-600" : v < 0 ? "text-rose-600" : "";
+}
+
+// ── DCF / Reverse-DCF ──────────────────────────────────────────────────────
+
+/**
+ * Resolve the effective DCF inputs from the saved config + cached fundamentals.
+ * All monetary figures are in the ticker's quote currency (Yahoo reports FCF /
+ * debt / cash / market cap in the company's financial currency, which equals
+ * the quote currency for the single-listing tickers we track). Overrides win
+ * over the auto values; net debt defaults to 0 when Yahoo has neither figure.
+ */
+function deriveDcfInputs(
+  config: DcfConfig,
+  f: Fundamentals | undefined,
+  currentPrice: number | null,
+) {
+  const baseFcfAuto = f?.freeCashflow ?? null;
+  const hasDebtFigures = f?.totalDebt != null || f?.totalCash != null;
+  const netDebtAuto = hasDebtFigures ? (f?.totalDebt ?? 0) - (f?.totalCash ?? 0) : null;
+  const sharesAuto =
+    f?.sharesOutstanding ??
+    (f?.marketCap != null && currentPrice != null && currentPrice !== 0
+      ? f.marketCap / currentPrice
+      : null);
+
+  const baseFCF = config.baseFcfOverride ?? baseFcfAuto;
+  const netDebt = config.netDebtOverride ?? netDebtAuto ?? 0;
+  const shares = config.sharesOverride ?? sharesAuto;
+
+  return {
+    baseFCF,
+    netDebt,
+    shares,
+    baseFcfAuto,
+    netDebtAuto,
+    sharesAuto,
+    missing: baseFCF == null || shares == null,
+  };
+}
+
+/** Number input editing a decimal value as a percentage (stores the decimal). */
+function PctField({
+  label,
+  value,
+  step = 0.25,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  step?: number;
+  onChange: (decimal: number) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[10px] uppercase tracking-wide text-slate-400">{label}</span>
+      <span className="inline-flex items-center gap-1">
+        <input
+          type="number"
+          step={step}
+          className="w-20 rounded-md border border-slate-200 px-2 py-1 text-sm text-right"
+          value={Number((value * 100).toFixed(4))}
+          onChange={(e) => onChange((Number(e.target.value) || 0) / 100)}
+        />
+        <span className="text-xs text-slate-400">%</span>
+      </span>
+    </label>
+  );
+}
+
+/** Number input for an absolute monetary/share amount; "" clears the override. */
+function NumField({
+  label,
+  value,
+  placeholder,
+  step,
+  onChange,
+}: {
+  label: string;
+  value: number | null;
+  placeholder?: string;
+  step?: string;
+  onChange: (v: number | null) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[10px] uppercase tracking-wide text-slate-400">{label}</span>
+      <input
+        type="number"
+        step={step ?? "any"}
+        className="w-32 rounded-md border border-slate-200 px-2 py-1 text-sm text-right"
+        value={value ?? ""}
+        placeholder={placeholder}
+        onChange={(e) => {
+          const v = e.target.value;
+          onChange(v === "" ? null : Number(v));
+        }}
+      />
+    </label>
+  );
+}
+
+function DcfTab({
+  config,
+  fundamentals,
+  currentPrice,
+  avgCostQc,
+  qc,
+  onChange,
+}: {
+  config: DcfConfig;
+  fundamentals: Fundamentals | undefined;
+  currentPrice: number | null;
+  avgCostQc: number;
+  qc: Currency;
+  onChange: (fn: (d: DcfConfig) => DcfConfig) => void;
+}) {
+  const { t } = useTranslation();
+  const d = deriveDcfInputs(config, fundamentals, currentPrice);
+
+  const result = useMemo(() => {
+    if (currentPrice == null || d.baseFCF == null || d.shares == null) return null;
+    return calculateDCF({
+      baseFCF: d.baseFCF,
+      growthRates: config.growthRates,
+      wacc: config.wacc,
+      terminalGrowth: config.terminalGrowth,
+      netDebt: d.netDebt,
+      sharesOutstanding: d.shares,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, d.baseFCF, d.shares, d.netDebt, currentPrice]);
+
+  const fmt = (v: number | null | undefined) => formatMoney(v ?? null, qc);
+  const fair = result?.fairValuePerShare ?? null;
+  const upsideVsPrice =
+    fair != null && currentPrice ? fair / currentPrice - 1 : null;
+  const upsideVsCost = fair != null && avgCostQc ? fair / avgCostQc - 1 : null;
+  const terminalRisky =
+    result?.terminalWeight != null && result.terminalWeight > TERMINAL_WEIGHT_WARN;
+
+  function setGrowthYear(idx: number, decimal: number) {
+    onChange((c) => ({
+      ...c,
+      growthRates: c.growthRates.map((g, i) => (i === idx ? decimal : g)),
+    }));
+  }
+  function addYear() {
+    onChange((c) => {
+      if (c.growthRates.length >= 10) return c;
+      const last = c.growthRates[c.growthRates.length - 1] ?? 0.04;
+      return { ...c, growthRates: [...c.growthRates, last] };
+    });
+  }
+  function removeYear() {
+    onChange((c) =>
+      c.growthRates.length > 1
+        ? { ...c, growthRates: c.growthRates.slice(0, -1) }
+        : c,
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-slate-500">{t("dcf.intro")}</p>
+
+      {/* Assumptions */}
+      <div className="flex flex-wrap items-end gap-4">
+        <PctField
+          label={t("dcf.wacc")}
+          value={config.wacc}
+          onChange={(v) => onChange((c) => ({ ...c, wacc: v }))}
+        />
+        <PctField
+          label={t("dcf.terminalGrowth")}
+          value={config.terminalGrowth}
+          onChange={(v) => onChange((c) => ({ ...c, terminalGrowth: v }))}
+        />
+        <NumField
+          label={t("dcf.baseFcf", { currency: qc })}
+          value={config.baseFcfOverride ?? (d.baseFcfAuto != null ? Number(d.baseFcfAuto.toFixed(0)) : null)}
+          placeholder={t("scenario.manual")}
+          onChange={(v) => onChange((c) => ({ ...c, baseFcfOverride: v }))}
+        />
+        <NumField
+          label={t("dcf.netDebt", { currency: qc })}
+          value={config.netDebtOverride ?? (d.netDebtAuto != null ? Number(d.netDebtAuto.toFixed(0)) : null)}
+          placeholder="0"
+          onChange={(v) => onChange((c) => ({ ...c, netDebtOverride: v }))}
+        />
+        <NumField
+          label={t("dcf.shares")}
+          value={config.sharesOverride ?? (d.sharesAuto != null ? Number(d.sharesAuto.toFixed(0)) : null)}
+          placeholder={t("scenario.manual")}
+          onChange={(v) => onChange((c) => ({ ...c, sharesOverride: v }))}
+        />
+      </div>
+
+      {/* Growth ramp */}
+      <div>
+        <p className="mb-1 text-[10px] uppercase tracking-wide text-slate-400">
+          {t("dcf.growthRamp")}
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          {config.growthRates.map((g, i) => (
+            <PctField
+              key={i}
+              label={t("dcf.year", { n: i + 1 })}
+              value={g}
+              step={0.5}
+              onChange={(v) => setGrowthYear(i, v)}
+            />
+          ))}
+          <div className="flex items-center gap-1 pb-1">
+            <button
+              className="h-6 w-6 rounded border border-slate-200 text-slate-500 hover:bg-slate-50"
+              title={t("dcf.removeYear")}
+              onClick={removeYear}
+            >
+              −
+            </button>
+            <button
+              className="h-6 w-6 rounded border border-slate-200 text-slate-500 hover:bg-slate-50"
+              title={t("dcf.addYear")}
+              onClick={addYear}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {d.missing && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t("dcf.missing")}
+        </div>
+      )}
+
+      {result && !d.missing && (
+        <>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                {t("dcf.fairValue")}
+              </p>
+              <p className="text-xl font-bold" style={{ color: GOLD }}>
+                {fmt(fair)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                {t("dcf.vsPrice")}
+              </p>
+              <p className={`text-xl font-semibold ${tone(upsideVsPrice)}`}>
+                {formatPct(upsideVsPrice)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                {t("dcf.vsCost")}
+              </p>
+              <p className={`text-xl font-semibold ${tone(upsideVsCost)}`}>
+                {formatPct(upsideVsCost)}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+            <Field label={t("dcf.enterpriseValue")} value={fmt(result.enterpriseValue)} />
+            <Field label={t("dcf.equityValue")} value={fmt(result.equityValue)} />
+            <Field label={t("dcf.pvExplicit")} value={fmt(result.pvExplicit)} />
+            <Field label={t("dcf.pvTerminal")} value={fmt(result.pvTerminal)} />
+          </div>
+
+          <div
+            className={`rounded-lg border px-3 py-2 text-xs ${
+              terminalRisky
+                ? "border-amber-200 bg-amber-50 text-amber-800"
+                : "border-slate-200 bg-slate-50/60 text-slate-500"
+            }`}
+          >
+            {t("dcf.terminalWeight")}:{" "}
+            <span className="font-semibold">
+              {formatPct(result.terminalWeight)}
+            </span>
+            {terminalRisky && ` — ${t("dcf.terminalWarn")}`}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ReverseDcfTab({
+  config,
+  fundamentals,
+  currentPrice,
+  qc,
+  onChange,
+}: {
+  config: DcfConfig;
+  fundamentals: Fundamentals | undefined;
+  currentPrice: number | null;
+  qc: Currency;
+  onChange: (fn: (d: DcfConfig) => DcfConfig) => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const d = deriveDcfInputs(config, fundamentals, currentPrice);
+  const years = config.growthRates.length;
+
+  const implied = useMemo(() => {
+    if (currentPrice == null || d.baseFCF == null || d.shares == null) return null;
+    return reverseDCF({
+      currentPrice,
+      baseFCF: d.baseFCF,
+      wacc: config.wacc,
+      terminalGrowth: config.terminalGrowth,
+      netDebt: d.netDebt,
+      sharesOutstanding: d.shares,
+      years,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, d.baseFCF, d.shares, d.netDebt, currentPrice, years]);
+
+  // The growth the user assumes in the forward DCF, as a reference point.
+  const assumedAvg =
+    config.growthRates.reduce((s, g) => s + g, 0) / (config.growthRates.length || 1);
+
+  const nf1 = (v: number) =>
+    new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 }).format(v * 100);
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-slate-500">{t("dcf.reverseIntro")}</p>
+
+      {/* Shared assumptions (WACC, terminal g) — same config as the DCF tab. */}
+      <div className="flex flex-wrap items-end gap-4">
+        <PctField
+          label={t("dcf.wacc")}
+          value={config.wacc}
+          onChange={(v) => onChange((c) => ({ ...c, wacc: v }))}
+        />
+        <PctField
+          label={t("dcf.terminalGrowth")}
+          value={config.terminalGrowth}
+          onChange={(v) => onChange((c) => ({ ...c, terminalGrowth: v }))}
+        />
+        <Field label={t("dcf.horizon")} value={String(years)} />
+        <Field
+          label={t("scenario.currentPrice")}
+          value={currentPrice != null ? formatMoney(currentPrice, qc) : "—"}
+        />
+      </div>
+
+      {d.missing ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t("dcf.missing")}
+        </div>
+      ) : implied == null ? (
+        <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs text-slate-500">
+          {t("dcf.reverseUnsolvable")}
+        </div>
+      ) : (
+        <>
+          <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
+            <p className="text-[10px] uppercase tracking-wide text-slate-400">
+              {t("dcf.impliedGrowth")}
+            </p>
+            <p className="text-2xl font-bold" style={{ color: GOLD }}>
+              {nf1(implied)}%
+              <span className="ml-1 text-sm font-normal text-slate-400">
+                /{t("dcf.perYear")} · {years} {t("dcf.yearsShort")}
+              </span>
+            </p>
+          </div>
+          <p className="text-sm text-slate-600">
+            {t("dcf.reverseSentence", { implied: nf1(implied), years })}
+          </p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs text-slate-600">
+            {t("dcf.reverseCompare", {
+              assumed: nf1(assumedAvg),
+              verdict:
+                implied > assumedAvg
+                  ? t("dcf.verdictOptimistic")
+                  : t("dcf.verdictPessimistic"),
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }

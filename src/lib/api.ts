@@ -270,6 +270,12 @@ export type Fundamentals = {
   marketCap: number | null;
   eps: number | null;
   forwardEps: number | null;
+  // DCF inputs (quote/financial currency, absolute values). Captured from
+  // Yahoo financialData / defaultKeyStatistics; null when not reported.
+  freeCashflow: number | null;
+  sharesOutstanding: number | null;
+  totalDebt: number | null;
+  totalCash: number | null;
   sector: string | null;
   industry: string | null;
   currency: string | null;
@@ -290,6 +296,10 @@ function normaliseFundamentals(f: Fundamentals): Fundamentals {
     marketCap: num(f.marketCap),
     eps: num(f.eps),
     forwardEps: num(f.forwardEps),
+    freeCashflow: num(f.freeCashflow),
+    sharesOutstanding: num(f.sharesOutstanding),
+    totalDebt: num(f.totalDebt),
+    totalCash: num(f.totalCash),
   };
 }
 

@@ -282,6 +282,12 @@ export async function ensureFundamentalsTable(sql: SqlClient): Promise<void> {
     ALTER TABLE fundamentals
       ADD COLUMN IF NOT EXISTS forward_eps NUMERIC(14, 4)
   `;
+  // Additive columns powering the DCF / Reverse-DCF panel. Absolute values in
+  // the company's financial currency.
+  await sql`ALTER TABLE fundamentals ADD COLUMN IF NOT EXISTS free_cashflow NUMERIC(24, 0)`;
+  await sql`ALTER TABLE fundamentals ADD COLUMN IF NOT EXISTS shares_outstanding NUMERIC(24, 0)`;
+  await sql`ALTER TABLE fundamentals ADD COLUMN IF NOT EXISTS total_debt NUMERIC(24, 0)`;
+  await sql`ALTER TABLE fundamentals ADD COLUMN IF NOT EXISTS total_cash NUMERIC(24, 0)`;
 }
 
 export type FundamentalsRefreshStats = {
@@ -396,16 +402,25 @@ export async function refreshFundamentals(
       const sector = pickStr(ap.sector);
       const industry = pickStr(ap.industry);
       const currency = pickStr(fd.financialCurrency) ?? pickStr(sd.currency);
+      // DCF inputs. freeCashflow + totalDebt + totalCash live in financialData;
+      // sharesOutstanding in defaultKeyStatistics (fall back to summaryDetail).
+      const freeCashflow = pickNum(fd.freeCashflow);
+      const sharesOutstanding =
+        pickNum(ks.sharesOutstanding) ?? pickNum(sd.sharesOutstanding);
+      const totalDebt = pickNum(fd.totalDebt);
+      const totalCash = pickNum(fd.totalCash);
 
       await sql`
         INSERT INTO fundamentals (
           ticker, trailing_pe, forward_pe, price_to_book, roe, profit_margin,
-          debt_to_equity, dividend_yield, market_cap, eps, forward_eps, sector,
+          debt_to_equity, dividend_yield, market_cap, eps, forward_eps,
+          free_cashflow, shares_outstanding, total_debt, total_cash, sector,
           industry, currency, updated_at
         ) VALUES (
           ${stored}, ${trailingPe}, ${forwardPe}, ${priceToBook}, ${roe},
           ${profitMargin}, ${debtToEquity}, ${dividendYield}, ${marketCap},
-          ${eps}, ${forwardEps}, ${sector}, ${industry}, ${currency}, NOW()
+          ${eps}, ${forwardEps}, ${freeCashflow}, ${sharesOutstanding},
+          ${totalDebt}, ${totalCash}, ${sector}, ${industry}, ${currency}, NOW()
         )
         ON CONFLICT (ticker) DO UPDATE SET
           trailing_pe = EXCLUDED.trailing_pe,
@@ -418,6 +433,10 @@ export async function refreshFundamentals(
           market_cap = EXCLUDED.market_cap,
           eps = EXCLUDED.eps,
           forward_eps = EXCLUDED.forward_eps,
+          free_cashflow = EXCLUDED.free_cashflow,
+          shares_outstanding = EXCLUDED.shares_outstanding,
+          total_debt = EXCLUDED.total_debt,
+          total_cash = EXCLUDED.total_cash,
           sector = EXCLUDED.sector,
           industry = EXCLUDED.industry,
           currency = EXCLUDED.currency,

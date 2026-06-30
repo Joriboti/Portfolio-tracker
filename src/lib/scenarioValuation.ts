@@ -20,6 +20,8 @@
 //   peTrailing      = currentPrice / epsTTM
 //   peForward       = currentPrice / baseEPS
 
+import { defaultDcfConfig, type DcfConfig } from "./dcf";
+
 /** One editable scenario row. */
 export type ScenarioInput = {
   /** Stable id so the UI can key rows and reorder without losing focus. */
@@ -206,6 +208,12 @@ export type ValuationModel = {
   baseEpsOverride: number | null;
   /** DCA simulator state; addShares 0 means "no planned buy". */
   dca: DcaInput;
+  /**
+   * DCF / Reverse-DCF assumptions, persisted alongside the scenarios in the
+   * same per-holding JSONB document. Optional so models saved before the DCF
+   * panel shipped load fine; the component fills it with defaults on first use.
+   */
+  dcf?: DcfConfig;
 };
 
 /** A fresh model with the spec's deep-value defaults. */
@@ -215,5 +223,6 @@ export function defaultModel(): ValuationModel {
     years: DEFAULT_HORIZON_YEARS,
     baseEpsOverride: null,
     dca: { addShares: 0, addPrice: 0 },
+    dcf: defaultDcfConfig(),
   };
 }
