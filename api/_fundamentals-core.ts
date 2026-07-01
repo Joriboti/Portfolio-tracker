@@ -288,6 +288,8 @@ export async function ensureFundamentalsTable(sql: SqlClient): Promise<void> {
   await sql`ALTER TABLE fundamentals ADD COLUMN IF NOT EXISTS shares_outstanding NUMERIC(24, 0)`;
   await sql`ALTER TABLE fundamentals ADD COLUMN IF NOT EXISTS total_debt NUMERIC(24, 0)`;
   await sql`ALTER TABLE fundamentals ADD COLUMN IF NOT EXISTS total_cash NUMERIC(24, 0)`;
+  // Company website — used to derive a logo domain on the dashboard.
+  await sql`ALTER TABLE fundamentals ADD COLUMN IF NOT EXISTS website TEXT`;
 }
 
 export type FundamentalsRefreshStats = {
@@ -402,6 +404,7 @@ export async function refreshFundamentals(
       const sector = pickStr(ap.sector);
       const industry = pickStr(ap.industry);
       const currency = pickStr(fd.financialCurrency) ?? pickStr(sd.currency);
+      const website = pickStr(ap.website);
       // DCF inputs. freeCashflow + totalDebt + totalCash live in financialData;
       // sharesOutstanding in defaultKeyStatistics (fall back to summaryDetail).
       const freeCashflow = pickNum(fd.freeCashflow);
@@ -415,12 +418,13 @@ export async function refreshFundamentals(
           ticker, trailing_pe, forward_pe, price_to_book, roe, profit_margin,
           debt_to_equity, dividend_yield, market_cap, eps, forward_eps,
           free_cashflow, shares_outstanding, total_debt, total_cash, sector,
-          industry, currency, updated_at
+          industry, currency, website, updated_at
         ) VALUES (
           ${stored}, ${trailingPe}, ${forwardPe}, ${priceToBook}, ${roe},
           ${profitMargin}, ${debtToEquity}, ${dividendYield}, ${marketCap},
           ${eps}, ${forwardEps}, ${freeCashflow}, ${sharesOutstanding},
-          ${totalDebt}, ${totalCash}, ${sector}, ${industry}, ${currency}, NOW()
+          ${totalDebt}, ${totalCash}, ${sector}, ${industry}, ${currency},
+          ${website}, NOW()
         )
         ON CONFLICT (ticker) DO UPDATE SET
           trailing_pe = EXCLUDED.trailing_pe,
@@ -440,6 +444,7 @@ export async function refreshFundamentals(
           sector = EXCLUDED.sector,
           industry = EXCLUDED.industry,
           currency = EXCLUDED.currency,
+          website = EXCLUDED.website,
           updated_at = NOW()
       `;
       stats.refreshed++;

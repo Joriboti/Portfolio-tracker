@@ -9,6 +9,7 @@ import {
   refreshHistoricalPrices,
 } from "@/lib/api";
 import { AuthGuard } from "@/components/AuthGuard";
+import { AddHoldingForm } from "@/components/AddHoldingForm";
 import { useUser } from "@/hooks/useUser";
 
 function UploadInner() {
@@ -97,6 +98,17 @@ function UploadInner() {
       <h1 className="text-2xl font-semibold text-slate-900">
         {t("upload.title")}
       </h1>
+
+      {/* Manual entry — search a ticker and add it one by one. */}
+      {user && (
+        <AddHoldingForm userId={user.id} onAdded={() => navigate("/dashboard")} />
+      )}
+
+      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-slate-400">
+        <span className="h-px flex-1 bg-slate-200" />
+        {t("upload.orExcel")}
+        <span className="h-px flex-1 bg-slate-200" />
+      </div>
 
       {!parsed && (
         <div

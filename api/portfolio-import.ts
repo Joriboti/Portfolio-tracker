@@ -19,6 +19,10 @@ type ImportPayload = {
   dividends?: Array<{ ticker: string; amount: number; date: string | null }>;
   interests?: Array<{ date: string | null; amount: number }>;
   wealth?: Array<{ category: "stocks" | "cash"; label: string; value: number }>;
+  // When true, append the given transactions to the existing portfolio instead
+  // of replacing everything (used by the manual "Add holding" form). Only
+  // transactions are appended in this mode.
+  append?: boolean;
 };
 
 // Self-contained — mirrors the structure of /api/db-direct.ts exactly
@@ -66,16 +70,21 @@ export default async function handler(
     const dividends = body.dividends ?? [];
     const interests = body.interests ?? [];
     const wealth = body.wealth ?? [];
+    const append = body.append === true;
 
     phase = "neon-import";
     const mod = await import("@neondatabase/serverless");
     const sql = mod.neon(dbUrl);
 
-    phase = "delete-old";
-    await sql`DELETE FROM transactions WHERE user_id = ${userId}`;
-    await sql`DELETE FROM dividends WHERE user_id = ${userId}`;
-    await sql`DELETE FROM interests WHERE user_id = ${userId}`;
-    await sql`DELETE FROM wealth_entries WHERE user_id = ${userId}`;
+    // Full import replaces the portfolio; append mode keeps it and only adds
+    // the new transactions (manual "Add holding").
+    if (!append) {
+      phase = "delete-old";
+      await sql`DELETE FROM transactions WHERE user_id = ${userId}`;
+      await sql`DELETE FROM dividends WHERE user_id = ${userId}`;
+      await sql`DELETE FROM interests WHERE user_id = ${userId}`;
+      await sql`DELETE FROM wealth_entries WHERE user_id = ${userId}`;
+    }
 
     phase = "insert-transactions";
     for (const t of transactions) {

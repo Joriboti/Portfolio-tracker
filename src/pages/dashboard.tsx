@@ -32,6 +32,7 @@ import { AnalyticsCard } from "@/components/AnalyticsCard";
 import { PerformanceCard } from "@/components/PerformanceCard";
 import { HistoryChart } from "@/components/HistoryChart";
 import { ScenarioValuation } from "@/components/ScenarioValuation";
+import { CompanyLogo } from "@/components/CompanyLogo";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
@@ -631,10 +632,13 @@ function PositionsTable({
                 onClick={() => setExpanded(isExpanded ? null : p.ticker)}
               >
                 <td className="font-medium">
-                  <span className="mr-1 inline-block w-3 text-slate-400">
-                    {isExpanded ? "▾" : "▸"}
-                  </span>
-                  {p.ticker}
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-3 text-slate-400">
+                      {isExpanded ? "▾" : "▸"}
+                    </span>
+                    <CompanyLogo ticker={p.ticker} website={fund?.website} size={24} />
+                    <span>{p.ticker}</span>
+                  </div>
                 </td>
                 <td className="text-right">{p.shares.toFixed(4)}</td>
                 <td className="text-right">{formatMoney(p.avgCost, currency)}</td>

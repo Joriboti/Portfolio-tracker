@@ -32,8 +32,23 @@
     "p3": "This app is not financial advice. Price data comes from third-party sources and may be delayed. Always verify with your broker before making decisions.",
     "ack": "Got it, continue"
   },
+  "addHolding": {
+    "title": "Add a holding manually",
+    "subtitle": "Search the ticker, then enter shares, average price (EUR) and the buy date.",
+    "ticker": "Company / ticker",
+    "searchPlaceholder": "Search (e.g. Micron, MU)…",
+    "shares": "Shares",
+    "avgPrice": "Avg price (EUR)",
+    "buyDate": "Buy date",
+    "add": "Add holding",
+    "added": "{{ticker}} added to your portfolio ✓",
+    "errorTicker": "Pick a company from the list.",
+    "errorShares": "Enter a valid number of shares.",
+    "errorPrice": "Enter a valid average price."
+  },
   "upload": {
     "title": "Upload your Excel",
+    "orExcel": "or upload an Excel",
     "drop": "Drop your file here or click to browse",
     "supports": "Format: .xlsx (exportable from Google Sheets)",
     "preview": "Preview",

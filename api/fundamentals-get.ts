@@ -16,10 +16,57 @@ type YahooLiveQuote = {
   regularMarketPrice?: number | null;
   currency?: string | null;
 };
+type YahooSearchQuote = {
+  symbol?: string;
+  shortname?: string;
+  longname?: string;
+  exchange?: string;
+  quoteType?: string;
+};
 type YahooLiveClient = {
   quote: (symbol: string) => Promise<YahooLiveQuote>;
+  search: (query: string) => Promise<{ quotes?: YahooSearchQuote[] }>;
   setGlobalConfig?: (cfg: { validation?: { logErrors?: boolean } }) => void;
 };
+
+async function makeYahoo(): Promise<YahooLiveClient> {
+  const yfMod = await import("yahoo-finance2");
+  const YahooFinance = yfMod.default as unknown as new (opts?: {
+    suppressNotices?: string[];
+  }) => YahooLiveClient;
+  const yahoo = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
+  yahoo.setGlobalConfig?.({ validation: { logErrors: false } });
+  return yahoo;
+}
+
+async function handleSearch(req: VercelRequest, res: VercelResponse) {
+  const raw = req.query.search;
+  const query = (Array.isArray(raw) ? raw[0] : (raw ?? "")).trim();
+  if (query.length === 0) {
+    res.status(200).end(JSON.stringify({ ok: true, results: [] }));
+    return;
+  }
+  const yahoo = await makeYahoo();
+  let quotes: YahooSearchQuote[] = [];
+  try {
+    const r = await yahoo.search(query);
+    quotes = r.quotes ?? [];
+  } catch {
+    quotes = [];
+  }
+  // Keep tradeable instruments with a symbol; drop indices/options/etc.
+  const allowed = new Set(["EQUITY", "ETF", "MUTUALFUND", "CRYPTOCURRENCY", "CURRENCY"]);
+  const results = quotes
+    .filter((q) => q.symbol && (!q.quoteType || allowed.has(q.quoteType)))
+    .slice(0, 8)
+    .map((q) => ({
+      symbol: q.symbol as string,
+      name: q.longname ?? q.shortname ?? (q.symbol as string),
+      exchange: q.exchange ?? null,
+      type: q.quoteType ?? null,
+    }));
+  res.status(200).end(JSON.stringify({ ok: true, results }));
+}
 
 function toNum(v: unknown): number | null {
   const n = typeof v === "number" ? v : parseFloat(String(v));
@@ -38,12 +85,7 @@ async function handleLiveQuotes(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const yfMod = await import("yahoo-finance2");
-  const YahooFinance = yfMod.default as unknown as new (opts?: {
-    suppressNotices?: string[];
-  }) => YahooLiveClient;
-  const yahoo = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
-  yahoo.setGlobalConfig?.({ validation: { logErrors: false } });
+  const yahoo = await makeYahoo();
 
   const quotes = await Promise.all(
     tickers.map(async (ticker) => {
@@ -75,6 +117,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Live Yahoo quotes mode (SoTP / NAV) — no DB needed.
     if (req.query.live != null) {
       await handleLiveQuotes(req, res);
+      return;
+    }
+
+    // Ticker search mode (manual "Add holding") — no DB needed.
+    if (req.query.search != null) {
+      await handleSearch(req, res);
       return;
     }
 
@@ -128,6 +176,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         sector,
         industry,
         currency,
+        website,
         updated_at     AS "updatedAt"
       FROM fundamentals
       WHERE ticker = ANY(${tickers}::text[])

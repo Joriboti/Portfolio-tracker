@@ -115,6 +115,39 @@ export function importPortfolio(
   });
 }
 
+export type TickerSearchResult = {
+  symbol: string;
+  name: string;
+  exchange: string | null;
+  type: string | null;
+};
+
+// Ticker autocomplete for the manual "Add holding" form. Served by
+// fundamentals-get's `?search=` mode (folded in to stay under the Hobby plan's
+// serverless-function limit).
+export async function searchTickers(query: string): Promise<TickerSearchResult[]> {
+  const q = query.trim();
+  if (q.length === 0) return [];
+  const params = new URLSearchParams({ search: q });
+  const data = await jsonFetch<{ results: TickerSearchResult[] }>(
+    `/api/fundamentals-get?${params.toString()}`,
+  );
+  return data.results ?? [];
+}
+
+// Append a single manually-entered holding to the existing portfolio (does NOT
+// replace it — uses portfolio-import's append mode).
+export function addHolding(
+  userId: string,
+  txn: Transaction,
+): Promise<{ ok: true; counts?: Record<string, number> }> {
+  return jsonFetch("/api/portfolio-import", {
+    method: "POST",
+    body: JSON.stringify({ transactions: [txn], append: true }),
+    userId,
+  });
+}
+
 export async function getPortfolio(userId: string): Promise<{
   transactions: Transaction[];
   dividends: Dividend[];
@@ -279,6 +312,8 @@ export type Fundamentals = {
   sector: string | null;
   industry: string | null;
   currency: string | null;
+  /** Company website, used to derive a logo domain on the dashboard. */
+  website: string | null;
   updatedAt: string | null;
 };
 

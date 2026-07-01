@@ -161,3 +161,7 @@ ALTER TABLE fundamentals
   ADD COLUMN IF NOT EXISTS total_debt NUMERIC(24, 0);
 ALTER TABLE fundamentals
   ADD COLUMN IF NOT EXISTS total_cash NUMERIC(24, 0);
+
+-- Company website, used to derive a logo domain on the dashboard.
+ALTER TABLE fundamentals
+  ADD COLUMN IF NOT EXISTS website TEXT;
