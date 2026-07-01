@@ -182,7 +182,8 @@
       "dcf": "DCF",
       "reverse": "Reverse DCF",
       "graham": "Graham",
-      "montecarlo": "Monte Carlo"
+      "montecarlo": "Monte Carlo",
+      "sotp": "Suma de parts"
     }
   },
   "dcf": {
@@ -236,6 +237,29 @@
     "mean": "Mitjana",
     "median": "Mediana",
     "sentence": "El valor just està entre {{p10}} i {{p90}} amb ~80% de probabilitat."
+  },
+  "sotp": {
+    "intro": "Valora cada participació del holding i suma-les. Les cotitzades porten la capitalització en viu de Yahoo (× la teva participació); les no cotitzades, un valor manual.",
+    "cols": {
+      "name": "Participació",
+      "ticker": "Ticker",
+      "stake": "Participació %",
+      "manual": "Valor manual ({{currency}})",
+      "value": "Valor",
+      "weight": "Pes"
+    },
+    "empty": "Encara no has afegit cap participació. Comença amb «+ Afegeix participació».",
+    "auto": "auto",
+    "fallback": "sense capitalització en viu — s'usa el valor manual",
+    "addHolding": "Afegeix participació",
+    "remove": "Elimina",
+    "loading": "Carregant capitalitzacions…",
+    "netDebt": "Deute net del holding ({{currency}})",
+    "shares": "Accions del holding",
+    "gav": "Valor brut (GAV)",
+    "nav": "Valor net (NAV)",
+    "navPerShare": "NAV / acció",
+    "discount": "Descompte sobre NAV"
   },
   "history": {
     "title": "Evolució de la cartera",

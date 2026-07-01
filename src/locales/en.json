@@ -182,7 +182,8 @@
       "dcf": "DCF",
       "reverse": "Reverse DCF",
       "graham": "Graham",
-      "montecarlo": "Monte Carlo"
+      "montecarlo": "Monte Carlo",
+      "sotp": "Sum of parts"
     }
   },
   "dcf": {
@@ -236,6 +237,29 @@
     "mean": "Mean",
     "median": "Median",
     "sentence": "The fair value is between {{p10}} and {{p90}} with ~80% probability."
+  },
+  "sotp": {
+    "intro": "Value each stake the holding owns and sum them. Listed stakes pull a live market cap from Yahoo (× your stake); unlisted ones use a manual value.",
+    "cols": {
+      "name": "Stake",
+      "ticker": "Ticker",
+      "stake": "Stake %",
+      "manual": "Manual value ({{currency}})",
+      "value": "Value",
+      "weight": "Weight"
+    },
+    "empty": "No stakes yet. Start with \"+ Add stake\".",
+    "auto": "auto",
+    "fallback": "no live market cap — using the manual value",
+    "addHolding": "Add stake",
+    "remove": "Remove",
+    "loading": "Loading market caps…",
+    "netDebt": "Holding net debt ({{currency}})",
+    "shares": "Holding shares",
+    "gav": "Gross value (GAV)",
+    "nav": "Net value (NAV)",
+    "navPerShare": "NAV / share",
+    "discount": "Discount to NAV"
   },
   "history": {
     "title": "Portfolio evolution",

@@ -23,6 +23,7 @@
 import { defaultDcfConfig, type DcfConfig } from "./dcf";
 import { defaultGrahamConfig, type GrahamConfig } from "./graham";
 import { defaultMonteCarloConfig, type MonteCarloConfig } from "./montecarlo";
+import { defaultSotpConfig, type SotpConfig } from "./sotp";
 
 /** One editable scenario row. */
 export type ScenarioInput = {
@@ -220,6 +221,8 @@ export type ValuationModel = {
   graham?: GrahamConfig;
   /** Monte Carlo sigmas layered over the DCF config (optional). */
   mc?: MonteCarloConfig;
+  /** Sum-of-the-parts / NAV stakes for holding companies (optional). */
+  sotp?: SotpConfig;
 };
 
 /** A fresh model with the spec's deep-value defaults. */
@@ -232,5 +235,6 @@ export function defaultModel(): ValuationModel {
     dcf: defaultDcfConfig(),
     graham: defaultGrahamConfig(),
     mc: defaultMonteCarloConfig(),
+    sotp: defaultSotpConfig(),
   };
 }

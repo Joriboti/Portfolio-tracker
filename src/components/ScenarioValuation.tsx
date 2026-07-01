@@ -28,12 +28,28 @@ import {
   type MonteCarloResult,
 } from "@/lib/montecarlo";
 import {
+  calculateNAV,
+  withDiscount,
+  newHolding,
+  defaultSotpConfig,
+  type SotpConfig,
+  type SotpHolding,
+} from "@/lib/sotp";
+import {
   getScenarioModel,
   saveScenarioModel,
+  getSotpQuotes,
   type Fundamentals,
+  type SotpLiveQuote,
 } from "@/lib/api";
 
-type ValuationTab = "scenarios" | "dcf" | "reverse" | "graham" | "montecarlo";
+type ValuationTab =
+  | "scenarios"
+  | "dcf"
+  | "reverse"
+  | "graham"
+  | "montecarlo"
+  | "sotp";
 
 const GOLD = "#d4af37";
 const PRICE_COLOR = "#64748b"; // slate-500
@@ -126,6 +142,9 @@ export function ScenarioValuation({
   }
   function patchMc(fn: (c: MonteCarloConfig) => MonteCarloConfig) {
     patch((m) => ({ ...m, mc: fn({ ...defaultMonteCarloConfig(), ...(m.mc ?? {}) }) }));
+  }
+  function patchSotp(fn: (s: SotpConfig) => SotpConfig) {
+    patch((m) => ({ ...m, sotp: fn({ ...defaultSotpConfig(), ...(m.sotp ?? {}) }) }));
   }
 
   // Auto base forward EPS: real Yahoo forward EPS → trailing EPS → derived
@@ -242,6 +261,16 @@ export function ScenarioValuation({
           currentPrice={currentPrice}
           qc={qc}
           onChange={patchMc}
+        />
+      )}
+
+      {tab === "sotp" && (
+        <SoTPTab
+          config={{ ...defaultSotpConfig(), ...model.sotp }}
+          currentPrice={currentPrice}
+          qc={qc}
+          fxRates={fxRates}
+          onChange={patchSotp}
         />
       )}
 
@@ -368,6 +397,7 @@ function TabBar({
     { id: "reverse", label: t("valuation.tabs.reverse") },
     { id: "graham", label: t("valuation.tabs.graham") },
     { id: "montecarlo", label: t("valuation.tabs.montecarlo") },
+    { id: "sotp", label: t("valuation.tabs.sotp") },
   ];
   return (
     <div className="flex flex-wrap gap-1 border-b border-slate-200">
@@ -1563,6 +1593,251 @@ function McHistogram({
           P90 {nf(result.p90)}
         </text>
       </svg>
+    </div>
+  );
+}
+
+// ── Sum of the parts / NAV (holding companies) ─────────────────────────────
+
+function SoTPTab({
+  config,
+  currentPrice,
+  qc,
+  fxRates,
+  onChange,
+}: {
+  config: SotpConfig;
+  currentPrice: number | null;
+  qc: Currency;
+  fxRates: Record<string, number>;
+  onChange: (fn: (s: SotpConfig) => SotpConfig) => void;
+}) {
+  const { t } = useTranslation();
+  const [quotes, setQuotes] = useState<Record<string, SotpLiveQuote>>({});
+  const [loading, setLoading] = useState(false);
+
+  // Distinct listed tickers, stable-keyed so the fetch only re-runs when the
+  // set actually changes (not on every stake/name keystroke).
+  const tickerKey = useMemo(() => {
+    const set = new Set(
+      config.holdings
+        .map((h) => (h.ticker ?? "").trim().toUpperCase())
+        .filter(Boolean),
+    );
+    return [...set].sort().join(",");
+  }, [config.holdings]);
+
+  useEffect(() => {
+    if (!tickerKey) {
+      setQuotes({});
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    const id = setTimeout(() => {
+      getSotpQuotes(tickerKey.split(","))
+        .then((q) => {
+          if (!cancelled) setQuotes(q);
+        })
+        .catch(() => {
+          if (!cancelled) setQuotes({});
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    }, 600);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
+  }, [tickerKey]);
+
+  const result = useMemo(() => {
+    const quoteMap: Record<string, { marketCap: number | null; currency: string | null }> = {};
+    for (const [k, v] of Object.entries(quotes)) {
+      quoteMap[k] = { marketCap: v.marketCap, currency: v.currency };
+    }
+    return withDiscount(calculateNAV(config, quoteMap, fxRates, qc), currentPrice);
+  }, [config, quotes, fxRates, qc, currentPrice]);
+
+  const fmt = (v: number | null | undefined) => formatMoney(v ?? null, qc);
+
+  function updateHolding(id: string, patch: Partial<SotpHolding>) {
+    onChange((s) => ({
+      ...s,
+      holdings: s.holdings.map((h) => (h.id === id ? { ...h, ...patch } : h)),
+    }));
+  }
+  function removeHolding(id: string) {
+    onChange((s) => ({ ...s, holdings: s.holdings.filter((h) => h.id !== id) }));
+  }
+  function addHolding() {
+    onChange((s) => ({ ...s, holdings: [...s.holdings, newHolding()] }));
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="max-w-xl text-xs text-slate-500">{t("sotp.intro")}</p>
+
+      {/* Stakes table */}
+      <div className="overflow-x-auto">
+        <table className="table-base min-w-[640px]">
+          <thead>
+            <tr>
+              <th>{t("sotp.cols.name")}</th>
+              <th>{t("sotp.cols.ticker")}</th>
+              <th className="text-right">{t("sotp.cols.stake")}</th>
+              <th className="text-right">{t("sotp.cols.manual", { currency: qc })}</th>
+              <th className="text-right">{t("sotp.cols.value")}</th>
+              <th className="text-right">{t("sotp.cols.weight")}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {config.holdings.length === 0 && (
+              <tr>
+                <td colSpan={7} className="py-3 text-center text-xs text-slate-400">
+                  {t("sotp.empty")}
+                </td>
+              </tr>
+            )}
+            {config.holdings.map((h) => {
+              const row = result.breakdown.find((b) => b.id === h.id);
+              return (
+                <tr key={h.id}>
+                  <td>
+                    <input
+                      className="w-28 rounded-md border border-slate-200 px-1.5 py-0.5 text-sm"
+                      value={h.name}
+                      placeholder={t("sotp.cols.name")}
+                      onChange={(e) => updateHolding(h.id, { name: e.target.value })}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="w-20 rounded-md border border-slate-200 px-1.5 py-0.5 text-sm uppercase"
+                      value={h.ticker ?? ""}
+                      placeholder="—"
+                      onChange={(e) =>
+                        updateHolding(h.id, {
+                          ticker: e.target.value.trim() === "" ? null : e.target.value.trim(),
+                        })
+                      }
+                    />
+                  </td>
+                  <td className="text-right">
+                    <span className="inline-flex items-center gap-0.5">
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-16 rounded-md border border-slate-200 px-1.5 py-0.5 text-right text-sm"
+                        value={Number((h.stakePct * 100).toFixed(4))}
+                        onChange={(e) =>
+                          updateHolding(h.id, {
+                            stakePct: (Number(e.target.value) || 0) / 100,
+                          })
+                        }
+                      />
+                      <span className="text-xs text-slate-400">%</span>
+                    </span>
+                  </td>
+                  <td className="text-right">
+                    <input
+                      type="number"
+                      step="any"
+                      className="w-24 rounded-md border border-slate-200 px-1.5 py-0.5 text-right text-sm"
+                      value={h.manualValue ?? ""}
+                      placeholder={h.ticker ? t("sotp.auto") : "—"}
+                      onChange={(e) =>
+                        updateHolding(h.id, {
+                          manualValue: e.target.value === "" ? null : Number(e.target.value),
+                        })
+                      }
+                    />
+                  </td>
+                  <td className="text-right font-medium">{row ? fmt(row.value) : "—"}</td>
+                  <td className="text-right text-slate-500">
+                    {row ? formatPct(row.weight) : "—"}
+                    {row?.fromManual && h.ticker && (
+                      <span className="ml-1 text-[10px] text-amber-500" title={t("sotp.fallback")}>
+                        ⚠
+                      </span>
+                    )}
+                  </td>
+                  <td className="text-right">
+                    <button
+                      className="text-slate-300 hover:text-rose-500"
+                      title={t("sotp.remove")}
+                      onClick={() => removeHolding(h.id)}
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={7} className="text-xs">
+                <button className="text-brand-700 underline" onClick={addHolding}>
+                  + {t("sotp.addHolding")}
+                </button>
+                {loading && <span className="ml-3 text-slate-400">{t("sotp.loading")}</span>}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Holding-level adjustments */}
+      <div className="flex flex-wrap items-end gap-4">
+        <ValField
+          label={t("sotp.netDebt", { currency: qc })}
+          value={config.netDebt}
+          step="any"
+          onChange={(v) => onChange((s) => ({ ...s, netDebt: v }))}
+        />
+        <ValField
+          label={t("sotp.shares")}
+          value={config.sharesOutstanding}
+          step="any"
+          onChange={(v) => onChange((s) => ({ ...s, sharesOutstanding: Math.max(0, v) }))}
+        />
+      </div>
+
+      {config.holdings.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border border-slate-200 px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.gav")}</p>
+            <p className="text-lg font-semibold text-slate-700">{fmt(result.gav)}</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.nav")}</p>
+            <p className="text-lg font-semibold text-slate-700">{fmt(result.nav)}</p>
+          </div>
+          <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
+            <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.navPerShare")}</p>
+            <p className="text-lg font-bold" style={{ color: GOLD }}>
+              {fmt(result.navPerShare)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.discount")}</p>
+            <p
+              className={`text-lg font-semibold ${
+                result.discountToNav == null
+                  ? ""
+                  : result.discountToNav > 0
+                    ? "text-emerald-600"
+                    : "text-rose-600"
+              }`}
+            >
+              {formatPct(result.discountToNav)}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
