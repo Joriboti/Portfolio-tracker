@@ -363,14 +363,16 @@ export type SotpLiveQuote = {
 // Live market caps for the Sum-of-the-Parts / NAV valuation. Hits Yahoo
 // directly (the stakes aren't in the user's own portfolio), returning one row
 // per requested sub-holding ticker; a bad symbol comes back with null figures.
+// Served by fundamentals-get's `?live=` mode (folded in to stay under the
+// Hobby plan's serverless-function limit).
 export async function getSotpQuotes(
   tickers: string[],
 ): Promise<Record<string, SotpLiveQuote>> {
   const list = tickers.map((t) => t.trim().toUpperCase()).filter(Boolean);
   if (list.length === 0) return {};
-  const params = new URLSearchParams({ tickers: list.join(",") });
+  const params = new URLSearchParams({ live: list.join(",") });
   const data = await jsonFetch<{ quotes: SotpLiveQuote[] }>(
-    `/api/sotp-quotes?${params.toString()}`,
+    `/api/fundamentals-get?${params.toString()}`,
   );
   const map: Record<string, SotpLiveQuote> = {};
   for (const q of data.quotes ?? []) {
