@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
 import { HomePage } from "@/pages/home";
@@ -18,6 +19,8 @@ function Private({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
+    <>
+    <Analytics />
     <Routes>
       <Route element={<Layout />}>
         <Route path="/auth" element={<AuthPage />} />
@@ -34,5 +37,6 @@ export default function App() {
         <Route path="*" element={<Private><HomePage /></Private>} />
       </Route>
     </Routes>
+    </>
   );
 }

@@ -13,6 +13,7 @@
   "dependencies": {
     "@neondatabase/neon-js": "^0.4.0-beta",
     "@neondatabase/serverless": "^0.10.4",
+    "@vercel/analytics": "^2.0.1",
     "i18next": "^23.16.4",
     "i18next-browser-languagedetector": "^8.0.0",
     "react": "^18.3.1",
