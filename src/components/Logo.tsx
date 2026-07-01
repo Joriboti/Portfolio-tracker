@@ -1,12 +1,16 @@
 import { useId } from "react";
 
 /**
- * TrimmTrack logo mark — a painterly orange flourish on a deep petrol tile,
- * an abstract nod to the gestural cover art of Blur's "13".
+ * TrimmTrack logo mark — a pair of open scissors on a deep petrol tile. "Trimm"
+ * (trim = cut) made scissors the natural emblem. The blades curve up to fine
+ * points and the handles are tilted loops, keeping the brand's orange accent.
  */
 export function Logo({ className = "h-8 w-8" }: { className?: string }) {
   const id = useId();
-  const swirl = "M8 23 C5 15 12 8 19 11 C25 13.5 22 21 16 19.5";
+  // Two rigid halves, each a blade (up to a tip) continuing through the pivot
+  // into a neck toward the opposite handle loop — bowed for a real scissor feel.
+  const piece1 = "M24 6.6 C 21.4 10, 18.9 13.4, 15.6 17.4 C 13 19.6, 10.6 20.6, 9 21.7";
+  const piece2 = "M8 6.9 C 10.6 10.2, 13.1 13.5, 15.6 17.4 C 18.2 19.6, 20.6 20.6, 22.2 21.8";
   return (
     <svg
       viewBox="0 0 32 32"
@@ -29,39 +33,54 @@ export function Logo({ className = "h-8 w-8" }: { className?: string }) {
           <stop offset="1" stopColor="#0c2029" />
         </linearGradient>
         <linearGradient
-          id={`${id}-st`}
-          x1="6"
+          id={`${id}-blade`}
+          x1="7"
           y1="24"
           x2="24"
-          y2="8"
+          y2="6"
           gradientUnits="userSpaceOnUse"
         >
           <stop stopColor="#e8590c" />
-          <stop offset="0.55" stopColor="#f5912f" />
+          <stop offset="0.5" stopColor="#f5912f" />
           <stop offset="1" stopColor="#ffc488" />
         </linearGradient>
       </defs>
+
       <rect width="32" height="32" rx="8" fill={`url(#${id}-bg)`} />
-      <path
-        d={swirl}
-        fill="none"
-        stroke={`url(#${id}-st)`}
-        strokeWidth="3.4"
+
+      {/* Blades + necks (the two crossing halves). */}
+      <g
+        stroke={`url(#${id}-blade)`}
+        strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-      <path
-        d={swirl}
         fill="none"
+      >
+        <path d={piece1} />
+        <path d={piece2} />
+      </g>
+      {/* Soft highlight down the blades for depth. */}
+      <g
         stroke="#ffe6c9"
-        strokeWidth="1.05"
+        strokeWidth="0.7"
         strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.85"
-      />
-      <circle cx="8" cy="23" r="1.7" fill="#ffd9a8" />
-      <circle cx="23.4" cy="9.2" r="1.05" fill="#f5912f" />
-      <circle cx="12.4" cy="6.6" r="0.8" fill="#ffc488" />
+        fill="none"
+        opacity="0.75"
+      >
+        <path d="M24 6.6 C 21.4 10, 18.9 13.4, 15.6 17.4" />
+        <path d="M8 6.9 C 10.6 10.2, 13.1 13.5, 15.6 17.4" />
+      </g>
+
+      {/* Handle loops — tilted ellipses for a rounded, elegant feel. */}
+      <g stroke={`url(#${id}-blade)`} strokeWidth="1.9" fill="none">
+        <ellipse cx="7.3" cy="24.1" rx="3.1" ry="2.2" transform="rotate(-34 7.3 24.1)" />
+        <ellipse cx="23.9" cy="24.2" rx="3.1" ry="2.2" transform="rotate(34 23.9 24.2)" />
+      </g>
+
+      {/* Pivot screw. */}
+      <circle cx="15.6" cy="17.4" r="2" fill="#0c2029" />
+      <circle cx="15.6" cy="17.4" r="1.25" fill="#ffd9a8" />
+      <circle cx="15.1" cy="16.9" r="0.4" fill="#fff" opacity="0.9" />
     </svg>
   );
 }

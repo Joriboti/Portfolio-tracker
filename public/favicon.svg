@@ -4,16 +4,26 @@
       <stop stop-color="#173a49"/>
       <stop offset="1" stop-color="#0c2029"/>
     </linearGradient>
-    <linearGradient id="st" x1="6" y1="24" x2="24" y2="8" gradientUnits="userSpaceOnUse">
+    <linearGradient id="blade" x1="7" y1="24" x2="24" y2="6" gradientUnits="userSpaceOnUse">
       <stop stop-color="#e8590c"/>
-      <stop offset="0.55" stop-color="#f5912f"/>
+      <stop offset="0.5" stop-color="#f5912f"/>
       <stop offset="1" stop-color="#ffc488"/>
     </linearGradient>
   </defs>
   <rect width="32" height="32" rx="8" fill="url(#bg)"/>
-  <path d="M8 23 C5 15 12 8 19 11 C25 13.5 22 21 16 19.5" fill="none" stroke="url(#st)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M8 23 C5 15 12 8 19 11 C25 13.5 22 21 16 19.5" fill="none" stroke="#ffe6c9" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
-  <circle cx="8" cy="23" r="1.7" fill="#ffd9a8"/>
-  <circle cx="23.4" cy="9.2" r="1.05" fill="#f5912f"/>
-  <circle cx="12.4" cy="6.6" r="0.8" fill="#ffc488"/>
+  <g stroke="url(#blade)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M24 6.6 C 21.4 10, 18.9 13.4, 15.6 17.4 C 13 19.6, 10.6 20.6, 9 21.7"/>
+    <path d="M8 6.9 C 10.6 10.2, 13.1 13.5, 15.6 17.4 C 18.2 19.6, 20.6 20.6, 22.2 21.8"/>
+  </g>
+  <g stroke="#ffe6c9" stroke-width="0.7" stroke-linecap="round" fill="none" opacity="0.75">
+    <path d="M24 6.6 C 21.4 10, 18.9 13.4, 15.6 17.4"/>
+    <path d="M8 6.9 C 10.6 10.2, 13.1 13.5, 15.6 17.4"/>
+  </g>
+  <g stroke="url(#blade)" stroke-width="1.9" fill="none">
+    <ellipse cx="7.3" cy="24.1" rx="3.1" ry="2.2" transform="rotate(-34 7.3 24.1)"/>
+    <ellipse cx="23.9" cy="24.2" rx="3.1" ry="2.2" transform="rotate(34 23.9 24.2)"/>
+  </g>
+  <circle cx="15.6" cy="17.4" r="2" fill="#0c2029"/>
+  <circle cx="15.6" cy="17.4" r="1.25" fill="#ffd9a8"/>
+  <circle cx="15.1" cy="16.9" r="0.4" fill="#fff" opacity="0.9"/>
 </svg>
