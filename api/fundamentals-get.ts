@@ -23,9 +23,14 @@ type YahooSearchQuote = {
   exchange?: string;
   quoteType?: string;
 };
+// Yahoo validates responses against a bundled schema and THROWS when the live
+// payload drifts from it (e.g. search's typeDisp "Equity" vs the expected
+// "equity"). We pass `{ validateResult: false }` so a harmless schema drift
+// doesn't nuke an otherwise-good response.
+type ModuleOpts = { validateResult?: boolean };
 type YahooLiveClient = {
-  quote: (symbol: string) => Promise<YahooLiveQuote>;
-  search: (query: string) => Promise<{ quotes?: YahooSearchQuote[] }>;
+  quote: (symbol: string, q?: unknown, m?: ModuleOpts) => Promise<YahooLiveQuote>;
+  search: (query: string, q?: unknown, m?: ModuleOpts) => Promise<{ quotes?: YahooSearchQuote[] }>;
   setGlobalConfig?: (cfg: { validation?: { logErrors?: boolean } }) => void;
 };
 
@@ -49,7 +54,7 @@ async function handleSearch(req: VercelRequest, res: VercelResponse) {
   const yahoo = await makeYahoo();
   let quotes: YahooSearchQuote[] = [];
   try {
-    const r = await yahoo.search(query);
+    const r = await yahoo.search(query, {}, { validateResult: false });
     quotes = r.quotes ?? [];
   } catch {
     quotes = [];
@@ -90,7 +95,7 @@ async function handleLiveQuotes(req: VercelRequest, res: VercelResponse) {
   const quotes = await Promise.all(
     tickers.map(async (ticker) => {
       try {
-        const q = await yahoo.quote(ticker);
+        const q = await yahoo.quote(ticker, {}, { validateResult: false });
         return {
           ticker,
           marketCap: toNum(q.marketCap),
