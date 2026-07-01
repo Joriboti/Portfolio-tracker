@@ -180,7 +180,9 @@
     "tabs": {
       "scenarios": "Scenarios",
       "dcf": "DCF",
-      "reverse": "Reverse DCF"
+      "reverse": "Reverse DCF",
+      "graham": "Graham",
+      "montecarlo": "Monte Carlo"
     }
   },
   "dcf": {
@@ -211,6 +213,29 @@
     "reverseCompare": "You assume {{assumed}}%/yr in the DCF → the market is {{verdict}} than your thesis.",
     "verdictOptimistic": "more optimistic",
     "verdictPessimistic": "more pessimistic"
+  },
+  "graham": {
+    "intro": "Benjamin Graham's classic interest-adjusted formula. Fast and defensive, built for screening — not a fine valuation.",
+    "eps": "EPS ({{currency}})",
+    "growth": "Expected growth",
+    "aaaYield": "AAA yield (Y)",
+    "value": "Intrinsic value (Graham)",
+    "missing": "No EPS available from Yahoo. Enter it manually or refresh fundamentals.",
+    "negative": "EPS is negative or zero: Graham's formula doesn't apply to unprofitable companies.",
+    "screenNote": "Conservative screening estimate, not a precise valuation.",
+    "clampNote": "growth capped at {{cap}}% (the 2g term over-inflates at high growth)"
+  },
+  "mc": {
+    "intro": "Simulates thousands of DCF runs varying growth and exit multiple. Instead of one number you get a distribution of the {{metric}} fair value.",
+    "growthSd": "Growth std-dev (σ)",
+    "multipleSd": "Multiple std-dev (σ)",
+    "pointHint": "DCF central points: growth {{growth}}%, multiple {{multiple}}× (edit them in the DCF tab)",
+    "p10": "P10 (pessimistic)",
+    "p50": "Median (P50)",
+    "p90": "P90 (optimistic)",
+    "mean": "Mean",
+    "median": "Median",
+    "sentence": "The fair value is between {{p10}} and {{p90}} with ~80% probability."
   },
   "history": {
     "title": "Portfolio evolution",

@@ -16,12 +16,24 @@ import {
   type DcfMetric,
 } from "@/lib/dcf";
 import {
+  grahamValue,
+  grahamGrowthClamped,
+  defaultGrahamConfig,
+  type GrahamConfig,
+} from "@/lib/graham";
+import {
+  monteCarloSimpleDCF,
+  defaultMonteCarloConfig,
+  type MonteCarloConfig,
+  type MonteCarloResult,
+} from "@/lib/montecarlo";
+import {
   getScenarioModel,
   saveScenarioModel,
   type Fundamentals,
 } from "@/lib/api";
 
-type ValuationTab = "scenarios" | "dcf" | "reverse";
+type ValuationTab = "scenarios" | "dcf" | "reverse" | "graham" | "montecarlo";
 
 const GOLD = "#d4af37";
 const PRICE_COLOR = "#64748b"; // slate-500
@@ -108,6 +120,12 @@ export function ScenarioValuation({
   // pick up any missing fields instead of carrying a partial config.
   function patchDcf(fn: (d: DcfConfig) => DcfConfig) {
     patch((m) => ({ ...m, dcf: fn({ ...defaultDcfConfig(), ...(m.dcf ?? {}) }) }));
+  }
+  function patchGraham(fn: (g: GrahamConfig) => GrahamConfig) {
+    patch((m) => ({ ...m, graham: fn({ ...defaultGrahamConfig(), ...(m.graham ?? {}) }) }));
+  }
+  function patchMc(fn: (c: MonteCarloConfig) => MonteCarloConfig) {
+    patch((m) => ({ ...m, mc: fn({ ...defaultMonteCarloConfig(), ...(m.mc ?? {}) }) }));
   }
 
   // Auto base forward EPS: real Yahoo forward EPS → trailing EPS → derived
@@ -202,6 +220,28 @@ export function ScenarioValuation({
           currentPrice={currentPrice}
           qc={qc}
           onChange={patchDcf}
+        />
+      )}
+
+      {tab === "graham" && (
+        <GrahamTab
+          config={{ ...defaultGrahamConfig(), ...model.graham }}
+          fundamentals={fundamentals}
+          currentPrice={currentPrice}
+          avgCostQc={avgCostQc}
+          qc={qc}
+          onChange={patchGraham}
+        />
+      )}
+
+      {tab === "montecarlo" && (
+        <MonteCarloTab
+          dcfConfig={{ ...defaultDcfConfig(), ...model.dcf }}
+          mcConfig={{ ...defaultMonteCarloConfig(), ...model.mc }}
+          fundamentals={fundamentals}
+          currentPrice={currentPrice}
+          qc={qc}
+          onChange={patchMc}
         />
       )}
 
@@ -326,6 +366,8 @@ function TabBar({
     { id: "scenarios", label: t("valuation.tabs.scenarios") },
     { id: "dcf", label: t("valuation.tabs.dcf") },
     { id: "reverse", label: t("valuation.tabs.reverse") },
+    { id: "graham", label: t("valuation.tabs.graham") },
+    { id: "montecarlo", label: t("valuation.tabs.montecarlo") },
   ];
   return (
     <div className="flex flex-wrap gap-1 border-b border-slate-200">
@@ -1207,6 +1249,320 @@ function ReverseDcfTab({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// ── Graham intrinsic value ─────────────────────────────────────────────────
+
+function GrahamTab({
+  config,
+  fundamentals,
+  currentPrice,
+  avgCostQc,
+  qc,
+  onChange,
+}: {
+  config: GrahamConfig;
+  fundamentals: Fundamentals | undefined;
+  currentPrice: number | null;
+  avgCostQc: number;
+  qc: Currency;
+  onChange: (fn: (g: GrahamConfig) => GrahamConfig) => void;
+}) {
+  const { t } = useTranslation();
+  const epsAuto = fundamentals?.eps ?? fundamentals?.forwardEps ?? null;
+  const eps = config.epsOverride ?? epsAuto;
+  const missing = eps == null;
+  const negative = eps != null && eps <= 0;
+
+  const value =
+    eps != null && eps > 0
+      ? grahamValue(eps, config.growthPct, config.aaaYieldPct)
+      : null;
+  const clamped = grahamGrowthClamped(config.growthPct);
+
+  const fmt = (v: number | null | undefined) => formatMoney(v ?? null, qc);
+  const vsPrice = value != null && currentPrice ? value / currentPrice - 1 : null;
+  const vsCost = value != null && avgCostQc ? value / avgCostQc - 1 : null;
+
+  return (
+    <div className="space-y-4">
+      <p className="max-w-xl text-xs text-slate-500">{t("graham.intro")}</p>
+
+      <div className="flex flex-wrap items-end gap-4">
+        <BaseField
+          label={t("graham.eps", { currency: qc })}
+          value={config.epsOverride ?? (epsAuto != null ? Number(epsAuto.toFixed(4)) : null)}
+          placeholder={t("scenario.manual")}
+          onChange={(v) => onChange((c) => ({ ...c, epsOverride: v }))}
+        />
+        <ValField
+          label={t("graham.growth")}
+          value={config.growthPct}
+          step="0.5"
+          suffix="%"
+          onChange={(v) => onChange((c) => ({ ...c, growthPct: Math.max(0, v) }))}
+        />
+        <ValField
+          label={t("graham.aaaYield")}
+          value={config.aaaYieldPct}
+          step="0.1"
+          suffix="%"
+          onChange={(v) => onChange((c) => ({ ...c, aaaYieldPct: v }))}
+        />
+      </div>
+
+      {missing && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t("graham.missing")}
+        </div>
+      )}
+      {negative && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t("graham.negative")}
+        </div>
+      )}
+
+      {value != null && !missing && !negative && (
+        <>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                {t("graham.value")}
+              </p>
+              <p className="text-xl font-bold" style={{ color: GOLD }}>
+                {fmt(value)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                {t("dcf.vsPrice")}
+              </p>
+              <p className={`text-xl font-semibold ${tone(vsPrice)}`}>{formatPct(vsPrice)}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                {t("dcf.vsCost")}
+              </p>
+              <p className={`text-xl font-semibold ${tone(vsCost)}`}>{formatPct(vsCost)}</p>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs text-slate-500">
+            {t("graham.screenNote")}
+            {clamped && ` — ${t("graham.clampNote", { cap: 15 })}`}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Monte Carlo (distribution over the Simple DCF) ─────────────────────────
+
+function MonteCarloTab({
+  dcfConfig,
+  mcConfig,
+  fundamentals,
+  currentPrice,
+  qc,
+  onChange,
+}: {
+  dcfConfig: DcfConfig;
+  mcConfig: MonteCarloConfig;
+  fundamentals: Fundamentals | undefined;
+  currentPrice: number | null;
+  qc: Currency;
+  onChange: (fn: (c: MonteCarloConfig) => MonteCarloConfig) => void;
+}) {
+  const { t } = useTranslation();
+  const { base, missing } = deriveBaseMetric(dcfConfig, fundamentals, currentPrice);
+  const metricName = t(`dcf.metric.${dcfConfig.metric}`);
+  const negative = base != null && base <= 0;
+
+  const result = useMemo<MonteCarloResult | null>(() => {
+    if (base == null || base <= 0) return null;
+    return monteCarloSimpleDCF(
+      {
+        baseMetric: base,
+        growthRate: dcfConfig.growthRate,
+        years: dcfConfig.years,
+        exitMultiple: dcfConfig.exitMultiple,
+        desiredReturn: dcfConfig.desiredReturn,
+        currentPrice,
+      },
+      { growthSd: mcConfig.growthSd, multipleSd: mcConfig.multipleSd },
+      5000,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dcfConfig, mcConfig, base, currentPrice]);
+
+  const fmt = (v: number | null | undefined) => formatMoney(v ?? null, qc);
+
+  return (
+    <div className="space-y-4">
+      <p className="max-w-xl text-xs text-slate-500">
+        {t("mc.intro", { metric: metricName })}
+      </p>
+
+      {/* Point inputs come from the DCF tab; here we set the uncertainty. */}
+      <div className="flex flex-wrap items-end gap-4">
+        <PctField
+          label={t("mc.growthSd")}
+          value={mcConfig.growthSd}
+          step={0.5}
+          onChange={(v) => onChange((c) => ({ ...c, growthSd: Math.max(0, v) }))}
+        />
+        <ValField
+          label={t("mc.multipleSd")}
+          value={mcConfig.multipleSd}
+          step="0.5"
+          suffix="×"
+          onChange={(v) => onChange((c) => ({ ...c, multipleSd: Math.max(0, v) }))}
+        />
+        <div className="pb-1 text-[11px] text-slate-400">
+          {t("mc.pointHint", {
+            growth: (dcfConfig.growthRate * 100).toFixed(1),
+            multiple: dcfConfig.exitMultiple,
+          })}
+        </div>
+      </div>
+
+      {missing && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t("dcf.missing", { metric: metricName })}
+        </div>
+      )}
+      {negative && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t("dcf.negative", { metric: metricName })}
+        </div>
+      )}
+
+      {result && result.runs > 0 && !missing && !negative && (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("mc.p10")}</p>
+              <p className="text-lg font-semibold text-rose-600">{fmt(result.p10)}</p>
+            </div>
+            <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("mc.p50")}</p>
+              <p className="text-lg font-bold" style={{ color: GOLD }}>
+                {fmt(result.p50)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("mc.p90")}</p>
+              <p className="text-lg font-semibold text-emerald-600">{fmt(result.p90)}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("mc.mean")}</p>
+              <p className="text-lg font-semibold text-slate-700">{fmt(result.mean)}</p>
+            </div>
+          </div>
+
+          <p className="text-sm text-slate-600">
+            {t("mc.sentence", { p10: fmt(result.p10), p90: fmt(result.p90) })}
+          </p>
+
+          <McHistogram result={result} currentPrice={currentPrice} qc={qc} />
+        </>
+      )}
+    </div>
+  );
+}
+
+// Hand-rolled SVG histogram (no chart lib, matching the project's style), with
+// vertical markers for the median fair value and the current price.
+function McHistogram({
+  result,
+  currentPrice,
+  qc,
+}: {
+  result: MonteCarloResult;
+  currentPrice: number | null;
+  qc: Currency;
+}) {
+  const { t } = useTranslation();
+  const bins = result.bins;
+  if (bins.length === 0) return null;
+
+  const W = 700;
+  const H = 180;
+  const marginX = 16;
+  const marginTop = 12;
+  const axisY = H - 28;
+  const innerW = W - marginX * 2;
+  const domainMin = bins[0].x0;
+  const domainMax = bins[bins.length - 1].x1;
+  const span = domainMax - domainMin || Math.abs(domainMax) || 1;
+  const x = (v: number) => marginX + ((v - domainMin) / span) * innerW;
+  const maxCount = Math.max(...bins.map((b) => b.count), 1);
+  const barH = (c: number) => ((axisY - marginTop) * c) / maxCount;
+
+  const nf = (v: number) => formatMoney(v, qc);
+  const showPrice =
+    currentPrice != null && currentPrice >= domainMin && currentPrice <= domainMax;
+
+  return (
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 480 }} role="img">
+        {/* bars */}
+        {bins.map((b, i) => {
+          const bx = x(b.x0);
+          const bw = Math.max(1, x(b.x1) - x(b.x0) - 1);
+          const h = barH(b.count);
+          return (
+            <rect
+              key={i}
+              x={bx}
+              y={axisY - h}
+              width={bw}
+              height={h}
+              fill="#cbd5e1"
+              rx={1}
+            />
+          );
+        })}
+        {/* axis */}
+        <line x1={marginX} y1={axisY} x2={W - marginX} y2={axisY} stroke="#e2e8f0" strokeWidth={1} />
+
+        {/* median marker */}
+        <g>
+          <line x1={x(result.p50)} y1={marginTop} x2={x(result.p50)} y2={axisY} stroke={GOLD} strokeWidth={2} />
+          <text x={x(result.p50)} y={marginTop + 2} textAnchor="middle" style={{ fontSize: 10, fontWeight: 700, fill: "#a8842a" }}>
+            {t("mc.median")} {nf(result.p50)}
+          </text>
+        </g>
+
+        {/* current price marker */}
+        {showPrice && (
+          <g>
+            <line
+              x1={x(currentPrice!)}
+              y1={marginTop}
+              x2={x(currentPrice!)}
+              y2={axisY}
+              stroke={PRICE_COLOR}
+              strokeWidth={1.5}
+              strokeDasharray="4 3"
+            />
+            <text x={x(currentPrice!)} y={axisY + 16} textAnchor="middle" style={{ fontSize: 10, fill: "#64748b" }}>
+              {t("scenario.priceMarker")} {nf(currentPrice!)}
+            </text>
+          </g>
+        )}
+
+        {/* p10 / p90 axis labels */}
+        <text x={x(result.p10)} y={axisY + 16} textAnchor="middle" style={{ fontSize: 10, fill: "#94a3b8" }}>
+          P10 {nf(result.p10)}
+        </text>
+        <text x={x(result.p90)} y={axisY + 16} textAnchor="middle" style={{ fontSize: 10, fill: "#94a3b8" }}>
+          P90 {nf(result.p90)}
+        </text>
+      </svg>
     </div>
   );
 }

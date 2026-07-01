@@ -180,7 +180,9 @@
     "tabs": {
       "scenarios": "Escenaris",
       "dcf": "DCF",
-      "reverse": "Reverse DCF"
+      "reverse": "Reverse DCF",
+      "graham": "Graham",
+      "montecarlo": "Monte Carlo"
     }
   },
   "dcf": {
@@ -211,6 +213,29 @@
     "reverseCompare": "Tu assumeixes un {{assumed}}%/any al DCF → el mercat és {{verdict}} respecte la teva tesi.",
     "verdictOptimistic": "més optimista",
     "verdictPessimistic": "més pessimista"
+  },
+  "graham": {
+    "intro": "Fórmula clàssica de Graham ajustada per tipus d'interès. Ràpida i defensiva, pensada per a cribratge — no és una valoració fina.",
+    "eps": "EPS ({{currency}})",
+    "growth": "Creixement esperat",
+    "aaaYield": "Rendiment AAA (Y)",
+    "value": "Valor intrínsec (Graham)",
+    "missing": "No hi ha EPS disponible de Yahoo. Introdueix-lo manualment o descarrega els fonamentals.",
+    "negative": "L'EPS és negatiu o zero: la fórmula de Graham no aplica a empreses sense beneficis.",
+    "screenNote": "Estimació conservadora de cribratge, no una valoració precisa.",
+    "clampNote": "creixement limitat al {{cap}}% (el terme 2g infla massa amb creixements alts)"
+  },
+  "mc": {
+    "intro": "Simula milers de DCF variant el creixement i el múltiple de sortida. En comptes d'un sol número, obtens una distribució del valor just de {{metric}}.",
+    "growthSd": "Desviació creixement (σ)",
+    "multipleSd": "Desviació múltiple (σ)",
+    "pointHint": "Punts centrals del DCF: creixement {{growth}}%, múltiple {{multiple}}× (edita'ls a la pestanya DCF)",
+    "p10": "P10 (pessimista)",
+    "p50": "Mediana (P50)",
+    "p90": "P90 (optimista)",
+    "mean": "Mitjana",
+    "median": "Mediana",
+    "sentence": "El valor just està entre {{p10}} i {{p90}} amb ~80% de probabilitat."
   },
   "history": {
     "title": "Evolució de la cartera",

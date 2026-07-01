@@ -21,6 +21,8 @@
 //   peForward       = currentPrice / baseEPS
 
 import { defaultDcfConfig, type DcfConfig } from "./dcf";
+import { defaultGrahamConfig, type GrahamConfig } from "./graham";
+import { defaultMonteCarloConfig, type MonteCarloConfig } from "./montecarlo";
 
 /** One editable scenario row. */
 export type ScenarioInput = {
@@ -214,6 +216,10 @@ export type ValuationModel = {
    * panel shipped load fine; the component fills it with defaults on first use.
    */
   dcf?: DcfConfig;
+  /** Graham intrinsic-value assumptions (optional, defaults filled on use). */
+  graham?: GrahamConfig;
+  /** Monte Carlo sigmas layered over the DCF config (optional). */
+  mc?: MonteCarloConfig;
 };
 
 /** A fresh model with the spec's deep-value defaults. */
@@ -224,5 +230,7 @@ export function defaultModel(): ValuationModel {
     baseEpsOverride: null,
     dca: { addShares: 0, addPrice: 0 },
     dcf: defaultDcfConfig(),
+    graham: defaultGrahamConfig(),
+    mc: defaultMonteCarloConfig(),
   };
 }
