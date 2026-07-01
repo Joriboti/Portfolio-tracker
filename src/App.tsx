@@ -8,6 +8,7 @@ import { AccountPage } from "@/pages/account";
 import { DashboardPage } from "@/pages/dashboard";
 import { DebugPage } from "@/pages/debug";
 import { UploadPage } from "@/pages/upload";
+import { ExplorePage } from "@/pages/explore";
 import { HowToPreparePage } from "@/pages/how-to-prepare";
 import { DisclaimerPage } from "@/pages/disclaimer";
 
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/dashboard" element={<Private><DashboardPage /></Private>} />
         <Route path="/debug" element={<Private><DebugPage /></Private>} />
         <Route path="/upload" element={<Private><UploadPage /></Private>} />
+        <Route path="/explore" element={<Private><ExplorePage /></Private>} />
         <Route path="/how-to-prepare" element={<Private><HowToPreparePage /></Private>} />
         <Route path="/disclaimer" element={<Private><DisclaimerPage /></Private>} />
         <Route path="/account" element={<Private><AccountPage /></Private>} />

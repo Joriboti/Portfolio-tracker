@@ -356,6 +356,38 @@ export async function getFundamentals(
   return map;
 }
 
+export type LiveCompany = {
+  ticker: string;
+  price: number | null;
+  currency: string | null;
+  fundamentals: Fundamentals;
+};
+
+// Live full fundamentals + price for an arbitrary symbol (not necessarily in
+// the user's portfolio) — powers the "Explore" page's valuation models. Served
+// by fundamentals-get's `?quote=` mode (folded in to stay under the Hobby
+// plan's serverless-function limit). Returns null when Yahoo has no data.
+export async function getLiveCompany(ticker: string): Promise<LiveCompany | null> {
+  const q = ticker.trim().toUpperCase();
+  if (q.length === 0) return null;
+  const params = new URLSearchParams({ quote: q });
+  const data = await jsonFetch<{
+    company: {
+      ticker: string;
+      price: unknown;
+      currency: string | null;
+      fundamentals: Fundamentals;
+    } | null;
+  }>(`/api/fundamentals-get?${params.toString()}`);
+  if (!data.company) return null;
+  return {
+    ticker: data.company.ticker.toUpperCase(),
+    price: num(data.company.price),
+    currency: data.company.currency,
+    fundamentals: normaliseFundamentals(data.company.fundamentals),
+  };
+}
+
 export type FundamentalsRefreshResult = {
   ok: boolean;
   tickers?: number;

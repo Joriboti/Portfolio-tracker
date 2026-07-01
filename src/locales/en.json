@@ -6,7 +6,8 @@
   "nav": {
     "home": "Home",
     "dashboard": "Dashboard",
-    "upload": "Upload Excel",
+    "upload": "Build portfolio",
+    "explore": "Explore stocks",
     "howTo": "How to prepare",
     "account": "Account",
     "signIn": "Sign in",
@@ -46,8 +47,17 @@
     "errorShares": "Enter a valid number of shares.",
     "errorPrice": "Enter a valid average price."
   },
+  "explore": {
+    "title": "Explore stocks",
+    "subtitle": "Search any company by ticker and run the valuation models on it — no need to own it.",
+    "searchPlaceholder": "Search by ticker or name (e.g. AAPL, Nvidia)…",
+    "empty": "Search for a company to get started.",
+    "loading": "Loading company data…",
+    "notFound": "No data found for this ticker.",
+    "price": "Current price"
+  },
   "upload": {
-    "title": "Upload your Excel",
+    "title": "Build your portfolio",
     "orExcel": "or upload an Excel",
     "drop": "Drop your file here or click to browse",
     "supports": "Format: .xlsx (exportable from Google Sheets)",

@@ -28,9 +28,21 @@ type YahooSearchQuote = {
 // "equity"). We pass `{ validateResult: false }` so a harmless schema drift
 // doesn't nuke an otherwise-good response.
 type ModuleOpts = { validateResult?: boolean };
+type QuoteSummaryShape = {
+  summaryDetail?: Record<string, unknown>;
+  defaultKeyStatistics?: Record<string, unknown>;
+  financialData?: Record<string, unknown>;
+  assetProfile?: Record<string, unknown>;
+  price?: Record<string, unknown>;
+};
 type YahooLiveClient = {
   quote: (symbol: string, q?: unknown, m?: ModuleOpts) => Promise<YahooLiveQuote>;
   search: (query: string, q?: unknown, m?: ModuleOpts) => Promise<{ quotes?: YahooSearchQuote[] }>;
+  quoteSummary: (
+    symbol: string,
+    opts: { modules: string[] },
+    m?: ModuleOpts,
+  ) => Promise<QuoteSummaryShape>;
   setGlobalConfig?: (cfg: { validation?: { logErrors?: boolean } }) => void;
 };
 
@@ -78,6 +90,96 @@ function toNum(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+// Yahoo numbers sometimes arrive as {raw: n} wrappers depending on the module.
+function pickNum(v: unknown): number | null {
+  if (v == null) return null;
+  if (typeof v === "object" && "raw" in (v as Record<string, unknown>)) {
+    return pickNum((v as Record<string, unknown>).raw);
+  }
+  return toNum(v);
+}
+function pickStr(v: unknown): string | null {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s.length > 0 ? s : null;
+}
+
+// Live full fundamentals for a single arbitrary symbol — powers the "Explore"
+// page's valuation models on companies that aren't in the user's portfolio (so
+// they aren't in the cached `fundamentals` table). Same field shape as the
+// cached rows, extracted live from Yahoo quoteSummary. Folded into this route
+// (query-param mode) to stay under the Hobby plan's serverless-function limit.
+async function handleLiveCompany(req: VercelRequest, res: VercelResponse) {
+  const raw = req.query.quote;
+  const ticker = (Array.isArray(raw) ? raw[0] : (raw ?? "")).trim().toUpperCase();
+  if (!ticker) {
+    res.status(200).end(JSON.stringify({ ok: true, company: null }));
+    return;
+  }
+
+  const yahoo = await makeYahoo();
+  let qs: QuoteSummaryShape;
+  try {
+    qs = await yahoo.quoteSummary(
+      ticker,
+      {
+        modules: [
+          "summaryDetail",
+          "defaultKeyStatistics",
+          "financialData",
+          "assetProfile",
+          "price",
+        ],
+      },
+      { validateResult: false },
+    );
+  } catch {
+    res.status(200).end(JSON.stringify({ ok: true, company: null }));
+    return;
+  }
+
+  const sd = qs.summaryDetail ?? {};
+  const ks = qs.defaultKeyStatistics ?? {};
+  const fd = qs.financialData ?? {};
+  const ap = qs.assetProfile ?? {};
+  const pr = qs.price ?? {};
+
+  const price = pickNum(pr.regularMarketPrice) ?? pickNum(fd.currentPrice);
+  const currency =
+    pickStr(fd.financialCurrency) ?? pickStr(pr.currency) ?? pickStr(sd.currency);
+  const forwardPe = pickNum(sd.forwardPE) ?? pickNum(ks.forwardPE);
+  const forwardEps =
+    pickNum(ks.forwardEps) ??
+    (forwardPe && forwardPe !== 0 && price != null ? price / forwardPe : null);
+
+  const fundamentals = {
+    ticker,
+    trailingPe: pickNum(sd.trailingPE) ?? pickNum(ks.trailingPE),
+    forwardPe,
+    priceToBook: pickNum(ks.priceToBook),
+    roe: pickNum(fd.returnOnEquity),
+    profitMargin: pickNum(fd.profitMargins) ?? pickNum(ks.profitMargins),
+    debtToEquity: pickNum(fd.debtToEquity),
+    dividendYield: pickNum(sd.dividendYield),
+    marketCap: pickNum(sd.marketCap) ?? pickNum(fd.marketCap) ?? pickNum(pr.marketCap),
+    eps: pickNum(ks.trailingEps),
+    forwardEps,
+    freeCashflow: pickNum(fd.freeCashflow),
+    sharesOutstanding: pickNum(ks.sharesOutstanding) ?? pickNum(sd.sharesOutstanding),
+    totalDebt: pickNum(fd.totalDebt),
+    totalCash: pickNum(fd.totalCash),
+    sector: pickStr(ap.sector),
+    industry: pickStr(ap.industry),
+    currency,
+    website: pickStr(ap.website),
+    updatedAt: new Date().toISOString(),
+  };
+
+  res
+    .status(200)
+    .end(JSON.stringify({ ok: true, company: { ticker, price, currency, fundamentals } }));
+}
+
 async function handleLiveQuotes(req: VercelRequest, res: VercelResponse) {
   const raw = req.query.live;
   const tickers = (Array.isArray(raw) ? raw[0] : (raw ?? ""))
@@ -116,6 +218,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method !== "GET") {
       res.status(405).end(JSON.stringify({ error: "Method not allowed" }));
+      return;
+    }
+
+    // Live full-fundamentals mode (Explore page) — no DB needed.
+    if (req.query.quote != null) {
+      await handleLiveCompany(req, res);
       return;
     }
 
