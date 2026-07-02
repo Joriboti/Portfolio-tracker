@@ -1,15 +1,20 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
-import { HomePage } from "@/pages/home";
-import { AuthPage } from "@/pages/auth";
-import { AccountPage } from "@/pages/account";
-import { DashboardPage } from "@/pages/dashboard";
-import { DebugPage } from "@/pages/debug";
-import { UploadPage } from "@/pages/upload";
-import { ExplorePage } from "@/pages/explore";
-import { DisclaimerPage } from "@/pages/disclaimer";
+
+// Route-level code splitting: each page ships as its own chunk so the initial
+// load only pulls what the current route needs (heavy deps like the Excel
+// parser on /upload no longer bloat first paint). Named exports → default-map.
+const HomePage = lazy(() => import("@/pages/home").then((m) => ({ default: m.HomePage })));
+const AuthPage = lazy(() => import("@/pages/auth").then((m) => ({ default: m.AuthPage })));
+const AccountPage = lazy(() => import("@/pages/account").then((m) => ({ default: m.AccountPage })));
+const DashboardPage = lazy(() => import("@/pages/dashboard").then((m) => ({ default: m.DashboardPage })));
+const DebugPage = lazy(() => import("@/pages/debug").then((m) => ({ default: m.DebugPage })));
+const UploadPage = lazy(() => import("@/pages/upload").then((m) => ({ default: m.UploadPage })));
+const ExplorePage = lazy(() => import("@/pages/explore").then((m) => ({ default: m.ExplorePage })));
+const DisclaimerPage = lazy(() => import("@/pages/disclaimer").then((m) => ({ default: m.DisclaimerPage })));
 
 // Wrap any page that should require an authenticated session. The auth
 // routes themselves stay public so the user can actually sign in.
@@ -21,6 +26,7 @@ export default function App() {
   return (
     <>
     <Analytics />
+    <Suspense fallback={<div className="mx-auto max-w-6xl px-4 py-10 text-slate-400" />}>
     <Routes>
       <Route element={<Layout />}>
         <Route path="/auth" element={<AuthPage />} />
@@ -39,6 +45,7 @@ export default function App() {
         <Route path="*" element={<Private><HomePage /></Private>} />
       </Route>
     </Routes>
+    </Suspense>
     </>
   );
 }

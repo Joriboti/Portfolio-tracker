@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /upload
+Disallow: /account
+Disallow: /debug
+
+Sitemap: https://www.trimmtrack.com/sitemap.xml
