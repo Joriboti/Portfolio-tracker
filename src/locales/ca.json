@@ -23,7 +23,25 @@
     "feat2Title": "Preus diaris",
     "feat2Desc": "Actualització automàtica un cop al dia després del tancament del mercat US.",
     "feat3Title": "Multidivisa",
-    "feat3Desc": "Selecciona la divisa de visualització i l'app fa la conversió FX automàticament."
+    "feat3Desc": "Selecciona la divisa de visualització i l'app fa la conversió FX automàticament.",
+    "previewCaption": "Vista d'exemple del panell (dades il·lustratives)",
+    "steps": {
+      "title": "Com funciona, en 3 passos",
+      "s1t": "Construeix la cartera",
+      "s1d": "Puja l'Excel del teu bròker o afegeix posicions a mà. Si el teu full està desordenat, et donem un prompt per endreçar-lo amb una IA.",
+      "s2t": "Nosaltres fem la feina",
+      "s2d": "Descarreguem preus en viu, divises i històric automàticament, i ho mantenim actualitzat cada dia després del tancament.",
+      "s3t": "Analitza-la a fons",
+      "s3d": "Veus P&L, dividends, rendiment, evolució i sis models de valoració — sempre al dia."
+    },
+    "trust": {
+      "t1t": "Privat i teu",
+      "t1d": "Les teves dades són només teves. No les venem ni les compartim amb ningú.",
+      "t2t": "Dades fiables",
+      "t2d": "Preus i fonamentals de Yahoo Finance, actualitzats diàriament.",
+      "t3t": "Tu tens el control",
+      "t3d": "No és assessorament financer: t'ajudem a veure-hi clar i les decisions les prens tu."
+    }
   },
   "disclaimer": {
     "title": "Llegeix-ho abans de pujar",
@@ -118,10 +136,12 @@
       "avgCost": "Preu mig",
       "currentPrice": "Preu actual",
       "marketValue": "Valor mercat",
+      "weight": "Pes %",
       "cost": "Cost",
       "pl": "P&L",
       "plPct": "P&L %"
     },
+    "closedTotal": "Total P&L realitzat (tancades)",
     "divHeaders": {
       "payments": "Pagaments",
       "total": "Total rebut",
@@ -155,7 +175,9 @@
   },
   "fundamentals": {
     "perCard": "PER mitjà cartera",
-    "coverage": "cobreix el {{pct}}% de la cartera",
+    "perCardHint": "PER (preu/benefici) mitjà de la cartera, ponderat pel valor de cada posició i calculat com a mitjana harmònica (la manera correcta d'agregar ràtios). Fa servir el PER trailing dels fonamentals; cripto i empreses sense beneficis en queden fora.",
+    "coverage": "sobre el {{pct}}% del valor de la cartera",
+    "uncovered": "Sense PER: {{tickers}}{{more}} ({{count}})",
     "noData": "Sense dades — actualitza fonamentals",
     "refresh": "Actualitza fonamentals",
     "refreshing": "Actualitzant fonamentals...",

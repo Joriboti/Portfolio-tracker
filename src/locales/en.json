@@ -23,7 +23,25 @@
     "feat2Title": "Daily prices",
     "feat2Desc": "Automatic update once a day after US market close.",
     "feat3Title": "Multi-currency",
-    "feat3Desc": "Pick a display currency and we handle FX conversion automatically."
+    "feat3Desc": "Pick a display currency and we handle FX conversion automatically.",
+    "previewCaption": "Example dashboard view (illustrative data)",
+    "steps": {
+      "title": "How it works, in 3 steps",
+      "s1t": "Build your portfolio",
+      "s1d": "Upload your broker's Excel or add positions by hand. If your sheet is messy, we give you a prompt to tidy it up with an AI.",
+      "s2t": "We do the work",
+      "s2d": "We fetch live prices, FX and history automatically, and keep it up to date every day after market close.",
+      "s3t": "Analyze it in depth",
+      "s3d": "See P&L, dividends, performance, evolution and six valuation models — always current."
+    },
+    "trust": {
+      "t1t": "Private and yours",
+      "t1d": "Your data is only yours. We never sell it or share it with anyone.",
+      "t2t": "Reliable data",
+      "t2d": "Prices and fundamentals from Yahoo Finance, refreshed daily.",
+      "t3t": "You stay in control",
+      "t3d": "Not financial advice: we help you see clearly and you make the decisions."
+    }
   },
   "disclaimer": {
     "title": "Read this before uploading",
@@ -118,10 +136,12 @@
       "avgCost": "Avg cost",
       "currentPrice": "Current price",
       "marketValue": "Market value",
+      "weight": "Weight %",
       "cost": "Cost",
       "pl": "P&L",
       "plPct": "P&L %"
     },
+    "closedTotal": "Total realized P&L (closed)",
     "divHeaders": {
       "payments": "Payments",
       "total": "Total received",
@@ -155,7 +175,9 @@
   },
   "fundamentals": {
     "perCard": "Portfolio avg P/E",
-    "coverage": "covers {{pct}}% of the portfolio",
+    "perCardHint": "Portfolio average P/E (price/earnings), weighted by each position's value and computed as a harmonic mean (the correct way to aggregate ratios). Uses the trailing P/E from fundamentals; crypto and unprofitable companies are left out.",
+    "coverage": "over {{pct}}% of portfolio value",
+    "uncovered": "No P/E: {{tickers}}{{more}} ({{count}})",
     "noData": "No data — refresh fundamentals",
     "refresh": "Refresh fundamentals",
     "refreshing": "Refreshing fundamentals...",

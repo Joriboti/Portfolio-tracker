@@ -252,6 +252,7 @@ function DashboardInner() {
     let totalValue = 0;
     let coveredValue = 0;
     let invSum = 0;
+    const uncovered: string[] = [];
     for (const p of openPositions) {
       const quote = quotes[p.ticker];
       if (!quote) continue;
@@ -264,12 +265,15 @@ function DashboardInner() {
       if (pe != null && pe > 0) {
         coveredValue += v;
         invSum += v / pe;
+      } else {
+        uncovered.push(p.ticker);
       }
     }
     if (invSum <= 0 || totalValue <= 0) return null;
     return {
       per: coveredValue / invSum,
       coverage: coveredValue / totalValue,
+      uncovered,
     };
   }, [openPositions, quotes, fundamentals, currency, fxRates]);
 
@@ -600,15 +604,18 @@ function PerStat({
   refreshing,
   onRefresh,
 }: {
-  perStats: { per: number; coverage: number } | null;
+  perStats: { per: number; coverage: number; uncovered: string[] } | null;
   refreshing: boolean;
   onRefresh: () => void;
 }) {
   const { t, i18n } = useTranslation();
   return (
     <div className="card">
-      <p className="text-xs uppercase tracking-wide text-slate-500">
-        {t("fundamentals.perCard")}
+      <p
+        className="text-xs uppercase tracking-wide text-slate-500"
+        title={t("fundamentals.perCardHint")}
+      >
+        {t("fundamentals.perCard")} ⓘ
       </p>
       {perStats ? (
         <>
@@ -622,6 +629,21 @@ function PerStat({
               pct: Math.round(perStats.coverage * 100),
             })}
           </p>
+          {perStats.uncovered.length > 0 && (
+            <p
+              className="mt-0.5 text-[11px] text-slate-400"
+              title={perStats.uncovered.join(", ")}
+            >
+              {t("fundamentals.uncovered", {
+                count: perStats.uncovered.length,
+                tickers: perStats.uncovered.slice(0, 4).join(", "),
+                more:
+                  perStats.uncovered.length > 4
+                    ? ` +${perStats.uncovered.length - 4}`
+                    : "",
+              })}
+            </p>
+          )}
         </>
       ) : (
         <>
@@ -640,6 +662,48 @@ function PerStat({
         </>
       )}
     </div>
+  );
+}
+
+type SortKey =
+  | "ticker"
+  | "shares"
+  | "avgCost"
+  | "price"
+  | "value"
+  | "weight"
+  | "cost"
+  | "pl"
+  | "plPct";
+
+// Clickable, sort-aware table header. Shows a neutral ↕ until active, then the
+// current direction. Keeps the open-positions table sortable by any column.
+function SortTh({
+  label,
+  k,
+  sort,
+  onSort,
+  align = "right",
+}: {
+  label: string;
+  k: SortKey;
+  sort: { key: SortKey; dir: "asc" | "desc" };
+  onSort: (k: SortKey) => void;
+  align?: "left" | "right";
+}) {
+  const active = sort.key === k;
+  return (
+    <th
+      onClick={() => onSort(k)}
+      className={`cursor-pointer select-none whitespace-nowrap hover:text-slate-900 ${
+        align === "right" ? "text-right" : ""
+      }`}
+    >
+      {label}
+      <span className="ml-0.5 text-[10px] text-slate-400">
+        {active ? (sort.dir === "asc" ? "▲" : "▼") : "↕"}
+      </span>
+    </th>
   );
 }
 
@@ -664,40 +728,101 @@ function PositionsTable({
 }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<string | null>(null);
+  // Default to biggest-position-first; click any header to re-sort.
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({
+    key: "value",
+    dir: "desc",
+  });
+
+  const rows = useMemo(() => {
+    const mapped = positions.map((p) => {
+      const quote = quotes[p.ticker];
+      // Cost basis is already in the user's account currency (EUR);
+      // only the live Yahoo price needs FX conversion.
+      const currentPriceDisp = quote
+        ? toDisplay(quote.price, quote.currency ?? null, currency, fxRates)
+        : null;
+      const marketValue =
+        currentPriceDisp != null ? currentPriceDisp * p.shares : null;
+      const pl = marketValue != null ? marketValue - p.totalCost : null;
+      const plPct = pl != null && p.totalCost > 0 ? pl / p.totalCost : null;
+      const weight =
+        marketValue != null && totalPortfolioValue > 0
+          ? marketValue / totalPortfolioValue
+          : null;
+      return {
+        p,
+        quote,
+        fund: fundamentals[p.ticker],
+        currentPriceDisp,
+        marketValue,
+        pl,
+        plPct,
+        weight,
+      };
+    });
+    const key = (r: (typeof mapped)[number]): number | string => {
+      switch (sort.key) {
+        case "ticker":
+          return r.p.ticker;
+        case "shares":
+          return r.p.shares;
+        case "avgCost":
+          return r.p.avgCost;
+        case "price":
+          return r.currentPriceDisp ?? -Infinity;
+        case "value":
+          return r.marketValue ?? -Infinity;
+        case "weight":
+          return r.weight ?? -Infinity;
+        case "cost":
+          return r.p.totalCost;
+        case "pl":
+          return r.pl ?? -Infinity;
+        case "plPct":
+          return r.plPct ?? -Infinity;
+      }
+    };
+    mapped.sort((a, b) => {
+      const av = key(a);
+      const bv = key(b);
+      const cmp =
+        typeof av === "string" && typeof bv === "string"
+          ? av.localeCompare(bv)
+          : (av as number) - (bv as number);
+      return sort.dir === "asc" ? cmp : -cmp;
+    });
+    return mapped;
+  }, [positions, quotes, fundamentals, currency, fxRates, totalPortfolioValue, sort]);
+
+  function toggleSort(k: SortKey) {
+    setSort((s) =>
+      s.key === k
+        ? { key: k, dir: s.dir === "asc" ? "desc" : "asc" }
+        : { key: k, dir: k === "ticker" ? "asc" : "desc" },
+    );
+  }
+
   return (
     <table className="table-base">
       <thead>
         <tr>
-          <th>{t("dashboard.headers.ticker")}</th>
-          <th className="text-right">{t("dashboard.headers.shares")}</th>
-          <th className="text-right">{t("dashboard.headers.avgCost")}</th>
-          <th className="text-right">{t("dashboard.headers.currentPrice")}</th>
-          <th className="text-right">{t("dashboard.headers.marketValue")}</th>
-          <th className="text-right">{t("dashboard.headers.cost")}</th>
-          <th className="text-right">{t("dashboard.headers.pl")}</th>
-          <th className="text-right">{t("dashboard.headers.plPct")}</th>
+          <SortTh label={t("dashboard.headers.ticker")} k="ticker" align="left" sort={sort} onSort={toggleSort} />
+          <SortTh label={t("dashboard.headers.shares")} k="shares" sort={sort} onSort={toggleSort} />
+          <SortTh label={t("dashboard.headers.avgCost")} k="avgCost" sort={sort} onSort={toggleSort} />
+          <SortTh label={t("dashboard.headers.currentPrice")} k="price" sort={sort} onSort={toggleSort} />
+          <SortTh label={t("dashboard.headers.marketValue")} k="value" sort={sort} onSort={toggleSort} />
+          <SortTh label={t("dashboard.headers.weight")} k="weight" sort={sort} onSort={toggleSort} />
+          <SortTh label={t("dashboard.headers.cost")} k="cost" sort={sort} onSort={toggleSort} />
+          <SortTh label={t("dashboard.headers.pl")} k="pl" sort={sort} onSort={toggleSort} />
+          <SortTh label={t("dashboard.headers.plPct")} k="plPct" sort={sort} onSort={toggleSort} />
           <th className="w-8" />
         </tr>
       </thead>
       <tbody>
-        {positions.map((p) => {
-          const quote = quotes[p.ticker];
-          // Cost basis is already in the user's account currency (EUR);
-          // only the live Yahoo price needs FX conversion.
-          const currentPriceDisp = quote
-            ? toDisplay(
-                quote.price,
-                quote.currency ?? null,
-                currency,
-                fxRates,
-              )
-            : null;
-          const marketValue =
-            currentPriceDisp != null ? currentPriceDisp * p.shares : null;
-          const pl = marketValue != null ? marketValue - p.totalCost : null;
-          const plPct =
-            pl != null && p.totalCost > 0 ? pl / p.totalCost : null;
-          const fund = fundamentals[p.ticker];
+        {rows.map((row) => {
+          const { p, quote, fund, currentPriceDisp, marketValue, pl, plPct, weight } =
+            row;
           const isExpanded = expanded === p.ticker;
           return (
             <Fragment key={p.ticker}>
@@ -722,6 +847,7 @@ function PositionsTable({
                     : "—"}
                 </td>
                 <td className="text-right">{formatMoney(marketValue, currency)}</td>
+                <td className="text-right text-slate-500">{formatPct(weight)}</td>
                 <td className="text-right">{formatMoney(p.totalCost, currency)}</td>
                 <td
                   className={`text-right ${
@@ -767,7 +893,7 @@ function PositionsTable({
               </tr>
               {isExpanded && (
                 <tr className="bg-slate-50/70">
-                  <td colSpan={9} className="px-4 py-3">
+                  <td colSpan={10} className="px-4 py-3">
                     <div className="space-y-5">
                       <FundamentalsDetail
                         fund={fund}
@@ -1002,8 +1128,11 @@ function ClosedPositionsTable({
       </tbody>
       <tfoot>
         <tr className="font-semibold border-t border-slate-200">
-          <td>Total</td>
-          <td />
+          <td colSpan={2}>
+            {activeYearData
+              ? t("dashboard.yearPL", { year: activeYearData.year })
+              : t("dashboard.closedTotal")}
+          </td>
           <td
             className={`text-right ${
               total > 0 ? "text-emerald-600" : total < 0 ? "text-rose-600" : ""
