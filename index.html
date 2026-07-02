@@ -43,6 +43,39 @@
     />
     <meta name="twitter:image" content="https://www.trimmtrack.com/og.png" />
 
+    <!-- Structured data: tells Google what the site/app is (rich results) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://www.trimmtrack.com/#website",
+            "url": "https://www.trimmtrack.com/",
+            "name": "TrimmTrack",
+            "inLanguage": "ca",
+            "publisher": { "@id": "https://www.trimmtrack.com/#org" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://www.trimmtrack.com/#org",
+            "name": "TrimmTrack",
+            "url": "https://www.trimmtrack.com/",
+            "logo": "https://www.trimmtrack.com/favicon.svg"
+          },
+          {
+            "@type": "WebApplication",
+            "name": "TrimmTrack",
+            "url": "https://www.trimmtrack.com/",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Web",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+            "description": "Seguidor de cartera d'inversió amb calculadora FIFO per a plusvàlues, valoració DCF i Reverse DCF, número de Graham, Monte Carlo i NAV (suma de parts)."
+          }
+        ]
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

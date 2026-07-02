@@ -34,21 +34,24 @@ export default function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/:pathname" element={<AuthPage />} />
 
-        {/* Public content — indexable, no auth gate. */}
+        {/* Public content — indexable, no auth gate. The landing (and the
+            catch-all that renders it) MUST stay public: the canonical URL and
+            the sitemap point at "/", so Googlebot needs to read it. The page
+            uses no session data; its CTAs route through auth-gated pages. */}
+        <Route path="/" element={<HomePage />} />
         <Route path="/research" element={<ResearchPage />} />
         <Route path="/research/:slug" element={<ResearchArticlePage />} />
+        <Route path="/disclaimer" element={<DisclaimerPage />} />
 
-        <Route path="/" element={<Private><HomePage /></Private>} />
         <Route path="/dashboard" element={<Private><DashboardPage /></Private>} />
         <Route path="/debug" element={<Private><DebugPage /></Private>} />
         <Route path="/upload" element={<Private><UploadPage /></Private>} />
         <Route path="/explore" element={<Private><ExplorePage /></Private>} />
         {/* Folded into /upload (Build portfolio → Excel subsection). */}
         <Route path="/how-to-prepare" element={<Navigate to="/upload" replace />} />
-        <Route path="/disclaimer" element={<Private><DisclaimerPage /></Private>} />
         <Route path="/account" element={<Private><AccountPage /></Private>} />
         <Route path="/account/:pathname" element={<Private><AccountPage /></Private>} />
-        <Route path="*" element={<Private><HomePage /></Private>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
     </Suspense>

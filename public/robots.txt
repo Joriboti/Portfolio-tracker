@@ -4,5 +4,6 @@ Disallow: /dashboard
 Disallow: /upload
 Disallow: /account
 Disallow: /debug
+Disallow: /explore
 
 Sitemap: https://www.trimmtrack.com/sitemap.xml
