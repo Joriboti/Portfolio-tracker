@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS prices (
   as_of       TIMESTAMPTZ NOT NULL,
   price       NUMERIC(20, 8) NOT NULL,
   currency    TEXT NOT NULL DEFAULT 'USD',
-  source      TEXT NOT NULL DEFAULT 'twelvedata',
+  source      TEXT NOT NULL DEFAULT 'yahoo',
   PRIMARY KEY (ticker, as_of)
 );
 

@@ -9,7 +9,7 @@ dashboard with daily price updates, P&L, and dividend tracking.
 - **Auth**: [Neon Auth](https://neon.tech/docs/guides/neon-auth) (Better Auth)
 - **Database**: Neon Postgres (serverless driver)
 - **Backend**: Vercel Serverless Functions (Node 20)
-- **Prices**: [Twelve Data](https://twelvedata.com/) (free tier: 800 req/day)
+- **Prices**: Yahoo Finance via [yahoo-finance2](https://github.com/gadicc/node-yahoo-finance2) (no API key needed)
 - **Cron**: Vercel Cron Jobs (1×/day, post US market close)
 - **i18n**: i18next (Catalan + English)
 
@@ -49,7 +49,6 @@ Or paste the SQL into Neon Console → SQL Editor.
 | `VITE_NEON_AUTH_URL` | Frontend | Neon Auth endpoint (public) |
 | `NEON_AUTH_URL` | Backend | Same value, server-side |
 | `DATABASE_URL` | Backend | Postgres connection string |
-| `TWELVE_DATA_API_KEY` | Backend | Free key from twelvedata.com |
 | `CRON_SECRET` | Backend (optional) | Bearer token to protect the cron |
 
 ## Excel format
