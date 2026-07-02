@@ -1867,25 +1867,25 @@ function SoTPTab({
 
       {config.holdings.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <div className="rounded-lg border border-slate-200 px-4 py-3">
+          <div className="min-w-0 rounded-lg border border-slate-200 px-3 py-3">
             <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.gav")}</p>
-            <p className="text-lg font-semibold text-slate-700">{fmt(result.gav)}</p>
+            <p className="truncate text-base font-semibold tabular-nums text-slate-700" title={fmt(result.gav)}>{fmt(result.gav)}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 px-4 py-3">
+          <div className="min-w-0 rounded-lg border border-slate-200 px-3 py-3">
             <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.nav")}</p>
-            <p className="text-lg font-semibold text-slate-700">{fmt(result.nav)}</p>
+            <p className="truncate text-base font-semibold tabular-nums text-slate-700" title={fmt(result.nav)}>{fmt(result.nav)}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 px-4 py-3">
+          <div className="min-w-0 rounded-lg border border-slate-200 px-3 py-3">
             <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.navPerShare")}</p>
-            <p className="text-lg font-semibold text-slate-700">{fmt(result.navPerShare)}</p>
+            <p className="truncate text-base font-semibold tabular-nums text-slate-700" title={fmt(result.navPerShare)}>{fmt(result.navPerShare)}</p>
           </div>
-          <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
-            <p className="text-[10px] uppercase tracking-wide text-slate-400">
+          <div className="min-w-0 rounded-lg border-2 px-3 py-3" style={{ borderColor: GOLD }}>
+            <p className="truncate text-[10px] uppercase tracking-wide text-slate-400">
               {config.targetDiscount > 0
                 ? t("sotp.targetPriceWithDiscount", { pct: formatPct(config.targetDiscount) })
                 : t("sotp.targetPrice")}
             </p>
-            <p className="text-lg font-bold" style={{ color: GOLD }}>
+            <p className="truncate text-base font-bold tabular-nums" style={{ color: GOLD }} title={fmt(result.targetPrice)}>
               {fmt(result.targetPrice)}
             </p>
             {result.targetPrice != null &&
@@ -1893,7 +1893,7 @@ function SoTPTab({
               Number.isFinite(currentPrice) &&
               currentPrice !== 0 && (
                 <p
-                  className={`mt-0.5 text-[11px] font-medium ${
+                  className={`mt-0.5 truncate text-[11px] font-medium ${
                     result.targetPrice >= currentPrice ? "text-emerald-600" : "text-rose-600"
                   }`}
                 >
@@ -1901,10 +1901,10 @@ function SoTPTab({
                 </p>
               )}
           </div>
-          <div className="rounded-lg border border-slate-200 px-4 py-3">
+          <div className="min-w-0 rounded-lg border border-slate-200 px-3 py-3">
             <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.discount")}</p>
             <p
-              className={`text-lg font-semibold ${
+              className={`truncate text-base font-semibold tabular-nums ${
                 result.discountToNav == null
                   ? ""
                   : result.discountToNav > 0
