@@ -9,7 +9,14 @@
 //   stakeValue_i   = marketCap_i × stake_i   (listed, FX-converted)  OR  manualValue_i
 //   NAV            = GAV − net debt
 //   NAV per share  = NAV / shares outstanding
+//   target price   = NAVperShare × (1 − holding discount)
 //   discountToNAV  = 1 − price / NAVperShare   (>0 = trades below NAV)
+//
+// Holdings persistently trade below their NAV (the "conglomerate / holding
+// discount"): the sum of the parts is worth more on paper than the market will
+// pay for the wrapper. So the raw NAV/share overstates the fair price. The user
+// enters a target discount and the target price applies it, giving a realistic
+// number instead of the full NAV.
 //
 // Unit-agnostic like its siblings: every monetary result is expressed in the
 // parent's quote currency. The component FX-converts each listed stake's market
@@ -41,6 +48,12 @@ export type SotpConfig = {
   netDebt: number;
   /** Parent shares outstanding. */
   sharesOutstanding: number;
+  /**
+   * Holding / conglomerate discount to apply to NAV/share to reach a fair
+   * target price. Fraction (0.35 = 35% off NAV). Holdings persistently trade
+   * below NAV, so 0 leaves the target at the full (usually too-high) NAV.
+   */
+  targetDiscount: number;
 };
 
 export type SotpBreakdownRow = {
@@ -57,6 +70,9 @@ export type SotpResult = {
   gav: number;
   nav: number;
   navPerShare: number | null;
+  /** navPerShare × (1 − targetDiscount): the discount-adjusted fair price.
+   *  Equals navPerShare when the discount is 0; null when navPerShare is null. */
+  targetPrice: number | null;
   breakdown: SotpBreakdownRow[];
   /** 1 − price/navPerShare, or null when either side is unusable. */
   discountToNav: number | null;
@@ -103,7 +119,10 @@ export function calculateNAV(
     ? nav / config.sharesOutstanding
     : null;
 
-  return { gav, nav, navPerShare, breakdown: rows, discountToNav: null };
+  const discount = Number.isFinite(config.targetDiscount) ? config.targetDiscount : 0;
+  const targetPrice = navPerShare != null ? navPerShare * (1 - discount) : null;
+
+  return { gav, nav, navPerShare, targetPrice, breakdown: rows, discountToNav: null };
 }
 
 /** Attach the discount-to-NAV given the parent's live price. Kept separate so
@@ -132,5 +151,5 @@ export function newHolding(): SotpHolding {
 }
 
 export function defaultSotpConfig(): SotpConfig {
-  return { holdings: [], netDebt: 0, sharesOutstanding: 0 };
+  return { holdings: [], netDebt: 0, sharesOutstanding: 0, targetDiscount: 0 };
 }

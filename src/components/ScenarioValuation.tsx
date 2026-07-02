@@ -4,9 +4,12 @@ import { convert, formatMoney, formatPct, type Currency } from "@/lib/currency";
 import {
   computeValuation,
   defaultModel,
+  newDcaBuy,
+  normalizeDca,
   MAX_SCENARIOS,
   type ScenarioInput,
   type ValuationModel,
+  type DcaBuy,
 } from "@/lib/scenarioValuation";
 import {
   calculateSimpleDCF,
@@ -102,7 +105,9 @@ export function ScenarioValuation({
     setModel(null);
     getScenarioModel(userId, ticker)
       .then((m) => {
-        if (!cancelled) setModel(m ?? defaultModel());
+        // Migrate the persisted DCA shape: pre-multi-buy models stored a single
+        // { addShares, addPrice } object; normalize it to the buy list.
+        if (!cancelled) setModel(m ? { ...m, dca: normalizeDca(m.dca) } : defaultModel());
       })
       .catch(() => {
         if (!cancelled) setModel(defaultModel());
@@ -188,7 +193,7 @@ export function ScenarioValuation({
       currentPrice,
       shares,
       avgCost: avgCostQc,
-      dca: model.dca.addShares > 0 ? model.dca : null,
+      dca: model.dca,
       totalPortfolioValue: totalPortfolioValueQc,
       epsTtm: fundamentals?.eps ?? null,
       scenarios: model.scenarios,
@@ -631,59 +636,89 @@ function DcaSimulator({
   onChange: (fn: (m: ValuationModel) => ValuationModel) => void;
 }) {
   const { t } = useTranslation();
-  const active = model.dca.addShares > 0;
+  const buys = model.dca;
+  const active = result != null && result.addedShares > 0;
+
+  function updateBuy(id: string, patch: Partial<DcaBuy>) {
+    onChange((m) => ({
+      ...m,
+      dca: m.dca.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+    }));
+  }
+  function removeBuy(id: string) {
+    onChange((m) => ({ ...m, dca: m.dca.filter((b) => b.id !== id) }));
+  }
+  function addBuy() {
+    onChange((m) => ({ ...m, dca: [...m.dca, newDcaBuy()] }));
+  }
+
+  const fmtQty = (n: number) => Number(n.toFixed(4)).toLocaleString();
+
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-3">
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
         {t("scenario.dcaTitle")}
       </p>
-      <div className="flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-wide text-slate-400">
-            {t("scenario.dcaShares")}
-          </span>
-          <input
-            type="number"
-            step="0.0001"
-            min="0"
-            className="w-24 rounded-md border border-slate-200 px-2 py-1 text-sm"
-            value={model.dca.addShares}
-            onChange={(e) =>
-              onChange((m) => ({
-                ...m,
-                dca: { ...m.dca, addShares: Math.max(0, Number(e.target.value) || 0) },
-              }))
-            }
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-wide text-slate-400">
-            {t("scenario.dcaPrice", { currency: qc })}
-          </span>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            className="w-24 rounded-md border border-slate-200 px-2 py-1 text-sm"
-            value={model.dca.addPrice}
-            onChange={(e) =>
-              onChange((m) => ({
-                ...m,
-                dca: { ...m.dca, addPrice: Math.max(0, Number(e.target.value) || 0) },
-              }))
-            }
-          />
-        </label>
-        {active && result && (
-          <>
-            <Field label={t("scenario.dcaNewCost")} value={fmt(result.blendedCost)} />
-            <Field
-              label={t("scenario.dcaWeight")}
-              value={formatPct(result.portfolioWeight)}
-            />
-          </>
-        )}
-      </div>
+
+      {buys.length === 0 ? (
+        <p className="mb-2 text-xs text-slate-400">{t("scenario.dcaEmpty")}</p>
+      ) : (
+        <div className="mb-2 space-y-1.5">
+          <div className="flex items-center gap-2 px-0.5 text-[10px] uppercase tracking-wide text-slate-400">
+            <span className="w-24">{t("scenario.dcaShares")}</span>
+            <span className="w-24">{t("scenario.dcaPrice", { currency: qc })}</span>
+            <span className="w-24 text-right">{t("scenario.dcaSubtotal")}</span>
+            <span className="w-6" />
+          </div>
+          {buys.map((b) => (
+            <div key={b.id} className="flex items-center gap-2">
+              <input
+                type="number"
+                step="0.0001"
+                min="0"
+                className="w-24 rounded-md border border-slate-200 px-2 py-1 text-sm"
+                value={b.shares}
+                onChange={(e) =>
+                  updateBuy(b.id, { shares: Math.max(0, Number(e.target.value) || 0) })
+                }
+              />
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className="w-24 rounded-md border border-slate-200 px-2 py-1 text-sm"
+                value={b.price}
+                onChange={(e) =>
+                  updateBuy(b.id, { price: Math.max(0, Number(e.target.value) || 0) })
+                }
+              />
+              <span className="w-24 text-right text-sm text-slate-500">
+                {b.shares > 0 && b.price > 0 ? fmt(b.shares * b.price) : "—"}
+              </span>
+              <button
+                className="w-6 text-slate-300 hover:text-rose-500"
+                title={t("scenario.dcaRemove")}
+                onClick={() => removeBuy(b.id)}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button className="text-xs font-medium text-brand-700 underline" onClick={addBuy}>
+        + {t("scenario.dcaAddBuy")}
+      </button>
+
+      {active && result && (
+        <div className="mt-3 flex flex-wrap items-end gap-4 border-t border-slate-200 pt-3">
+          <Field label={t("scenario.dcaTotalShares")} value={fmtQty(result.addedShares)} />
+          <Field label={t("scenario.dcaInvested")} value={fmt(result.addedInvested)} />
+          <Field label={t("scenario.dcaNewCost")} value={fmt(result.blendedCost)} />
+          <Field label={t("scenario.dcaWeight")} value={formatPct(result.portfolioWeight)} />
+        </div>
+      )}
     </div>
   );
 }
@@ -1804,10 +1839,34 @@ function SoTPTab({
           step="any"
           onChange={(v) => onChange((s) => ({ ...s, sharesOutstanding: Math.max(0, v) }))}
         />
+        <ValField
+          label={t("sotp.targetDiscount")}
+          value={Number((config.targetDiscount * 100).toFixed(2))}
+          step="1"
+          suffix="%"
+          onChange={(v) =>
+            onChange((s) => ({ ...s, targetDiscount: Math.min(100, Math.max(0, v)) / 100 }))
+          }
+        />
+        {result.discountToNav != null && (
+          <button
+            type="button"
+            className="pb-1 text-xs text-brand-700 underline"
+            title={t("sotp.useMarketDiscountHint")}
+            onClick={() =>
+              onChange((s) => ({
+                ...s,
+                targetDiscount: Math.min(1, Math.max(0, result.discountToNav ?? 0)),
+              }))
+            }
+          >
+            {t("sotp.useMarketDiscount", { pct: formatPct(result.discountToNav) })}
+          </button>
+        )}
       </div>
 
       {config.holdings.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <div className="rounded-lg border border-slate-200 px-4 py-3">
             <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.gav")}</p>
             <p className="text-lg font-semibold text-slate-700">{fmt(result.gav)}</p>
@@ -1816,11 +1875,31 @@ function SoTPTab({
             <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.nav")}</p>
             <p className="text-lg font-semibold text-slate-700">{fmt(result.nav)}</p>
           </div>
-          <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
+          <div className="rounded-lg border border-slate-200 px-4 py-3">
             <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.navPerShare")}</p>
-            <p className="text-lg font-bold" style={{ color: GOLD }}>
-              {fmt(result.navPerShare)}
+            <p className="text-lg font-semibold text-slate-700">{fmt(result.navPerShare)}</p>
+          </div>
+          <div className="rounded-lg border-2 px-4 py-3" style={{ borderColor: GOLD }}>
+            <p className="text-[10px] uppercase tracking-wide text-slate-400">
+              {config.targetDiscount > 0
+                ? t("sotp.targetPriceWithDiscount", { pct: formatPct(config.targetDiscount) })
+                : t("sotp.targetPrice")}
             </p>
+            <p className="text-lg font-bold" style={{ color: GOLD }}>
+              {fmt(result.targetPrice)}
+            </p>
+            {result.targetPrice != null &&
+              currentPrice != null &&
+              Number.isFinite(currentPrice) &&
+              currentPrice !== 0 && (
+                <p
+                  className={`mt-0.5 text-[11px] font-medium ${
+                    result.targetPrice >= currentPrice ? "text-emerald-600" : "text-rose-600"
+                  }`}
+                >
+                  {formatPct(result.targetPrice / currentPrice - 1)} {t("sotp.vsPrice")}
+                </p>
+              )}
           </div>
           <div className="rounded-lg border border-slate-200 px-4 py-3">
             <p className="text-[10px] uppercase tracking-wide text-slate-400">{t("sotp.discount")}</p>

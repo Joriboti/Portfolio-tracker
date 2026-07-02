@@ -15,6 +15,7 @@ function config(over: Partial<SotpConfig> = {}): SotpConfig {
     ],
     netDebt: 500,
     sharesOutstanding: 100,
+    targetDiscount: 0,
     ...over,
   };
 }
@@ -61,6 +62,28 @@ describe("calculateNAV", () => {
   it("returns null navPerShare when shares are zero", () => {
     const r = calculateNAV(config({ sharesOutstanding: 0 }), {}, {}, "EUR");
     expect(r.navPerShare).toBeNull();
+  });
+
+  it("target price equals NAV/share with no discount", () => {
+    const r = calculateNAV(config(), { AAA: { marketCap: 10_000, currency: "EUR" } }, {}, "EUR");
+    expect(r.targetPrice).toBeCloseTo(r.navPerShare as number, 6);
+  });
+
+  it("applies the holding discount to the target price", () => {
+    // navPerShare 25 with a 40% holding discount → 15
+    const r = calculateNAV(
+      config({ targetDiscount: 0.4 }),
+      { AAA: { marketCap: 10_000, currency: "EUR" } },
+      {},
+      "EUR",
+    );
+    expect(r.navPerShare).toBeCloseTo(25, 6);
+    expect(r.targetPrice).toBeCloseTo(15, 6);
+  });
+
+  it("target price is null when shares are zero", () => {
+    const r = calculateNAV(config({ sharesOutstanding: 0, targetDiscount: 0.3 }), {}, {}, "EUR");
+    expect(r.targetPrice).toBeNull();
   });
 });
 

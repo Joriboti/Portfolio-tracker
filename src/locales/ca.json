@@ -223,6 +223,12 @@
     "dcaTitle": "Simulador de compra (DCA)",
     "dcaShares": "Títols a afegir",
     "dcaPrice": "Preu de compra ({{currency}})",
+    "dcaSubtotal": "Import",
+    "dcaEmpty": "Encara no has afegit cap compra. Afegeix-ne una o més per simular compres esglaonades.",
+    "dcaAddBuy": "Afegeix compra",
+    "dcaRemove": "Elimina la compra",
+    "dcaTotalShares": "Títols afegits",
+    "dcaInvested": "Total invertit",
     "dcaNewCost": "Nou cost mitjà",
     "dcaWeight": "Pes resultant",
     "expectedValue": "Valor esperat (EV)",
@@ -297,7 +303,7 @@
     "sentence": "El valor just està entre {{p10}} i {{p90}} amb ~80% de probabilitat."
   },
   "sotp": {
-    "intro": "Valora cada participació del holding i suma-les. Les cotitzades porten la capitalització en viu de Yahoo (× la teva participació); les no cotitzades, un valor manual.",
+    "intro": "Valora cada participació del holding i suma-les. Les cotitzades porten la capitalització en viu de Yahoo (× la teva participació); les no cotitzades, un valor manual. Els holdings cotitzen sempre per sota del NAV: aplica un descompte de holding perquè el preu objectiu sigui realista.",
     "cols": {
       "name": "Participació",
       "ticker": "Ticker",
@@ -314,10 +320,16 @@
     "loading": "Carregant capitalitzacions…",
     "netDebt": "Deute net del holding ({{currency}})",
     "shares": "Accions del holding",
+    "targetDiscount": "Descompte de holding",
+    "useMarketDiscount": "usa el del mercat ({{pct}})",
+    "useMarketDiscountHint": "Aplica el descompte que el mercat ja fa avui sobre el NAV",
     "gav": "Valor brut (GAV)",
     "nav": "Valor net (NAV)",
     "navPerShare": "NAV / acció",
-    "discount": "Descompte sobre NAV"
+    "targetPrice": "Preu objectiu",
+    "targetPriceWithDiscount": "Preu objectiu (−{{pct}})",
+    "vsPrice": "vs preu actual",
+    "discount": "Descompte actual sobre NAV"
   },
   "history": {
     "title": "Evolució de la cartera",

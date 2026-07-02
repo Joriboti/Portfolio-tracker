@@ -223,6 +223,12 @@
     "dcaTitle": "Buy simulator (DCA)",
     "dcaShares": "Shares to add",
     "dcaPrice": "Buy price ({{currency}})",
+    "dcaSubtotal": "Amount",
+    "dcaEmpty": "No buys yet. Add one or more to simulate averaging in over several purchases.",
+    "dcaAddBuy": "Add buy",
+    "dcaRemove": "Remove buy",
+    "dcaTotalShares": "Shares added",
+    "dcaInvested": "Total invested",
     "dcaNewCost": "New avg cost",
     "dcaWeight": "Resulting weight",
     "expectedValue": "Expected value (EV)",
@@ -297,7 +303,7 @@
     "sentence": "The fair value is between {{p10}} and {{p90}} with ~80% probability."
   },
   "sotp": {
-    "intro": "Value each stake the holding owns and sum them. Listed stakes pull a live market cap from Yahoo (× your stake); unlisted ones use a manual value.",
+    "intro": "Value each stake the holding owns and sum them. Listed stakes pull a live market cap from Yahoo (× your stake); unlisted ones use a manual value. Holdings persistently trade below NAV: apply a holding discount so the target price is realistic.",
     "cols": {
       "name": "Stake",
       "ticker": "Ticker",
@@ -314,10 +320,16 @@
     "loading": "Loading market caps…",
     "netDebt": "Holding net debt ({{currency}})",
     "shares": "Holding shares",
+    "targetDiscount": "Holding discount",
+    "useMarketDiscount": "use market's ({{pct}})",
+    "useMarketDiscountHint": "Apply the discount the market already puts on NAV today",
     "gav": "Gross value (GAV)",
     "nav": "Net value (NAV)",
     "navPerShare": "NAV / share",
-    "discount": "Discount to NAV"
+    "targetPrice": "Target price",
+    "targetPriceWithDiscount": "Target price (−{{pct}})",
+    "vsPrice": "vs current price",
+    "discount": "Current discount to NAV"
   },
   "history": {
     "title": "Portfolio evolution",
