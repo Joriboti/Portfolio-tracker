@@ -110,7 +110,7 @@ describe("computeValuation — DCA simulator", () => {
         avgCost: 80,
         currentPrice: 100,
         totalPortfolioValue: 10_000,
-        dca: { addShares: 10, addPrice: 120 },
+        dca: [{ id: "b1", shares: 10, price: 120 }],
         scenarios: [
           { id: "a", name: "A", color: "#000", epsCagrPct: 0, exitMultiple: 11, probabilityPct: 100 },
         ],
@@ -120,6 +120,8 @@ describe("computeValuation — DCA simulator", () => {
     );
     // blendedCost = (10*80 + 10*120) / 20 = (800 + 1200)/20 = 100
     expect(r.blendedCost).toBeCloseTo(100, 10);
+    expect(r.addedShares).toBeCloseTo(10, 10);
+    expect(r.addedInvested).toBeCloseTo(1200, 10);
     // positionValue = (10+10)*100 = 2000 ; weight = 2000/10000 = 0.2
     expect(r.positionValue).toBeCloseTo(2000, 10);
     expect(r.portfolioWeight).toBeCloseTo(0.2, 10);
@@ -127,10 +129,40 @@ describe("computeValuation — DCA simulator", () => {
     expect(r.perScenario[0].upsideVsCost).toBeCloseTo(0.1, 10);
   });
 
+  it("blends several staggered buys into one average cost", () => {
+    const r = computeValuation(
+      baseInputs({
+        shares: 10,
+        avgCost: 80,
+        dca: [
+          { id: "b1", shares: 5, price: 70 },
+          { id: "b2", shares: 5, price: 60 },
+        ],
+      }),
+    );
+    // blendedCost = (10*80 + 5*70 + 5*60) / 20 = (800 + 350 + 300)/20 = 72.5
+    expect(r.blendedCost).toBeCloseTo(72.5, 10);
+    expect(r.addedShares).toBeCloseTo(10, 10);
+    expect(r.addedInvested).toBeCloseTo(650, 10);
+  });
+
   it("falls back to plain avg cost when DCA adds zero shares", () => {
     const r = computeValuation(
-      baseInputs({ shares: 5, avgCost: 50, dca: { addShares: 0, addPrice: 999 } }),
+      baseInputs({ shares: 5, avgCost: 50, dca: [{ id: "b1", shares: 0, price: 999 }] }),
     );
     expect(r.blendedCost).toBeCloseTo(50, 10);
+    expect(r.addedShares).toBeCloseTo(0, 10);
+  });
+
+  it("still reads the legacy single-buy object shape", () => {
+    // Persisted pre-multi-buy models stored { addShares, addPrice }.
+    const r = computeValuation(
+      baseInputs({
+        shares: 10,
+        avgCost: 80,
+        dca: { addShares: 10, addPrice: 120 } as unknown as never,
+      }),
+    );
+    expect(r.blendedCost).toBeCloseTo(100, 10);
   });
 });

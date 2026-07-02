@@ -40,11 +40,45 @@ export type ScenarioInput = {
   probabilityPct: number;
 };
 
-/** Optional dollar-cost-averaging simulator (planned additional buy). */
-export type DcaInput = {
-  addShares: number;
-  addPrice: number;
+/** One planned purchase in the DCA / averaging-in simulator. */
+export type DcaBuy = {
+  id: string;
+  shares: number;
+  price: number;
 };
+
+let dcaSeq = 0;
+export function newDcaBuy(): DcaBuy {
+  dcaSeq += 1;
+  return { id: `buy-${Date.now()}-${dcaSeq}`, shares: 0, price: 0 };
+}
+
+/**
+ * Coerce whatever is persisted into a clean list of buys. Tolerates:
+ *  - the new array shape `DcaBuy[]`
+ *  - the legacy single-buy object `{ addShares, addPrice }`
+ *  - null / garbage → []
+ * so old saved models keep working after the multi-buy upgrade.
+ */
+export function normalizeDca(raw: unknown): DcaBuy[] {
+  const clean = (id: unknown, shares: unknown, price: unknown): DcaBuy => ({
+    id: typeof id === "string" ? id : newDcaBuy().id,
+    shares: Number.isFinite(Number(shares)) ? Number(shares) : 0,
+    price: Number.isFinite(Number(price)) ? Number(price) : 0,
+  });
+  if (Array.isArray(raw)) {
+    return raw
+      .filter((b): b is Record<string, unknown> => b != null && typeof b === "object")
+      .map((b) => clean(b.id, b.shares, b.price));
+  }
+  if (raw && typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    const s = Number(o.addShares) || 0;
+    const p = Number(o.addPrice) || 0;
+    if (s > 0 || p > 0) return [clean(undefined, s, p)];
+  }
+  return [];
+}
 
 /** Everything the engine needs, all monetary values in one shared currency. */
 export type ValuationInputs = {
@@ -57,8 +91,8 @@ export type ValuationInputs = {
   shares: number;
   /** Average cost per share of the current position. */
   avgCost: number;
-  /** Planned extra purchase, or null/undefined for no DCA. */
-  dca?: DcaInput | null;
+  /** Planned extra purchases (list of buys), or null/undefined for no DCA. */
+  dca?: DcaBuy[] | null;
   /** Total portfolio market value, same currency as the rest. */
   totalPortfolioValue: number;
   /** Trailing twelve-month EPS, for the reference trailing P/E. */
@@ -84,8 +118,12 @@ export type ValuationModelResult = {
   perScenario: ScenarioResult[];
   /** Probability-weighted expected fair value. */
   expectedValue: number;
-  /** Blended average cost after the simulated DCA buy. */
+  /** Blended average cost after the simulated DCA buys. */
   blendedCost: number;
+  /** Total shares added across all planned DCA buys. */
+  addedShares: number;
+  /** Total cash invested across all planned DCA buys (addPrice × addShares). */
+  addedInvested: number;
   /** Resulting position market value (incl. DCA shares) at current price. */
   positionValue: number;
   /** positionValue / totalPortfolioValue, or null when total is unusable. */
@@ -131,14 +169,20 @@ export function computeValuation(inputs: ValuationInputs): ValuationModelResult 
     scenarios,
   } = inputs;
 
-  // Blended cost after the optional DCA buy. With no DCA (or zero shares),
-  // it collapses to the existing average cost.
-  const addShares = dca && Number.isFinite(dca.addShares) ? dca.addShares : 0;
-  const addPrice = dca && Number.isFinite(dca.addPrice) ? dca.addPrice : 0;
+  // Blended cost after the optional DCA buys. Sum all planned purchases; with
+  // no DCA (or zero shares), it collapses to the existing average cost.
+  let addShares = 0;
+  let addCost = 0;
+  for (const b of normalizeDca(dca)) {
+    if (b.shares > 0) {
+      addShares += b.shares;
+      addCost += b.shares * b.price;
+    }
+  }
   const totalShares = shares + addShares;
   const blendedCost =
     totalShares > 0
-      ? (shares * avgCost + addShares * addPrice) / totalShares
+      ? (shares * avgCost + addCost) / totalShares
       : avgCost;
 
   const probSum = scenarios.reduce(
@@ -175,6 +219,8 @@ export function computeValuation(inputs: ValuationInputs): ValuationModelResult 
     perScenario,
     expectedValue,
     blendedCost,
+    addedShares: addShares,
+    addedInvested: addCost,
     positionValue,
     portfolioWeight,
     peTrailing: isUsable(epsTtm) ? currentPrice / epsTtm : null,
@@ -209,8 +255,8 @@ export type ValuationModel = {
   years: number;
   /** Manual override of the base forward EPS; null = use the auto value. */
   baseEpsOverride: number | null;
-  /** DCA simulator state; addShares 0 means "no planned buy". */
-  dca: DcaInput;
+  /** DCA simulator state: a list of planned buys (empty = no planned buy). */
+  dca: DcaBuy[];
   /**
    * DCF / Reverse-DCF assumptions, persisted alongside the scenarios in the
    * same per-holding JSONB document. Optional so models saved before the DCF
@@ -231,7 +277,7 @@ export function defaultModel(): ValuationModel {
     scenarios: defaultScenarios(),
     years: DEFAULT_HORIZON_YEARS,
     baseEpsOverride: null,
-    dca: { addShares: 0, addPrice: 0 },
+    dca: [],
     dcf: defaultDcfConfig(),
     graham: defaultGrahamConfig(),
     mc: defaultMonteCarloConfig(),
