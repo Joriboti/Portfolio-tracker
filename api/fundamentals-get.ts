@@ -221,6 +221,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    // Notion "Research" CMS mode (public /research pages) — no DATABASE_URL
+    // needed. Folded in here (not a new /api route) to stay under the Hobby
+    // plan's 12-function limit; the Notion SDK loads lazily inside the core.
+    if (req.query.research != null) {
+      const { handleResearch } = await import("./_research-core.js");
+      await handleResearch(req, res);
+      return;
+    }
+
     // Live full-fundamentals mode (Explore page) — no DB needed.
     if (req.query.quote != null) {
       await handleLiveCompany(req, res);

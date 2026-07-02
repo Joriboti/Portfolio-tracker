@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
+import { getResearchList, type ResearchCard } from "@/lib/research";
+import { TickerBadge, TagPill } from "./research";
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -78,6 +81,9 @@ export function HomePage() {
             desc={t("home.feat3Desc")}
           />
         </div>
+
+        {/* Recent research — hides itself when there's nothing published. */}
+        <RecentResearch />
 
         {/* Trust strip. */}
         <section className="mt-16 grid gap-4 rounded-2xl border border-slate-200 bg-white/60 p-6 sm:grid-cols-3">
@@ -201,6 +207,63 @@ function PreviewRow({
         {pl}
       </span>
     </div>
+  );
+}
+
+// Landing showcase of the 3 newest published analyses. Fetches client-side and
+// renders nothing if the CMS is empty or unreachable (graceful degradation).
+function RecentResearch() {
+  const [articles, setArticles] = useState<ResearchCard[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    getResearchList().then((a) => {
+      if (!cancelled) setArticles(a.slice(0, 3));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (articles.length === 0) return null;
+
+  return (
+    <section className="mt-24">
+      <div className="flex items-end justify-between gap-4">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+          Anàlisis recents
+        </h2>
+        <Link
+          to="/research"
+          className="shrink-0 text-sm font-medium text-brand-700 hover:text-brand-800"
+        >
+          Veure totes les anàlisis →
+        </Link>
+      </div>
+      <div className="mt-6 grid gap-5 md:grid-cols-3">
+        {articles.map((a) => (
+          <Link
+            key={a.slug}
+            to={`/research/${a.slug}`}
+            className="card group flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover"
+          >
+            <TickerBadge ticker={a.ticker} />
+            <h3 className="mt-2 font-semibold text-slate-900 group-hover:text-brand-700">
+              {a.title}
+            </h3>
+            <p className="mt-1 flex-1 text-sm leading-relaxed text-slate-600">
+              {a.summary}
+            </p>
+            {a.tags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {a.tags.slice(0, 3).map((tag) => (
+                  <TagPill key={tag} tag={tag} />
+                ))}
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

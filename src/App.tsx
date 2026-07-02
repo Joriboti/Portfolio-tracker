@@ -15,6 +15,8 @@ const DebugPage = lazy(() => import("@/pages/debug").then((m) => ({ default: m.D
 const UploadPage = lazy(() => import("@/pages/upload").then((m) => ({ default: m.UploadPage })));
 const ExplorePage = lazy(() => import("@/pages/explore").then((m) => ({ default: m.ExplorePage })));
 const DisclaimerPage = lazy(() => import("@/pages/disclaimer").then((m) => ({ default: m.DisclaimerPage })));
+const ResearchPage = lazy(() => import("@/pages/research").then((m) => ({ default: m.ResearchPage })));
+const ResearchArticlePage = lazy(() => import("@/pages/research-article").then((m) => ({ default: m.ResearchArticlePage })));
 
 // Wrap any page that should require an authenticated session. The auth
 // routes themselves stay public so the user can actually sign in.
@@ -31,6 +33,10 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/:pathname" element={<AuthPage />} />
+
+        {/* Public content — indexable, no auth gate. */}
+        <Route path="/research" element={<ResearchPage />} />
+        <Route path="/research/:slug" element={<ResearchArticlePage />} />
 
         <Route path="/" element={<Private><HomePage /></Private>} />
         <Route path="/dashboard" element={<Private><DashboardPage /></Private>} />
