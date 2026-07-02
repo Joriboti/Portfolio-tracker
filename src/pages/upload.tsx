@@ -10,6 +10,8 @@ import {
 } from "@/lib/api";
 import { AuthGuard } from "@/components/AuthGuard";
 import { AddHoldingForm } from "@/components/AddHoldingForm";
+import { HowToPrepareExcel } from "@/components/HowToPrepareExcel";
+import { FifoCalculator } from "@/components/FifoCalculator";
 import { useUser } from "@/hooks/useUser";
 
 function UploadInner() {
@@ -99,16 +101,35 @@ function UploadInner() {
         {t("upload.title")}
       </h1>
 
-      {/* Manual entry — search a ticker and add it one by one. */}
-      {user && (
-        <AddHoldingForm userId={user.id} onAdded={() => navigate("/dashboard")} />
-      )}
+      {/* Subsection 1 — search a ticker and add positions one by one. */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-900">
+          {t("upload.sectionManual")}
+        </h2>
+        {user && (
+          <AddHoldingForm
+            userId={user.id}
+            onAdded={() => navigate("/dashboard")}
+          />
+        )}
+      </section>
 
       <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-slate-400">
         <span className="h-px flex-1 bg-slate-200" />
         {t("upload.orExcel")}
         <span className="h-px flex-1 bg-slate-200" />
       </div>
+
+      {/* Subsection 2 — build/import from an Excel: upload + how-to + FIFO. */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            {t("upload.sectionExcel")}
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            {t("upload.sectionExcelHint")}
+          </p>
+        </div>
 
       {!parsed && (
         <div
@@ -235,6 +256,26 @@ function UploadInner() {
           </div>
         </section>
       )}
+
+        {/* How to prepare the Excel — folded here from its old standalone page. */}
+        <details className="card group">
+          <summary className="flex cursor-pointer items-center justify-between font-medium text-slate-900 marker:content-none">
+            {t("upload.howToToggle")}
+            <span className="text-slate-400 transition-transform group-open:rotate-180">
+              ▾
+            </span>
+          </summary>
+          <div className="mt-4">
+            <HowToPrepareExcel />
+          </div>
+        </details>
+
+        {/* FIFO realized-result calculator to help fill the "Resultat" column. */}
+        <div>
+          <h3 className="mb-2 font-medium text-slate-900">{t("fifo.title")}</h3>
+          <FifoCalculator />
+        </div>
+      </section>
     </div>
   );
 }

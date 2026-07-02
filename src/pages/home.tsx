@@ -35,7 +35,7 @@ export function HomePage() {
               {t("home.ctaStart")}
             </Link>
             <Link
-              to="/how-to-prepare"
+              to="/upload"
               className="btn-ghost px-5 py-2.5 text-base"
             >
               {t("home.ctaHowTo")}

@@ -49,7 +49,13 @@ If you find data that doesn't fit, put it in a new "Notes" tab and tell me. Do n
 
 Return me the .xlsx file ready to upload.`;
 
-export function HowToPreparePage() {
+/**
+ * The "how to prepare your Excel" helper: a copyable AI prompt that reshapes a
+ * messy spreadsheet into the schema the parser expects, plus a summary of the
+ * four sheets. Extracted from the old standalone page so it can live inside the
+ * Excel subsection of the "Build portfolio" page.
+ */
+export function HowToPrepareExcel() {
   const { t, i18n } = useTranslation();
   const [copied, setCopied] = useState(false);
   const prompt = i18n.language?.startsWith("en") ? PROMPT_EN : PROMPT_CA;
@@ -65,17 +71,12 @@ export function HowToPreparePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold text-slate-900">
-          {t("howTo.title")}
-        </h1>
-        <p className="mt-2 text-slate-600">{t("howTo.intro")}</p>
-      </header>
+    <div className="space-y-4">
+      <p className="text-sm text-slate-600">{t("howTo.intro")}</p>
 
       <section className="card">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium text-slate-900">{t("howTo.promptTitle")}</h2>
+          <h3 className="font-medium text-slate-900">{t("howTo.promptTitle")}</h3>
           <button onClick={copy} className="btn-primary text-xs px-3 py-1.5">
             {copied ? t("howTo.copied") : t("howTo.copy")}
           </button>
@@ -86,7 +87,7 @@ export function HowToPreparePage() {
       </section>
 
       <section className="card">
-        <h2 className="font-medium text-slate-900">{t("howTo.schemaTitle")}</h2>
+        <h3 className="font-medium text-slate-900">{t("howTo.schemaTitle")}</h3>
         <p className="mt-2 text-sm text-slate-600">{t("howTo.schemaDesc")}</p>
         <ul className="mt-3 list-disc list-inside text-sm text-slate-700 space-y-1">
           <li>{t("howTo.sheet1")}</li>

@@ -58,6 +58,10 @@
   },
   "upload": {
     "title": "Build your portfolio",
+    "sectionManual": "Search and add positions",
+    "sectionExcel": "From an Excel",
+    "sectionExcelHint": "Upload an Excel with your full transaction history. Below you'll find how to prepare it and a calculator for sell results.",
+    "howToToggle": "How to prepare the Excel",
     "orExcel": "or upload an Excel",
     "drop": "Drop your file here or click to browse",
     "supports": "Format: .xlsx (exportable from Google Sheets)",
@@ -328,6 +332,23 @@
     "tipMaxDD": "Worst peak-to-trough drop in the analysis window. A measure of the historical worst case.",
     "tipRSquared": "How much of the portfolio's movement is explained by the market (0-100%). 100% = identical to benchmark.",
     "tipExcluded": "Tickers with under 6 months of history or no Yahoo data. Their weight is redistributed to the included ones."
+  },
+  "fifo": {
+    "title": "FIFO calculator",
+    "intro": "If you sell in several batches or at different prices, compute the realized result here using the FIFO method (shares bought first are sold first). Enter the operations in chronological order; each sell's result is what goes in the «Resultat» column.",
+    "opType": "Operation",
+    "buy": "Buy",
+    "sell": "Sell",
+    "shares": "Shares",
+    "price": "Price",
+    "result": "Result",
+    "addRow": "Add row",
+    "remove": "Remove row",
+    "reset": "Clear",
+    "oversold": "Selling more shares than you hold",
+    "remaining": "Remaining shares",
+    "remainingCost": "Remaining avg cost",
+    "totalRealized": "Total realized result"
   },
   "howTo": {
     "title": "How to prepare my Excel",

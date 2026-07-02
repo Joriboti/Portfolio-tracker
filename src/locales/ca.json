@@ -58,6 +58,10 @@
   },
   "upload": {
     "title": "Construir la teva cartera",
+    "sectionManual": "Cerca i afegeix posicions",
+    "sectionExcel": "Des d'un Excel",
+    "sectionExcelHint": "Puja un Excel amb tot el teu històric d'operacions. Aquí sota tens com preparar-lo i una calculadora per als resultats de venda.",
+    "howToToggle": "Com preparar l'Excel",
     "orExcel": "o penja un Excel",
     "drop": "Arrossega el teu fitxer aquí o fes clic per seleccionar",
     "supports": "Format: .xlsx (exportable des de Google Sheets)",
@@ -328,6 +332,23 @@
     "tipMaxDD": "Pitjor caiguda peak-to-trough en la finestra analitzada. Mesura del 'pitjor moment' històric.",
     "tipRSquared": "Quina part del moviment de la cartera s'explica pel mercat (0-100%). 100% = cartera idèntica al benchmark.",
     "tipExcluded": "Tickers amb menys de 6 mesos d'històric o sense dades a Yahoo. Els seus pesos es redistribueixen entre els inclosos."
+  },
+  "fifo": {
+    "title": "Calculadora FIFO",
+    "intro": "Si vens en diverses tandes o a preus diferents, calcula aquí el resultat realitzat amb el mètode FIFO (es venen primer els títols comprats abans). Introdueix les operacions en ordre cronològic; el resultat de cada venda és el que va a la columna «Resultat».",
+    "opType": "Operació",
+    "buy": "Compra",
+    "sell": "Venda",
+    "shares": "Títols",
+    "price": "Preu",
+    "result": "Resultat",
+    "addRow": "Afegeix fila",
+    "remove": "Elimina fila",
+    "reset": "Neteja",
+    "oversold": "Vens més títols dels que tens",
+    "remaining": "Títols restants",
+    "remainingCost": "Cost mitjà restant",
+    "totalRealized": "Resultat realitzat total"
   },
   "howTo": {
     "title": "Com preparar el meu Excel",

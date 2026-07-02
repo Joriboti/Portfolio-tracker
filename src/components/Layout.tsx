@@ -37,7 +37,6 @@ export function Layout() {
             <NavItem to="/dashboard" label={t("nav.dashboard")} />
             <NavItem to="/upload" label={t("nav.upload")} />
             <NavItem to="/explore" label={t("nav.explore")} />
-            <NavItem to="/how-to-prepare" label={t("nav.howTo")} />
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <LanguageSwitcher />

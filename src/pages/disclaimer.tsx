@@ -31,7 +31,7 @@ export function DisclaimerPage() {
           <p>
             {t("disclaimer.p2")}{" "}
             <Link
-              to="/how-to-prepare"
+              to="/upload"
               className="underline font-medium hover:text-amber-700"
             >
               {t("nav.howTo")} →

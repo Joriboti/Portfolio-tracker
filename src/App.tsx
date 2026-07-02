@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -9,7 +9,6 @@ import { DashboardPage } from "@/pages/dashboard";
 import { DebugPage } from "@/pages/debug";
 import { UploadPage } from "@/pages/upload";
 import { ExplorePage } from "@/pages/explore";
-import { HowToPreparePage } from "@/pages/how-to-prepare";
 import { DisclaimerPage } from "@/pages/disclaimer";
 
 // Wrap any page that should require an authenticated session. The auth
@@ -32,7 +31,8 @@ export default function App() {
         <Route path="/debug" element={<Private><DebugPage /></Private>} />
         <Route path="/upload" element={<Private><UploadPage /></Private>} />
         <Route path="/explore" element={<Private><ExplorePage /></Private>} />
-        <Route path="/how-to-prepare" element={<Private><HowToPreparePage /></Private>} />
+        {/* Folded into /upload (Build portfolio → Excel subsection). */}
+        <Route path="/how-to-prepare" element={<Navigate to="/upload" replace />} />
         <Route path="/disclaimer" element={<Private><DisclaimerPage /></Private>} />
         <Route path="/account" element={<Private><AccountPage /></Private>} />
         <Route path="/account/:pathname" element={<Private><AccountPage /></Private>} />
