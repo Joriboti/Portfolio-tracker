@@ -66,6 +66,12 @@ function DashboardInner() {
   const [showPie, setShowPie] = useState(false);
   const [fundamentals, setFundamentals] = useState<Record<string, Fundamentals>>({});
   const [fundRefreshing, setFundRefreshing] = useState(false);
+  // Client-side "portfolio deconstructor": experimentally remove holdings from
+  // the view (a ✕ on each row) with an undo stack — like Word — to bring them
+  // back. Purely local, never touches the DB, so the user can play with
+  // allocations mixing the Excel import and manually-added holdings. The stack
+  // is ordered oldest→newest so undo pops the most recent removal.
+  const [removed, setRemoved] = useState<string[]>([]);
 
   async function handleRefresh() {
     if (!user || refreshing) return;
@@ -118,9 +124,28 @@ function DashboardInner() {
     };
   }, [user]);
 
+  // Everything downstream is derived from `visibleData` — `data` with the
+  // deconstructor's removed tickers filtered out of every ticker-scoped table
+  // (transactions, dividends, dividend events). Interests/wealth aren't
+  // ticker-scoped so they pass through untouched. When nothing is removed this
+  // is the identity, so there's zero overhead in the common case.
+  const removedSet = useMemo(() => new Set(removed), [removed]);
+  const visibleData = useMemo(() => {
+    if (!data) return null;
+    if (removedSet.size === 0) return data;
+    return {
+      ...data,
+      transactions: data.transactions.filter((tx) => !removedSet.has(tx.ticker)),
+      dividends: data.dividends.filter((d) => !removedSet.has(d.ticker)),
+      dividendEvents: data.dividendEvents.filter(
+        (e) => !removedSet.has(e.ticker),
+      ),
+    };
+  }, [data, removedSet]);
+
   const allPositions = useMemo(
-    () => (data ? aggregatePositions(data.transactions) : []),
-    [data],
+    () => (visibleData ? aggregatePositions(visibleData.transactions) : []),
+    [visibleData],
   );
   const openPositions = useMemo(
     () => allPositions.filter((p) => p.isOpen),
@@ -133,8 +158,13 @@ function DashboardInner() {
 
   const autoDividends = useMemo(
     () =>
-      data ? computeAutoDividends(data.transactions, data.dividendEvents) : [],
-    [data],
+      visibleData
+        ? computeAutoDividends(
+            visibleData.transactions,
+            visibleData.dividendEvents,
+          )
+        : [],
+    [visibleData],
   );
 
   const openTickers = useMemo(
@@ -156,20 +186,20 @@ function DashboardInner() {
   }, [openAutoDividends, currency, fxRates]);
 
   const yearlyPL = useMemo(
-    () => (data ? computeRealizedPLByYear(data.transactions) : []),
-    [data],
+    () => (visibleData ? computeRealizedPLByYear(visibleData.transactions) : []),
+    [visibleData],
   );
 
   const yearlyBreakdown = useMemo(
     () =>
-      data
+      visibleData
         ? computeYearlyBreakdown(
-            data.transactions,
-            data.dividends,
-            data.interests,
+            visibleData.transactions,
+            visibleData.dividends,
+            visibleData.interests,
           )
         : [],
-    [data],
+    [visibleData],
   );
 
   useEffect(() => {
@@ -251,6 +281,17 @@ function DashboardInner() {
     return latest;
   }, [fundamentals]);
 
+  // Deconstructor controls.
+  function removePosition(ticker: string) {
+    setRemoved((prev) => (prev.includes(ticker) ? prev : [...prev, ticker]));
+  }
+  function restorePosition(ticker: string) {
+    setRemoved((prev) => prev.filter((tk) => tk !== ticker));
+  }
+  function undoRemove() {
+    setRemoved((prev) => prev.slice(0, -1));
+  }
+
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">{t("common.loading")}</div>
@@ -267,7 +308,11 @@ function DashboardInner() {
     );
   }
 
-  if (!data || allPositions.length === 0) {
+  // Empty state keys off the *raw* portfolio: if the user has genuinely no
+  // transactions, prompt them to build one. If they've merely deconstructed
+  // every holding away (removed.length > 0), stay on the dashboard so the undo
+  // banner remains reachable.
+  if (!data || (data.transactions.length === 0 && removed.length === 0)) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10">
         <div className="card text-center">
@@ -280,7 +325,7 @@ function DashboardInner() {
     );
   }
 
-  const manualDividendsTotal = data.dividends.reduce(
+  const manualDividendsTotal = (visibleData?.dividends ?? []).reduce(
     (s, d) => s + d.amount,
     0,
   );
@@ -307,9 +352,9 @@ function DashboardInner() {
   const unrealized = totalValue > 0 ? totalValue - totalCost : 0;
 
   const since = computeSinceInception({
-    txns: data.transactions,
-    dividends: data.dividends,
-    interests: data.interests,
+    txns: visibleData?.transactions ?? [],
+    dividends: visibleData?.dividends ?? [],
+    interests: visibleData?.interests ?? [],
     currentValue: totalValue,
     openCost: totalCost,
     realized: realizedPL,
@@ -338,6 +383,31 @@ function DashboardInner() {
           </button>
         </div>
       </header>
+
+      {removed.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-200 bg-brand-50/70 px-4 py-2.5 text-sm text-slate-700">
+          <button
+            onClick={undoRemove}
+            className="inline-flex items-center gap-1.5 rounded-md border border-brand-300 bg-white px-2.5 py-1 font-medium text-brand-700 hover:bg-brand-50"
+            title={t("dashboard.deconstruct.undo")}
+          >
+            <span aria-hidden>↩</span> {t("dashboard.deconstruct.undo")}
+          </button>
+          <span className="text-slate-500">
+            {t("dashboard.deconstruct.removedLabel")}
+          </span>
+          {removed.map((tk) => (
+            <button
+              key={tk}
+              onClick={() => restorePosition(tk)}
+              className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-600 hover:border-brand-400 hover:text-brand-700"
+              title={t("dashboard.deconstruct.restore", { ticker: tk })}
+            >
+              {tk} <span aria-hidden>＋</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {openPositions.length > 0 &&
         openPositions.some((p) => !quotes[p.ticker]) && (
@@ -431,6 +501,7 @@ function DashboardInner() {
             fundamentals={fundamentals}
             userId={user?.id ?? null}
             totalPortfolioValue={totalValue}
+            onRemove={removePosition}
           />
         </section>
       )}
@@ -580,6 +651,7 @@ function PositionsTable({
   fundamentals,
   userId,
   totalPortfolioValue,
+  onRemove,
 }: {
   positions: Position[];
   quotes: Record<string, PriceQuote>;
@@ -588,6 +660,7 @@ function PositionsTable({
   fundamentals: Record<string, Fundamentals>;
   userId: string | null;
   totalPortfolioValue: number;
+  onRemove: (ticker: string) => void;
 }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -603,6 +676,7 @@ function PositionsTable({
           <th className="text-right">{t("dashboard.headers.cost")}</th>
           <th className="text-right">{t("dashboard.headers.pl")}</th>
           <th className="text-right">{t("dashboard.headers.plPct")}</th>
+          <th className="w-8" />
         </tr>
       </thead>
       <tbody>
@@ -675,10 +749,25 @@ function PositionsTable({
                 >
                   {formatPct(plPct)}
                 </td>
+                <td className="text-right">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(p.ticker);
+                    }}
+                    className="text-slate-300 hover:text-rose-600 px-1 text-base leading-none"
+                    title={t("dashboard.deconstruct.remove", { ticker: p.ticker })}
+                    aria-label={t("dashboard.deconstruct.remove", {
+                      ticker: p.ticker,
+                    })}
+                  >
+                    ✕
+                  </button>
+                </td>
               </tr>
               {isExpanded && (
                 <tr className="bg-slate-50/70">
-                  <td colSpan={8} className="px-4 py-3">
+                  <td colSpan={9} className="px-4 py-3">
                     <div className="space-y-5">
                       <FundamentalsDetail
                         fund={fund}

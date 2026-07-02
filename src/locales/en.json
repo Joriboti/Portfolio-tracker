@@ -91,6 +91,12 @@
     "closedPositions": "Closed positions",
     "transactions": "Transactions",
     "noPositions": "You don't have any positions yet. Upload an Excel to get started.",
+    "deconstruct": {
+      "remove": "Remove {{ticker}} from the view",
+      "undo": "Undo",
+      "removedLabel": "Removed from view:",
+      "restore": "Add {{ticker}} back"
+    },
     "lastUpdated": "Prices last updated: {{when}}",
     "currency": "Display currency",
     "refresh": "↻ Refresh",

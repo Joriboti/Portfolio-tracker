@@ -91,6 +91,12 @@
     "closedPositions": "Posicions tancades",
     "transactions": "Transaccions",
     "noPositions": "Encara no tens posicions. Puja un Excel per començar.",
+    "deconstruct": {
+      "remove": "Treu {{ticker}} de la vista",
+      "undo": "Desfés",
+      "removedLabel": "Tret de la vista:",
+      "restore": "Torna a afegir {{ticker}}"
+    },
     "lastUpdated": "Darrera actualització de preus: {{when}}",
     "currency": "Divisa de visualització",
     "refresh": "↻ Actualitza",
