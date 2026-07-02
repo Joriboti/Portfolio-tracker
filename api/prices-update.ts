@@ -41,6 +41,9 @@ const TICKER_MAP: Record<string, string> = {
   NBUS: "NBIS",
   PALLADIUM: "SPDM.MI",
   "PHYSICAL PALLADIUM ETF": "SPDM.MI",
+  // The stored ticker is PPFA (see TICKER_STORAGE_ALIASES) — map it back to
+  // the Milan listing; Yahoo's own "PPFA" symbol is a sparse OTC line.
+  PPFA: "SPDM.MI",
 
   // --- Original full names from "CARTERA PROVES" format ---
   "BANCO SANTANDER": "SAN.MC",
