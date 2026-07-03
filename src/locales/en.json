@@ -8,6 +8,7 @@
     "dashboard": "Dashboard",
     "upload": "Build portfolio",
     "explore": "Explore stocks",
+    "forecast": "Forecast",
     "research": "Research",
     "howTo": "How to prepare",
     "account": "Account",
@@ -77,6 +78,40 @@
     "price": "Current price",
     "tryFree": "You're trying every model for free, no account needed.",
     "signInToSave": "Sign up to save your analyses →"
+  },
+  "forecast": {
+    "seoTitle": "Portfolio forecast calculator | TrimmTrack",
+    "title": "Portfolio forecast",
+    "subtitle": "Project how a passive/ETF portfolio could grow with recurring contributions, fees and an uncertainty band (Monte Carlo). Not a prediction — a range of scenarios.",
+    "startValue": "Starting value ({{currency}})",
+    "years": "Years",
+    "contribution": "Contribution ({{currency}})",
+    "frequency": "Frequency",
+    "freq": {
+      "none": "None",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "annual": "Annual",
+      "oneOff": "One-off"
+    },
+    "expectedReturn": "Expected annual return",
+    "volatility": "Volatility (σ)",
+    "ter": "Fees (TER)",
+    "taxDrag": "Tax drag",
+    "preset": {
+      "conservative": "Conservative",
+      "balanced": "Balanced",
+      "aggressive": "Aggressive"
+    },
+    "median": "Median value",
+    "range": "Range (p10–p90)",
+    "invested": "Total invested",
+    "gain": "Gain (median)",
+    "disclaimer": "Educational simulation of 1,500 Monte Carlo scenarios over your assumptions. Past or expected returns don't guarantee future results. Not financial advice.",
+    "legendMedian": "Median (p50)",
+    "legendBand": "p10–p90 range",
+    "legendDeterministic": "Deterministic",
+    "legendInvested": "Invested"
   },
   "upload": {
     "title": "Build your portfolio",

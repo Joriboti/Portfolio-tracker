@@ -14,6 +14,7 @@ const DashboardPage = lazy(() => import("@/pages/dashboard").then((m) => ({ defa
 const DebugPage = lazy(() => import("@/pages/debug").then((m) => ({ default: m.DebugPage })));
 const UploadPage = lazy(() => import("@/pages/upload").then((m) => ({ default: m.UploadPage })));
 const ExplorePage = lazy(() => import("@/pages/explore").then((m) => ({ default: m.ExplorePage })));
+const ForecastPage = lazy(() => import("@/pages/forecast").then((m) => ({ default: m.ForecastPage })));
 const DisclaimerPage = lazy(() => import("@/pages/disclaimer").then((m) => ({ default: m.DisclaimerPage })));
 const ResearchPage = lazy(() => import("@/pages/research").then((m) => ({ default: m.ResearchPage })));
 const ResearchArticlePage = lazy(() => import("@/pages/research-article").then((m) => ({ default: m.ResearchArticlePage })));
@@ -45,6 +46,7 @@ export default function App() {
         {/* Public taster: anyone can run the 6 valuation models on any ticker
             (no account). The panel runs ephemerally without a userId. */}
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/forecast" element={<ForecastPage />} />
 
         {/* Public with a trial: no account → capped in-memory taste, sign-in →
             the real thing. Each page branches internally on the session. */}

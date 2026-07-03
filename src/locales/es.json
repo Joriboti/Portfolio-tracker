@@ -8,6 +8,7 @@
     "dashboard": "Panel",
     "upload": "Construir cartera",
     "explore": "Explorar empresas",
+    "forecast": "Proyección",
     "research": "Análisis",
     "howTo": "Cómo prepararlo",
     "account": "Cuenta",
@@ -77,6 +78,40 @@
     "price": "Precio actual",
     "tryFree": "Estás probando todos los modelos gratis, sin registro.",
     "signInToSave": "Regístrate para guardar tus análisis →"
+  },
+  "forecast": {
+    "seoTitle": "Calculadora de proyección de cartera | TrimmTrack",
+    "title": "Proyección de cartera",
+    "subtitle": "Proyecta cómo puede crecer una cartera pasiva/ETF con aportaciones periódicas, comisiones y una banda de incertidumbre (Monte Carlo). No es una predicción: es un rango de escenarios.",
+    "startValue": "Valor inicial ({{currency}})",
+    "years": "Años",
+    "contribution": "Aportación ({{currency}})",
+    "frequency": "Frecuencia",
+    "freq": {
+      "none": "Ninguna",
+      "monthly": "Mensual",
+      "quarterly": "Trimestral",
+      "annual": "Anual",
+      "oneOff": "Puntual"
+    },
+    "expectedReturn": "Retorno anual esperado",
+    "volatility": "Volatilidad (σ)",
+    "ter": "Comisiones (TER)",
+    "taxDrag": "Drag fiscal",
+    "preset": {
+      "conservative": "Conservador",
+      "balanced": "Equilibrado",
+      "aggressive": "Agresivo"
+    },
+    "median": "Valor mediana",
+    "range": "Rango (p10–p90)",
+    "invested": "Total aportado",
+    "gain": "Ganancia (mediana)",
+    "disclaimer": "Simulación educativa con 1.500 escenarios Monte Carlo sobre tus supuestos. Rendimientos pasados o esperados no garantizan resultados futuros. No es asesoramiento financiero.",
+    "legendMedian": "Mediana (p50)",
+    "legendBand": "Rango p10–p90",
+    "legendDeterministic": "Determinista",
+    "legendInvested": "Aportado"
   },
   "upload": {
     "title": "Construir tu cartera",
