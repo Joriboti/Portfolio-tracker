@@ -323,7 +323,9 @@
     "reverseSentence": "El precio actual implica que el mercado espera un crecimiento de {{metric}} del {{implied}}%/año durante {{years}} años. ¿Crees que es alcanzable?",
     "reverseCompare": "Tú asumes un {{assumed}}%/año en el DCF → el mercado es {{verdict}} respecto a tu tesis.",
     "verdictOptimistic": "más optimista",
-    "verdictPessimistic": "más pesimista"
+    "verdictPessimistic": "más pesimista",
+    "pathTitle": "Trayectoria del precio proyectado ({{years}} años)",
+    "pathNow": "hoy"
   },
   "graham": {
     "intro": "Fórmula clásica de Graham ajustada por tipos de interés. Rápida y defensiva, pensada para cribado — no es una valoración fina.",

@@ -323,7 +323,9 @@
     "reverseSentence": "The current price implies the market expects {{implied}}%/yr {{metric}} growth for {{years}} years. Do you think that's achievable?",
     "reverseCompare": "You assume {{assumed}}%/yr in the DCF → the market is {{verdict}} than your thesis.",
     "verdictOptimistic": "more optimistic",
-    "verdictPessimistic": "more pessimistic"
+    "verdictPessimistic": "more pessimistic",
+    "pathTitle": "Projected price path ({{years}} years)",
+    "pathNow": "today"
   },
   "graham": {
     "intro": "Benjamin Graham's classic interest-adjusted formula. Fast and defensive, built for screening — not a fine valuation.",

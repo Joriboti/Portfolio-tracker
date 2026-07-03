@@ -323,7 +323,9 @@
     "reverseSentence": "El preu actual implica que el mercat espera un creixement de {{metric}} del {{implied}}%/any durant {{years}} anys. Creus que és assolible?",
     "reverseCompare": "Tu assumeixes un {{assumed}}%/any al DCF → el mercat és {{verdict}} respecte la teva tesi.",
     "verdictOptimistic": "més optimista",
-    "verdictPessimistic": "més pessimista"
+    "verdictPessimistic": "més pessimista",
+    "pathTitle": "Trajectòria del preu projectat ({{years}} anys)",
+    "pathNow": "avui"
   },
   "graham": {
     "intro": "Fórmula clàssica de Graham ajustada per tipus d'interès. Ràpida i defensiva, pensada per a cribratge — no és una valoració fina.",

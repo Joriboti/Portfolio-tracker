@@ -1201,8 +1201,94 @@ function DcfTab({
               value={currentPrice != null ? fmt(currentPrice) : "—"}
             />
           </div>
+
+          <DcfPathChart
+            currentPrice={currentPrice}
+            futurePrice={result.futurePrice}
+            baseMetric={base as number}
+            growthRate={config.growthRate}
+            exitMultiple={config.exitMultiple}
+            years={config.years}
+            qc={qc}
+          />
         </>
       )}
+    </div>
+  );
+}
+
+/** Projected price path, Qualtrim-style: a dotted line per year from today's
+ *  price compounding to the estimated future price (implied-return path). When
+ *  there's no live price it falls back to metric×multiple per year. */
+function DcfPathChart({
+  currentPrice,
+  futurePrice,
+  baseMetric,
+  growthRate,
+  exitMultiple,
+  years,
+  qc,
+}: {
+  currentPrice: number | null;
+  futurePrice: number;
+  baseMetric: number;
+  growthRate: number;
+  exitMultiple: number;
+  years: number;
+  qc: Currency;
+}) {
+  const { t } = useTranslation();
+  const n = Math.max(1, Math.round(years));
+  const anchored = currentPrice != null && currentPrice > 0 && futurePrice > 0;
+  const values: number[] = [];
+  for (let y = 0; y <= n; y++) {
+    if (anchored) {
+      // Smooth path from today's price to the future price (CAGR between them).
+      values.push(currentPrice * Math.pow(futurePrice / currentPrice, y / n));
+    } else {
+      values.push(baseMetric * Math.pow(1 + growthRate / 100, y) * exitMultiple);
+    }
+  }
+  if (!values.every((v) => Number.isFinite(v) && v > 0)) return null;
+
+  const W = 560;
+  const H = 200;
+  const padL = 56;
+  const padR = 14;
+  const padT = 14;
+  const padB = 22;
+  const maxV = Math.max(...values);
+  const minV = Math.min(...values);
+  const span = maxV - minV || 1;
+  const x = (i: number) => padL + (i / n) * (W - padL - padR);
+  const y = (v: number) => padT + (1 - (v - minV) / span) * (H - padT - padB);
+  const path = values.map((v, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(v)}`).join(" ");
+  const ticks = [minV, minV + span / 2, maxV];
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-3">
+      <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        {t("dcf.pathTitle", { years: n })}
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={t("dcf.pathTitle", { years: n })}>
+        {ticks.map((tk, i) => (
+          <g key={i}>
+            <line x1={padL} y1={y(tk)} x2={W - padR} y2={y(tk)} stroke="#e2e8f0" strokeWidth={1} />
+            <text x={padL - 6} y={y(tk) + 3} textAnchor="end" fontSize={9} fill="#94a3b8">
+              {formatMoney(tk, qc)}
+            </text>
+          </g>
+        ))}
+        <path d={path} fill="none" stroke="#059669" strokeWidth={2} />
+        {values.map((v, i) => (
+          <circle key={i} cx={x(i)} cy={y(v)} r={3.5} fill="#059669" />
+        ))}
+        {values.map((_, i) => (
+          <text key={i} x={x(i)} y={H - 4} textAnchor="middle" fontSize={9} fill="#94a3b8">
+            {i === 0 ? t("dcf.pathNow") : `+${i}`}
+          </text>
+        ))}
+      </svg>
     </div>
   );
 }
