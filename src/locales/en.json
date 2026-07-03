@@ -8,7 +8,7 @@
     "dashboard": "Dashboard",
     "upload": "Build portfolio",
     "explore": "Explore stocks",
-    "forecast": "Forecast",
+    "forecast": "ETF Simulator",
     "research": "Research",
     "howTo": "How to prepare",
     "account": "Account",
@@ -89,7 +89,7 @@
   },
   "forecast": {
     "seoTitle": "ETF portfolio forecast & simulation calculator | TrimmTrack",
-    "title": "Portfolio forecast",
+    "title": "ETF Simulator",
     "subtitle": "Project how a passive/ETF portfolio could grow with recurring contributions, fees and an uncertainty band (Monte Carlo). Not a prediction — a range of scenarios.",
     "startValue": "Starting value ({{currency}})",
     "years": "Years",

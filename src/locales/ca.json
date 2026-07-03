@@ -8,7 +8,7 @@
     "dashboard": "Dashboard",
     "upload": "Construir portfolio",
     "explore": "Explorar empreses",
-    "forecast": "Projecció",
+    "forecast": "Simulador d'ETFs",
     "research": "Anàlisis",
     "howTo": "Com preparar-ho",
     "account": "Compte",
@@ -89,7 +89,7 @@
   },
   "forecast": {
     "seoTitle": "Calculadora de projecció i simulació d'ETFs | TrimmTrack",
-    "title": "Projecció de cartera",
+    "title": "Simulador d'ETFs",
     "subtitle": "Projecta com pot créixer una cartera passiva/ETF amb aportacions periòdiques, comissions i un ventall d'incertesa (Monte Carlo). No és una predicció: és un rang d'escenaris.",
     "startValue": "Valor inicial ({{currency}})",
     "years": "Anys",
