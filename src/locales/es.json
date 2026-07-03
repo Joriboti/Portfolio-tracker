@@ -134,7 +134,36 @@
     "legendMedian": "Mediana (p50)",
     "legendBand": "Rango p10–p90",
     "legendDeterministic": "Determinista",
-    "legendInvested": "Aportado"
+    "legendInvested": "Aportado",
+    "guide": {
+      "title": "Conceptos clave para invertir en ETFs",
+      "intro": "Antes de jugar con el simulador, estos son los principios que de verdad deciden el resultado a largo plazo. Ninguno es un secreto: lo difícil es cumplirlos durante décadas.",
+      "lowCost": {
+        "title": "Comisiones bajas (TER)",
+        "body": "Las comisiones se comen tu retorno cada año, pase lo que pase en el mercado. Un ETF indexado global no debería costar más de un 0,20% anual: si te cobran más, mala señal — existen equivalentes más baratos. Prueba el simulador con un TER del 0,2% frente al 1,5% y verás cómo la diferencia se convierte en decenas de miles de euros a 20 años."
+      },
+      "keepBuying": {
+        "title": "Keep buying: aporta siempre, también en las caídas",
+        "body": "Seguro que has oído que quien invirtió en el máximo del año 2000 no recuperó hasta 2013. Es engañoso: solo es cierto para una única aportación. Quien siguió comprando cada mes acumuló participaciones a los precios bajos de 2001–2003 y 2008–2009, y volvió a positivo muchos años antes con una rentabilidad muy superior. Las caídas son cuando tus aportaciones compran barato."
+      },
+      "diversify": {
+        "title": "Diversifica de verdad: índice global",
+        "body": "Un solo ETF sobre un índice mundial (MSCI World o ACWI) te da miles de empresas de decenas de países con una sola compra. Apostar por un sector, un país o una temática de moda concentra el riesgo y, históricamente, la mayoría de esas apuestas acaban por debajo del índice global."
+      },
+      "accumulating": {
+        "title": "Acumulación mejor que distribución",
+        "body": "Un ETF de acumulación reinvierte los dividendos automáticamente: el interés compuesto trabaja sin que hagas nada y sin tributar cada año por los dividendos cobrados. Si no necesitas la renta, la acumulación suele ser más eficiente fiscalmente y más cómoda."
+      },
+      "stayInvested": {
+        "title": "Tiempo en el mercado > acertar el momento",
+        "body": "Nadie sabe cuándo caerán o subirán los mercados. Los mejores días de bolsa suelen llegar pegados a los peores: quien sale en pánico acostumbra a perdérselos, y perderse solo un puñado de los mejores días en 20 años destroza la rentabilidad. La volatilidad no es un fallo del plan: es el precio que pagas por el retorno."
+      },
+      "quality": {
+        "title": "Elige fondos grandes y de réplica física",
+        "body": "Antes de comprar, mira tres cosas: patrimonio gestionado (mejor por encima de 100 M€, reduce el riesgo de cierre), réplica física (el fondo tiene las acciones de verdad) y la diferencia de seguimiento respecto al índice (tracking difference), que es el coste real una vez sumado todo."
+      },
+      "note": "Contenido educativo, no asesoramiento financiero personalizado."
+    }
   },
   "upload": {
     "title": "Construir tu cartera",

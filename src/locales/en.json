@@ -134,7 +134,36 @@
     "legendMedian": "Median (p50)",
     "legendBand": "p10–p90 range",
     "legendDeterministic": "Deterministic",
-    "legendInvested": "Invested"
+    "legendInvested": "Invested",
+    "guide": {
+      "title": "Key concepts for investing in ETFs",
+      "intro": "Before playing with the simulator, these are the principles that truly decide long-term results. None of them is a secret — the hard part is sticking to them for decades.",
+      "lowCost": {
+        "title": "Low fees (TER)",
+        "body": "Fees eat into your return every single year, whatever the market does. A global index ETF shouldn't cost more than 0.20% a year: if you're being charged more, that's a red flag — cheaper equivalents exist. Try the simulator with a 0.2% vs 1.5% TER and watch the difference compound into tens of thousands over 20 years."
+      },
+      "keepBuying": {
+        "title": "Keep buying — especially through the drops",
+        "body": "You've probably heard that anyone who invested at the 2000 peak didn't break even until 2013. That's misleading: it's only true for a single lump sum. Anyone who kept buying every month accumulated shares at the cheap 2001–2003 and 2008–2009 prices and returned to profit years earlier, with a far better return. Downturns are when your contributions buy cheap."
+      },
+      "diversify": {
+        "title": "Diversify properly: go global",
+        "body": "A single world-index ETF (MSCI World or ACWI) gives you thousands of companies across dozens of countries in one purchase. Betting on one sector, one country or the theme of the moment concentrates risk — and historically most of those bets end up underperforming the global index."
+      },
+      "accumulating": {
+        "title": "Accumulating beats distributing",
+        "body": "An accumulating ETF reinvests dividends automatically: compounding works with zero effort and without paying tax each year on distributed dividends. If you don't need the income, accumulating share classes are usually more tax-efficient and more convenient."
+      },
+      "stayInvested": {
+        "title": "Time in the market > timing the market",
+        "body": "Nobody knows when markets will fall or recover. The best market days tend to cluster right next to the worst ones: panic-sellers usually miss them, and missing just a handful of the best days over 20 years wrecks the outcome. Volatility isn't a flaw in the plan — it's the price you pay for the return."
+      },
+      "quality": {
+        "title": "Pick large, physically replicated funds",
+        "body": "Before buying, check three things: assets under management (ideally above €100M, lowers closure risk), physical replication (the fund actually holds the shares) and the tracking difference versus the index — the real all-in cost once everything is added up."
+      },
+      "note": "Educational content, not personalised financial advice."
+    }
   },
   "upload": {
     "title": "Build your portfolio",

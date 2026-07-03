@@ -201,7 +201,49 @@ export function ForecastPage() {
       </section>
 
       <p className="text-xs text-slate-400">{t("forecast.disclaimer")}</p>
+
+      <GuideSection />
     </div>
+  );
+}
+
+/* ─────────────────── ETF investing key concepts ─────────────────── */
+
+// Educational section under the simulator: the handful of principles that
+// actually decide long-term index-investing outcomes. Pure i18n content —
+// also indexable copy for this public page.
+const GUIDE_KEYS = [
+  "lowCost",
+  "keepBuying",
+  "diversify",
+  "accumulating",
+  "stayInvested",
+  "quality",
+] as const;
+
+function GuideSection() {
+  const { t } = useTranslation();
+  return (
+    <section className="space-y-3 pt-2">
+      <div>
+        <h2 className="text-lg font-medium text-slate-900">{t("forecast.guide.title")}</h2>
+        <p className="mt-1 max-w-2xl text-sm text-slate-600">{t("forecast.guide.intro")}</p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {GUIDE_KEYS.map((k, i) => (
+          <div key={k} className="rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+            <p className="text-sm font-semibold text-slate-800">
+              <span className="mr-1.5 text-brand-600">{i + 1}.</span>
+              {t(`forecast.guide.${k}.title`)}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+              {t(`forecast.guide.${k}.body`)}
+            </p>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-slate-400">{t("forecast.guide.note")}</p>
+    </section>
   );
 }
 

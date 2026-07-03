@@ -134,7 +134,36 @@
     "legendMedian": "Mediana (p50)",
     "legendBand": "Rang p10–p90",
     "legendDeterministic": "Determinista",
-    "legendInvested": "Aportat"
+    "legendInvested": "Aportat",
+    "guide": {
+      "title": "Conceptes clau per invertir en ETFs",
+      "intro": "Abans de jugar amb el simulador, aquests són els principis que de debò decideixen el resultat a llarg termini. No n'hi ha cap de secret: la dificultat és complir-los durant dècades.",
+      "lowCost": {
+        "title": "Comissions baixes (TER)",
+        "body": "Les comissions es mengen el retorn cada any, passi el que passi al mercat. Un ETF indexat global no hauria de costar més d'un 0,20% anual: si te'n cobren més, mala senyal — n'existeixen d'equivalents més barats. Al simulador pots veure com un TER del 0,2% vs l'1,5% canvia el resultat en desenes de milers d'euros a 20 anys."
+      },
+      "keepBuying": {
+        "title": "Keep buying: aporta sempre, també a les baixades",
+        "body": "Segur que has sentit que qui va invertir al màxim de l'any 2000 no va recuperar fins al 2013. És enganyós: només és cert per a una única aportació. Qui va continuar comprant cada mes va acumular participacions als preus baixos de 2001–2003 i 2008–2009, i va tornar a positiu molts anys abans amb una rendibilitat molt superior. Les caigudes són quan les teves aportacions compren més barat."
+      },
+      "diversify": {
+        "title": "Diversifica de veritat: índex global",
+        "body": "Un sol ETF sobre un índex mundial (MSCI World o ACWI) et dona milers d'empreses de desenes de països amb una sola compra. Apostar per un sector, un país o una temàtica de moda concentra el risc i, històricament, la majoria d'aquestes apostes acaben per sota de l'índex global."
+      },
+      "accumulating": {
+        "title": "Acumulació millor que distribució",
+        "body": "Un ETF d'acumulació reinverteix els dividends automàticament: l'interès compost treballa sense que hagis de fer res i sense tributar cada any pels dividends cobrats. Si no necessites la renda, l'acumulació sol ser més eficient fiscalment i més còmoda."
+      },
+      "stayInvested": {
+        "title": "Temps al mercat > encertar el moment",
+        "body": "Ningú no sap quan cauran o pujaran els mercats. Els millors dies de borsa solen arribar enganxats als pitjors: qui surt en pànic acostuma a perdre-se'ls, i perdre's només un grapat dels millors dies en 20 anys destrossa la rendibilitat. La volatilitat no és un error del pla: és el preu que pagues pel retorn."
+      },
+      "quality": {
+        "title": "Tria fons grans i de rèplica física",
+        "body": "Abans de comprar, mira tres coses: patrimoni gestionat (millor per sobre de 100 M€, redueix el risc de tancament), rèplica física (el fons té les accions de debò) i la diferència de seguiment respecte a l'índex (tracking difference), que és el cost real un cop sumat tot."
+      },
+      "note": "Contingut educatiu, no assessorament financer personalitzat."
+    }
   },
   "upload": {
     "title": "Construir la teva cartera",
