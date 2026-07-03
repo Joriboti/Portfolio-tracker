@@ -22,27 +22,27 @@ export function HomePage() {
         style={{ background: "radial-gradient(closest-side, #e76b1c 0%, transparent 70%)" }}
       />
 
-      <div className="relative mx-auto max-w-6xl px-4 pt-20 pb-16">
+      <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-16">
         <div className="mx-auto max-w-3xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-brand-300 backdrop-blur">
             <Logo className="h-4 w-4" />
             {t("app.tagline")}
           </span>
 
-          <h1 className="mt-8 font-display text-5xl font-semibold leading-[1.05] tracking-tight text-[#f3ead9] sm:text-7xl">
+          <h1 className="mt-7 font-display text-4xl font-semibold leading-[1.08] tracking-tight text-[#f3ead9] sm:text-6xl">
             {t("home.heroTitle")}
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[#c9bda9]">
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-[#c9bda9] sm:text-lg">
             {t("home.heroSubtitle")}
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/explore" className="btn-primary px-6 py-3 text-base">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/explore" className="btn-primary px-5 py-2.5 text-sm sm:text-base">
               {t("home.ctaTry")}
             </Link>
             <Link
               to="/disclaimer"
-              className="inline-flex items-center rounded-lg border border-white/20 px-6 py-3 text-base font-medium text-[#f3ead9] transition-colors hover:border-white/40 hover:bg-white/5"
+              className="inline-flex items-center rounded-lg border border-white/20 px-5 py-2.5 text-sm font-medium text-[#f3ead9] transition-colors hover:border-white/40 hover:bg-white/5 sm:text-base"
             >
               {t("home.ctaStart")}
             </Link>
