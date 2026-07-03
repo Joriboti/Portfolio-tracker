@@ -8,11 +8,11 @@ import {
   refreshPrices,
   refreshHistoricalPrices,
 } from "@/lib/api";
-import { AuthGuard } from "@/components/AuthGuard";
 import { AddHoldingForm } from "@/components/AddHoldingForm";
 import { HowToPrepareExcel } from "@/components/HowToPrepareExcel";
 import { FifoCalculator } from "@/components/FifoCalculator";
 import { useUser } from "@/hooks/useUser";
+import { setTrialFromExcel } from "@/lib/trial";
 
 function UploadInner() {
   const { t } = useTranslation();
@@ -53,7 +53,14 @@ function UploadInner() {
   }
 
   async function confirmImport() {
-    if (!parsed || !user) return;
+    if (!parsed) return;
+    // Anonymous trial: keep the first N rows client-side and go straight to the
+    // (public) dashboard — no account, no DB write.
+    if (!user) {
+      setTrialFromExcel(parsed.transactions);
+      navigate("/dashboard");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -106,11 +113,14 @@ function UploadInner() {
         <h2 className="text-lg font-semibold text-slate-900">
           {t("upload.sectionManual")}
         </h2>
-        {user && (
-          <AddHoldingForm
-            userId={user.id}
-            onAdded={() => navigate("/dashboard")}
-          />
+        <AddHoldingForm
+          userId={user?.id ?? ""}
+          onAdded={() => navigate("/dashboard")}
+        />
+        {!user && (
+          <p className="text-xs text-slate-500">
+            {t("trial.uploadHint", { rows: 30, positions: 10 })}
+          </p>
         )}
       </section>
 
@@ -281,9 +291,5 @@ function UploadInner() {
 }
 
 export function UploadPage() {
-  return (
-    <AuthGuard>
-      <UploadInner />
-    </AuthGuard>
-  );
+  return <UploadInner />;
 }

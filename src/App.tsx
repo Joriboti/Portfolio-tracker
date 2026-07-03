@@ -46,9 +46,11 @@ export default function App() {
             (no account). The panel runs ephemerally without a userId. */}
         <Route path="/explore" element={<ExplorePage />} />
 
-        <Route path="/dashboard" element={<Private><DashboardPage /></Private>} />
+        {/* Public with a trial: no account → capped in-memory taste, sign-in →
+            the real thing. Each page branches internally on the session. */}
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/upload" element={<UploadPage />} />
         <Route path="/debug" element={<Private><DebugPage /></Private>} />
-        <Route path="/upload" element={<Private><UploadPage /></Private>} />
         {/* Folded into /upload (Build portfolio → Excel subsection). */}
         <Route path="/how-to-prepare" element={<Navigate to="/upload" replace />} />
         <Route path="/account" element={<Private><AccountPage /></Private>} />

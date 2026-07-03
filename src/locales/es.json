@@ -419,6 +419,16 @@
     "signUpTitle": "Crea una cuenta",
     "signedOut": "Has cerrado la sesión"
   },
+  "trial": {
+    "banner": "Estás en modo prueba: no se guarda nada. Regístrate para guardar tu cartera y desbloquear analítica, rendimiento y evolución.",
+    "signUp": "Regístrate gratis →",
+    "title": "Cartera de prueba",
+    "reset": "Vaciar la prueba",
+    "empty": "Prueba el panel sin registro: añade una posición o sube un Excel (hasta {{rows}} filas, {{positions}} posiciones).",
+    "emptyCta": "Añadir posiciones",
+    "capPositions": "Has alcanzado el límite de {{max}} posiciones de prueba. Regístrate para añadir más.",
+    "uploadHint": "Sin registro puedes probar hasta {{positions}} posiciones manuales o un Excel de {{rows}} filas. Regístrate para quitar los límites."
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Ha habido un error",

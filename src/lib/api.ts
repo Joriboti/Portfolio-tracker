@@ -148,6 +148,19 @@ export function addHolding(
   });
 }
 
+// Append several transactions at once (append mode) — used to carry an
+// anonymous trial portfolio into a freshly created account on sign-up.
+export function appendHoldings(
+  userId: string,
+  txns: Transaction[],
+): Promise<{ ok: true; counts?: Record<string, number> }> {
+  return jsonFetch("/api/portfolio-import", {
+    method: "POST",
+    body: JSON.stringify({ transactions: txns, append: true }),
+    userId,
+  });
+}
+
 export async function getPortfolio(userId: string): Promise<{
   transactions: Transaction[];
   dividends: Dividend[];

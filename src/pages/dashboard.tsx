@@ -18,6 +18,7 @@ import {
   refreshDividends,
   getFundamentals,
   refreshFundamentals,
+  appendHoldings,
   type PriceQuote,
   type Fundamentals,
 } from "@/lib/api";
@@ -25,8 +26,9 @@ import {
   computeSinceInception,
   computeYearlyBreakdown,
 } from "@/lib/performance";
-import { AuthGuard } from "@/components/AuthGuard";
 import { useUser } from "@/hooks/useUser";
+import { TrialDashboard } from "@/components/TrialDashboard";
+import { hasTrial, getTrialTxns, clearTrial } from "@/lib/trial";
 import { PieChartModal } from "@/components/PieChartModal";
 import { AnalyticsCard } from "@/components/AnalyticsCard";
 import { PerformanceCard } from "@/components/PerformanceCard";
@@ -564,11 +566,34 @@ function DashboardInner() {
 }
 
 export function DashboardPage() {
-  return (
-    <AuthGuard>
-      <DashboardInner />
-    </AuthGuard>
-  );
+  const { t } = useTranslation();
+  const { user, isPending } = useUser();
+  const [carrying, setCarrying] = useState(false);
+
+  // Carry an anonymous trial portfolio into the account on first sign-in, then
+  // refresh prices so the real dashboard is populated immediately.
+  useEffect(() => {
+    if (!user || !hasTrial()) return;
+    setCarrying(true);
+    const txns = getTrialTxns();
+    appendHoldings(user.id, txns)
+      .then(() => refreshPrices(user.id).catch(() => {}))
+      .catch(() => {})
+      .finally(() => {
+        clearTrial();
+        setCarrying(false);
+      });
+  }, [user]);
+
+  if (isPending || carrying) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-10 text-slate-500">
+        {t("common.loading")}
+      </div>
+    );
+  }
+  // No account → the public trial dashboard. Signed in → the real thing.
+  return user ? <DashboardInner /> : <TrialDashboard />;
 }
 
 function Stat({

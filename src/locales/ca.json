@@ -419,6 +419,16 @@
     "signUpTitle": "Crea un compte",
     "signedOut": "Has tancat la sessió"
   },
+  "trial": {
+    "banner": "Estàs en mode prova: les teves dades no es desen. Registra't per desar-les i desbloquejar analítica, rendiment i evolució.",
+    "signUp": "Registra't gratis →",
+    "title": "Cartera de prova",
+    "reset": "Buida la prova",
+    "empty": "Prova el dashboard sense registre: afegeix una posició o puja un Excel (fins a {{rows}} files, {{positions}} posicions).",
+    "emptyCta": "Afegeix posicions",
+    "capPositions": "Has arribat al límit de {{max}} posicions de prova. Registra't per afegir-ne més.",
+    "uploadHint": "Sense registre pots provar fins a {{positions}} posicions manuals o un Excel de {{rows}} files. Registra't per treure els límits."
+  },
   "common": {
     "loading": "Carregant...",
     "error": "Hi ha hagut un error",

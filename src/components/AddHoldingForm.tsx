@@ -8,6 +8,7 @@ import {
   type TickerSearchResult,
 } from "@/lib/api";
 import type { Transaction } from "@/lib/excel-parser";
+import { addTrialHolding, TRIAL_MAX_POSITIONS } from "@/lib/trial";
 import { CompanyLogo } from "@/components/CompanyLogo";
 
 // Manual "Add holding" form: search a ticker (Yahoo autocomplete), enter shares,
@@ -113,6 +114,18 @@ export function AddHoldingForm({
       result: null,
       portfolio: "manual",
     };
+    // Anonymous trial (no userId): store locally, no API. Capped at
+    // TRIAL_MAX_POSITIONS distinct tickers — the cap prompts sign-up.
+    if (!userId) {
+      if (!addTrialHolding(txn)) {
+        setError(t("trial.capPositions", { max: TRIAL_MAX_POSITIONS }));
+        return;
+      }
+      setDone(t("addHolding.added", { ticker: txn.ticker }));
+      reset();
+      onAdded?.(txn.ticker);
+      return;
+    }
     setBusy(true);
     try {
       await addHolding(userId, txn);

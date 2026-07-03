@@ -419,6 +419,16 @@
     "signUpTitle": "Create an account",
     "signedOut": "You have signed out"
   },
+  "trial": {
+    "banner": "You're in trial mode — nothing is saved. Sign up to save your portfolio and unlock analytics, performance and evolution.",
+    "signUp": "Sign up free →",
+    "title": "Trial portfolio",
+    "reset": "Clear trial",
+    "empty": "Try the dashboard with no account: add a position or upload an Excel (up to {{rows}} rows, {{positions}} positions).",
+    "emptyCta": "Add positions",
+    "capPositions": "You've reached the {{max}}-position trial limit. Sign up to add more.",
+    "uploadHint": "Without an account you can try up to {{positions}} manual positions or a {{rows}}-row Excel. Sign up to remove the limits."
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
