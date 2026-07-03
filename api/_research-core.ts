@@ -74,10 +74,13 @@ async function fetchBlocks(
 }
 
 export async function handleResearch(req: VercelRequest, res: VercelResponse) {
-  // Public, cacheable content — let Vercel's edge serve it stale-while-revalidate.
+  // Public, cacheable content — edge-cached but with a short TTL so edits made
+  // in Notion (publish an article, change a cover) show up within minutes
+  // rather than up to an hour. stale-while-revalidate keeps it instant for
+  // readers while a fresh copy is fetched in the background.
   res.setHeader(
     "Cache-Control",
-    "public, s-maxage=3600, stale-while-revalidate=86400",
+    "public, s-maxage=300, stale-while-revalidate=3600",
   );
 
   const apiKey = process.env.NOTION_API_KEY;
