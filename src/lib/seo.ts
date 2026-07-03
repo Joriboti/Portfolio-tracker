@@ -1,4 +1,13 @@
 import { useEffect } from "react";
+import i18n from "@/lib/i18n";
+
+/** Languages exposed as indexable variants (?lng=…). ca is the default URL. */
+const LANGS = ["ca", "es", "en"] as const;
+
+function langUrl(url: string, lng: string): string {
+  if (lng === "ca") return url;
+  return `${url}${url.includes("?") ? "&" : "?"}lng=${lng}`;
+}
 
 // Per-route SEO for the CSR app: upserts <title>, meta description, canonical,
 // Open Graph / Twitter tags and an optional JSON-LD <script>. Googlebot renders
@@ -57,13 +66,29 @@ export function useSeo({ title, description, url, image, jsonLd }: SeoInput) {
       'link[rel="canonical"]',
     );
     const prevCanonical = canonical?.getAttribute("href") ?? null;
+    const alternates: HTMLLinkElement[] = [];
     if (url) {
       if (!canonical) {
         canonical = document.createElement("link");
         canonical.setAttribute("rel", "canonical");
         document.head.appendChild(canonical);
       }
-      canonical.setAttribute("href", url);
+      // Each language variant is its own indexable page: canonical is
+      // self-referencing (…?lng=es canonicalises to itself, not to ca).
+      const current = (i18n.language ?? "ca").slice(0, 2);
+      canonical.setAttribute(
+        "href",
+        langUrl(url, LANGS.includes(current as (typeof LANGS)[number]) ? current : "ca"),
+      );
+      // hreflang alternates so Google serves the right language per query.
+      for (const l of [...LANGS, "x-default"] as const) {
+        const link = document.createElement("link");
+        link.setAttribute("rel", "alternate");
+        link.setAttribute("hreflang", l);
+        link.setAttribute("href", langUrl(url, l === "x-default" ? "ca" : l));
+        document.head.appendChild(link);
+        alternates.push(link);
+      }
     }
 
     let ld: HTMLScriptElement | null = null;
@@ -77,6 +102,7 @@ export function useSeo({ title, description, url, image, jsonLd }: SeoInput) {
     return () => {
       document.title = prevTitle;
       if (ld) ld.remove();
+      for (const a of alternates) a.remove();
       if (canonical && prevCanonical) canonical.setAttribute("href", prevCanonical);
     };
   }, [title, description, url, image, jsonLd]);

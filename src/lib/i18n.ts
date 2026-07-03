@@ -18,7 +18,11 @@ void i18n
     supportedLngs: ["ca", "en", "es"],
     interpolation: { escapeValue: false },
     detection: {
-      order: ["localStorage", "navigator"],
+      // querystring first: ?lng=es / ?lng=en are the indexable per-language
+      // URLs (hreflang alternates in useSeo point at them; Googlebot renders
+      // the translated page).
+      order: ["querystring", "localStorage", "navigator"],
+      lookupQuerystring: "lng",
       caches: ["localStorage"],
     },
   });

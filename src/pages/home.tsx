@@ -3,10 +3,16 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
 import { getResearchList, type ResearchCard } from "@/lib/research";
+import { useSeo } from "@/lib/seo";
 import { TickerBadge, TagPill } from "./research";
 
 export function HomePage() {
   const { t } = useTranslation();
+  useSeo({
+    title: t("seo.homeTitle"),
+    description: t("seo.homeDesc"),
+    url: "https://www.trimmtrack.com/",
+  });
   return (
     <div className="relative overflow-hidden">
       {/* warm ambient glow */}

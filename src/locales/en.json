@@ -79,8 +79,16 @@
     "tryFree": "You're trying every model for free, no account needed.",
     "signInToSave": "Sign up to save your analyses →"
   },
+  "seo": {
+    "homeTitle": "TrimmTrack — Portfolio tracker, DCF calculators & ETF forecasting",
+    "homeDesc": "Upload your Excel and visualise your portfolio live: P&L, dividends and weights. Free valuation calculators (DCF, Reverse DCF, Graham, Monte Carlo, NAV), ETF portfolio simulation and forecasting, plus equity research on Netflix, EXOR and more. No sign-up.",
+    "exploreTitle": "Stock valuation calculator (DCF, Graham, Monte Carlo) | TrimmTrack",
+    "exploreDesc": "Value any stock for free with 6 models: scenarios, DCF, Reverse DCF, Graham number, Monte Carlo and sum-of-the-parts (NAV). Live Yahoo Finance data, no sign-up.",
+    "researchTitle": "Equity research: Netflix, EXOR and more | TrimmTrack Research",
+    "researchDesc": "Investment theses with applied valuation models: Netflix (DCA strategy), EXOR (discount to NAV) and more. Free fundamental analysis, no sign-up."
+  },
   "forecast": {
-    "seoTitle": "Portfolio forecast calculator | TrimmTrack",
+    "seoTitle": "ETF portfolio forecast & simulation calculator | TrimmTrack",
     "title": "Portfolio forecast",
     "subtitle": "Project how a passive/ETF portfolio could grow with recurring contributions, fees and an uncertainty band (Monte Carlo). Not a prediction — a range of scenarios.",
     "startValue": "Starting value ({{currency}})",

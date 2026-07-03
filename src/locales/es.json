@@ -79,8 +79,16 @@
     "tryFree": "Estás probando todos los modelos gratis, sin registro.",
     "signInToSave": "Regístrate para guardar tus análisis →"
   },
+  "seo": {
+    "homeTitle": "TrimmTrack — Seguidor de cartera, calculadoras DCF y proyección de ETFs",
+    "homeDesc": "Sube tu Excel y visualiza tu cartera en vivo: P&L, dividendos y pesos. Calculadoras gratuitas de valoración (DCF, Reverse DCF, Graham, Monte Carlo, NAV), simulación y predicción de carteras de ETFs, y análisis de empresas como Netflix o EXOR. Sin registro.",
+    "exploreTitle": "Calculadora de valoración de acciones (DCF, Graham, Monte Carlo) | TrimmTrack",
+    "exploreDesc": "Valora cualquier acción gratis con 6 modelos: escenarios, DCF, Reverse DCF, número de Graham, Monte Carlo y suma de partes (NAV). Datos en vivo de Yahoo Finance, sin registro.",
+    "researchTitle": "Análisis de inversión: Netflix, EXOR y más | TrimmTrack Research",
+    "researchDesc": "Tesis de inversión con modelos de valoración aplicados: Netflix (estrategia DCA), EXOR (descuento sobre NAV) y más. Análisis fundamental gratuito, sin registro."
+  },
   "forecast": {
-    "seoTitle": "Calculadora de proyección de cartera | TrimmTrack",
+    "seoTitle": "Calculadora de proyección y simulación de ETFs | TrimmTrack",
     "title": "Proyección de cartera",
     "subtitle": "Proyecta cómo puede crecer una cartera pasiva/ETF con aportaciones periódicas, comisiones y una banda de incertidumbre (Monte Carlo). No es una predicción: es un rango de escenarios.",
     "startValue": "Valor inicial ({{currency}})",

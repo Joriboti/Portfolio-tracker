@@ -9,6 +9,7 @@ import {
 import { formatMoney, type Currency } from "@/lib/currency";
 import { useUser } from "@/hooks/useUser";
 import { useDisplayCurrency } from "@/lib/preferences";
+import { useSeo } from "@/lib/seo";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { ScenarioValuation } from "@/components/ScenarioValuation";
 
@@ -21,6 +22,11 @@ function ExploreInner() {
   const { t } = useTranslation();
   const { user } = useUser();
   const { currency } = useDisplayCurrency();
+  useSeo({
+    title: t("seo.exploreTitle"),
+    description: t("seo.exploreDesc"),
+    url: "https://www.trimmtrack.com/explore",
+  });
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TickerSearchResult[]>([]);

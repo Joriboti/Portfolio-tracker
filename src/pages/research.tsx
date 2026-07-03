@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getResearchList, type ResearchCard } from "@/lib/research";
 import { ResearchWordmark } from "@/components/Logo";
 import { useSeo } from "@/lib/seo";
@@ -35,12 +36,12 @@ export function TagPill({ tag }: { tag: string }) {
 }
 
 export function ResearchPage() {
+  const { t } = useTranslation();
   const [articles, setArticles] = useState<ResearchCard[] | null>(null);
 
   useSeo({
-    title: "Anàlisis d'inversió gratuïtes | TrimmTrack",
-    description:
-      "Anàlisis fonamentals, models de valoració i idees d'inversió. Accés gratuït, sense registre.",
+    title: t("seo.researchTitle"),
+    description: t("seo.researchDesc"),
     url: "https://www.trimmtrack.com/research",
   });
 
