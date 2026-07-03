@@ -84,7 +84,11 @@ export function ResearchPage() {
                   src={a.coverImage}
                   alt=""
                   loading="lazy"
-                  className="mb-4 h-40 w-full rounded-lg object-cover"
+                  // Notion uploaded covers are ~1h-signed URLs; hide cleanly if expired.
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                  className="mb-4 h-40 w-full rounded-lg border border-slate-200 object-cover"
                 />
               )}
               <div className="flex items-center gap-2">

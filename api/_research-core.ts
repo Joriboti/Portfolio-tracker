@@ -35,6 +35,18 @@ function readProps(props: any) {
   };
 }
 
+// The hero image, in priority order:
+//   1. the CoverImage URL column (stable, user-pasted — never expires)
+//   2. the Notion PAGE cover (the banner set inside Notion) — easiest for the
+//      author, but an *uploaded* cover is a ~1h-signed S3 URL that can expire
+//      (external/linked covers are permanent). The client has an onError
+//      fallback for the expiry case.
+function coverOf(page: any, meta: { coverImage: string | null }): string | null {
+  if (meta.coverImage) return meta.coverImage;
+  const c = page?.cover;
+  return c?.external?.url ?? c?.file?.url ?? null;
+}
+
 // Recursively pull a page's block children (tables, nested lists, callouts,
 // etc. keep their children under `.children`). Bounded depth to stay safe.
 async function fetchBlocks(
@@ -111,9 +123,10 @@ export async function handleResearch(req: VercelRequest, res: VercelResponse) {
         return;
       }
       const meta = readProps(page.properties);
+      const coverImage = coverOf(page, meta);
       const blocks = await fetchBlocks(notion, page.id);
       res.status(200).end(
-        JSON.stringify({ ok: true, article: { ...meta, blocks } }),
+        JSON.stringify({ ok: true, article: { ...meta, coverImage, blocks } }),
       );
       return;
     }
@@ -135,7 +148,7 @@ export async function handleResearch(req: VercelRequest, res: VercelResponse) {
         summary: m.summary,
         publishedAt: m.publishedAt,
         tags: m.tags,
-        coverImage: m.coverImage,
+        coverImage: coverOf(p, m),
       };
     });
     res.status(200).end(JSON.stringify({ ok: true, articles }));

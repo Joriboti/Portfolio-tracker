@@ -26,10 +26,14 @@ export function ResearchArticlePage() {
     "loading",
   );
   const [article, setArticle] = useState<ResearchArticle | null>(null);
+  // A Notion uploaded page-cover is a ~1h-signed URL that can expire; if it
+  // fails to load, fall back to the branded banner instead of a broken image.
+  const [coverFailed, setCoverFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setState("loading");
+    setCoverFailed(false);
     getResearchArticle(slug).then((a) => {
       if (cancelled) return;
       if (!a) {
@@ -118,11 +122,12 @@ export function ResearchArticlePage() {
             ))}
           </div>
         )}
-        {article.coverImage ? (
+        {article.coverImage && !coverFailed ? (
           <img
             src={article.coverImage}
             alt=""
             loading="lazy"
+            onError={() => setCoverFailed(true)}
             className="mt-6 aspect-[16/7] w-full rounded-xl border border-slate-200 object-cover shadow-sm"
           />
         ) : (
