@@ -6,7 +6,7 @@ export function LanguageSwitcher() {
 
   return (
     <div className="inline-flex rounded-md border border-slate-200 bg-white p-0.5 text-xs">
-      {(["ca", "en"] as const).map((lng) => (
+      {(["ca", "es", "en"] as const).map((lng) => (
         <button
           key={lng}
           onClick={() => void i18n.changeLanguage(lng)}
