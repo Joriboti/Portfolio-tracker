@@ -28,6 +28,15 @@
     "feat3Title": "Multidivisa",
     "feat3Desc": "Selecciona la divisa de visualització i l'app fa la conversió FX automàticament.",
     "previewCaption": "Vista d'exemple del panell (dades il·lustratives)",
+    "tools": {
+      "title": "Tot el que pots fer amb TrimmTrack",
+      "intro": "Cinc eines, un objectiu: entendre les teves inversions. Recerca profunda, visuals potents.",
+      "dashboard": { "title": "La meva cartera", "desc": "Posicions en viu, P&L, pesos i evolució davant l'S&P 500.", "tag": "En temps real" },
+      "build": { "title": "Construir portfolio", "desc": "Puja l'Excel del teu broker o afegeix posicions cercant pel ticker.", "tag": "2 minuts" },
+      "explore": { "title": "Explorar empreses", "desc": "Valora qualsevol acció amb DCF, Graham, Monte Carlo, escenaris i NAV.", "tag": "6 models" },
+      "forecast": { "title": "Simulador d'ETFs", "desc": "Projecta la teva cartera a dècades vista amb bandes d'incertesa.", "tag": "Monte Carlo" },
+      "research": { "title": "Anàlisis", "desc": "Tesis d'inversió amb els models aplicats: Netflix, EXOR i més.", "tag": "Research" }
+    },
     "steps": {
       "title": "Com funciona, en 3 passos",
       "s1t": "Construeix la cartera",

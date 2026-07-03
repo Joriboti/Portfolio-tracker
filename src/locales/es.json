@@ -28,6 +28,15 @@
     "feat3Title": "Multidivisa",
     "feat3Desc": "Selecciona la divisa de visualización y la app hace la conversión FX automáticamente.",
     "previewCaption": "Vista de ejemplo del panel (datos ilustrativos)",
+    "tools": {
+      "title": "Todo lo que puedes hacer con TrimmTrack",
+      "intro": "Cinco herramientas, un objetivo: entender tus inversiones. Investigación profunda, visuales potentes.",
+      "dashboard": { "title": "Mi cartera", "desc": "Posiciones en vivo, P&L, pesos y evolución frente al S&P 500.", "tag": "En tiempo real" },
+      "build": { "title": "Construir cartera", "desc": "Sube el Excel de tu broker o añade posiciones buscando por ticker.", "tag": "2 minutos" },
+      "explore": { "title": "Explorar empresas", "desc": "Valora cualquier acción con DCF, Graham, Monte Carlo, escenarios y NAV.", "tag": "6 modelos" },
+      "forecast": { "title": "Simulador de ETFs", "desc": "Proyecta tu cartera a décadas vista con bandas de incertidumbre.", "tag": "Monte Carlo" },
+      "research": { "title": "Análisis", "desc": "Tesis de inversión con los modelos aplicados: Netflix, EXOR y más.", "tag": "Research" }
+    },
     "steps": {
       "title": "Cómo funciona, en 3 pasos",
       "s1t": "Construye la cartera",

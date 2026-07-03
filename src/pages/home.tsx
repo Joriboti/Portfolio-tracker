@@ -70,23 +70,9 @@ export function HomePage() {
           </div>
         </section>
 
-        <div className="mt-24 grid gap-6 md:grid-cols-3">
-          <Feature
-            icon={<IconUpload />}
-            title={t("home.feat1Title")}
-            desc={t("home.feat1Desc")}
-          />
-          <Feature
-            icon={<IconPulse />}
-            title={t("home.feat2Title")}
-            desc={t("home.feat2Desc")}
-          />
-          <Feature
-            icon={<IconShield />}
-            title={t("home.feat3Title")}
-            desc={t("home.feat3Desc")}
-          />
-        </div>
+        {/* Tool showcase: dark charcoal band with cream cards + hex badges,
+            echoing the brand's compass tile (charcoal / orange / cream). */}
+        <ToolsShowcase />
 
         {/* Recent research — hides itself when there's nothing published. */}
         <RecentResearch />
@@ -273,6 +259,142 @@ function RecentResearch() {
   );
 }
 
+// ── Tools showcase (dark band + cream hex cards) ────────────────────────────
+
+const CHARCOAL = "#26211d";
+const CHARCOAL_DEEP = "#100d0b";
+const ORANGE = "#f2802a";
+
+const TOOLS = [
+  { key: "dashboard", to: "/dashboard", icon: <ToolIconChart /> },
+  { key: "build", to: "/upload", icon: <ToolIconUpload /> },
+  { key: "explore", to: "/explore", icon: <ToolIconSearch /> },
+  { key: "forecast", to: "/forecast", icon: <ToolIconFan /> },
+  { key: "research", to: "/research", icon: <ToolIconBook /> },
+] as const;
+
+function ToolsShowcase() {
+  const { t } = useTranslation();
+  return (
+    <section
+      className="mt-24 rounded-3xl px-5 py-10 sm:px-8"
+      style={{ background: `linear-gradient(180deg, ${CHARCOAL} 0%, ${CHARCOAL_DEEP} 100%)` }}
+    >
+      <h2 className="text-center font-serif text-3xl font-bold text-[#f3ead9]">
+        {t("home.tools.title")}
+      </h2>
+      <p className="mx-auto mt-2 max-w-xl text-center text-sm text-[#c9bda9]">
+        {t("home.tools.intro")}
+      </p>
+
+      {/* first/last auto-margins center the row when it fits and keep the
+          start reachable when it overflows (justify-center would clip it) */}
+      <div className="mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto">
+        {TOOLS.map((tool) => (
+          <Link
+            key={tool.key}
+            to={tool.to}
+            className="group flex w-48 shrink-0 snap-start flex-col items-center rounded-2xl px-4 pb-6 pt-8 text-center shadow-lg transition-transform duration-200 hover:-translate-y-1.5"
+            style={{ background: "linear-gradient(180deg, #f8f2e6 0%, #e8dcc6 100%)" }}
+          >
+            <HexBadge>{tool.icon}</HexBadge>
+            <h3 className="mt-5 font-serif text-lg font-bold" style={{ color: CHARCOAL }}>
+              {t(`home.tools.${tool.key}.title`)}
+            </h3>
+            <p className="mt-1.5 text-xs leading-relaxed text-[#6b6152]">
+              {t(`home.tools.${tool.key}.desc`)}
+            </p>
+            <span className="mt-auto pt-4 text-xs font-semibold text-brand-700 opacity-60 transition-opacity group-hover:opacity-100">
+              {t(`home.tools.${tool.key}.tag`)} →
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** Dark hexagon tile (thin outline + solid fill) with a centered orange icon. */
+function HexBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative h-24 w-[104px]">
+      <svg viewBox="0 0 104 96" className="absolute inset-0 h-full w-full" aria-hidden>
+        <polygon
+          points="27,2 77,2 101,48 77,94 27,94 3,48"
+          fill="none"
+          stroke={CHARCOAL}
+          strokeWidth="2"
+        />
+        <polygon points="30,8 74,8 95,48 74,88 30,88 9,48" fill={CHARCOAL} />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ color: ORANGE }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const toolIconProps = {
+  width: 32,
+  height: 32,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+
+function ToolIconChart() {
+  return (
+    <svg {...toolIconProps}>
+      <path d="M4 20V4" />
+      <path d="M4 20h16" />
+      <path d="m7 14 4-4 3 3 5-6" />
+    </svg>
+  );
+}
+
+function ToolIconUpload() {
+  return (
+    <svg {...toolIconProps}>
+      <path d="M12 15V4" />
+      <path d="m7 9 5-5 5 5" />
+      <path d="M5 16v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2" />
+    </svg>
+  );
+}
+
+function ToolIconSearch() {
+  return (
+    <svg {...toolIconProps}>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="m15.5 15.5 5 5" />
+      <path d="M8 11.5 10 9l2 2 2.5-3" />
+    </svg>
+  );
+}
+
+function ToolIconFan() {
+  return (
+    <svg {...toolIconProps}>
+      <path d="M4 19c4-1 8-4 10-8" />
+      <path d="M4 19c5 .5 10-.5 14-4" />
+      <path d="M4 19c3-3 5-8 5-13" />
+      <circle cx="4" cy="19" r="1.4" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function ToolIconBook() {
+  return (
+    <svg {...toolIconProps}>
+      <path d="M12 6c-2-1.5-5-1.5-8-.5V19c3-1 6-1 8 .5 2-1.5 5-1.5 8-.5V5.5c-3-1-6-1-8 .5Z" />
+      <path d="M12 6v13.5" />
+    </svg>
+  );
+}
+
 function Step({ n, title, desc }: { n: string; title: string; desc: string }) {
   return (
     <div className="relative rounded-2xl border border-slate-200 bg-white/70 p-6">
@@ -307,29 +429,9 @@ function Trust({
   );
 }
 
-function Feature({
-  icon,
-  title,
-  desc,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-}) {
-  return (
-    <div className="card group transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover">
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-inset ring-brand-100 transition-colors group-hover:bg-brand-100">
-        {icon}
-      </div>
-      <h3 className="mt-4 font-semibold text-slate-900">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">{desc}</p>
-    </div>
-  );
-}
-
-const iconProps = {
-  width: 22,
-  height: 22,
+const smallIconProps = {
+  width: 18,
+  height: 18,
   viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
@@ -337,35 +439,6 @@ const iconProps = {
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
-
-function IconUpload() {
-  return (
-    <svg {...iconProps}>
-      <path d="M12 15V4" />
-      <path d="m7 9 5-5 5 5" />
-      <path d="M5 16v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2" />
-    </svg>
-  );
-}
-
-function IconPulse() {
-  return (
-    <svg {...iconProps}>
-      <path d="M3 12h4l2 6 4-13 2 7h6" />
-    </svg>
-  );
-}
-
-function IconShield() {
-  return (
-    <svg {...iconProps}>
-      <path d="M12 3 5 6v5c0 4 3 7 7 9 4-2 7-5 7-9V6l-7-3Z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  );
-}
-
-const smallIconProps = { ...iconProps, width: 18, height: 18 };
 
 function IconLock() {
   return (
