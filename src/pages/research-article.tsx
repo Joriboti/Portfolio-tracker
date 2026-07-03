@@ -118,12 +118,27 @@ export function ResearchArticlePage() {
             ))}
           </div>
         )}
-        {article.coverImage && (
+        {article.coverImage ? (
           <img
             src={article.coverImage}
             alt=""
-            className="mt-6 w-full rounded-xl border border-slate-200 object-cover"
+            loading="lazy"
+            className="mt-6 aspect-[16/7] w-full rounded-xl border border-slate-200 object-cover shadow-sm"
           />
+        ) : (
+          // No cover set → a branded gradient banner so every article header
+          // looks intentional instead of bare. (The CoverImage column is a URL;
+          // a Notion page-cover banner does NOT populate it.)
+          <div className="mt-6 flex aspect-[16/6] w-full items-center justify-center overflow-hidden rounded-xl border border-brand-100 bg-gradient-to-br from-brand-50 via-amber-50 to-white shadow-sm">
+            <div className="text-center">
+              <div className="text-4xl font-extrabold tracking-tight text-brand-600 sm:text-5xl">
+                {article.ticker || "TrimmTrack"}
+              </div>
+              <div className="mt-1 text-[11px] font-medium uppercase tracking-widest text-slate-400">
+                TrimmTrack Research
+              </div>
+            </div>
+          </div>
         )}
       </header>
 

@@ -100,17 +100,30 @@ function Block({ block }: { block: NotionBlock }) {
     case "image": {
       const url = imageUrl(data);
       if (!url) return null;
+      const caption = plainText(data.caption);
       return (
-        <figure className="my-6">
-          <img
-            src={url}
-            alt={plainText(data.caption)}
-            loading="lazy"
-            className="w-full rounded-lg border border-slate-200"
-          />
-          {plainText(data.caption) && (
-            <figcaption className="mt-2 text-center text-xs text-slate-400">
-              {plainText(data.caption)}
+        <figure className="my-8">
+          {/* Framed card: a padded white mat + subtle ring/shadow so charts
+              (often on a white background) read as a deliberate figure, not a
+              raw paste. */}
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-sm ring-1 ring-slate-900/5">
+            <img
+              src={url}
+              alt={caption}
+              loading="lazy"
+              className="mx-auto w-full rounded-lg"
+              // Notion serves body images as ~1h-signed S3 URLs; if one has
+              // expired by the time it loads, hide the whole figure cleanly
+              // instead of showing a broken-image icon.
+              onError={(e) => {
+                const fig = e.currentTarget.closest("figure") as HTMLElement | null;
+                if (fig) fig.style.display = "none";
+              }}
+            />
+          </div>
+          {caption && (
+            <figcaption className="mt-2 text-center text-xs italic text-slate-400">
+              {caption}
             </figcaption>
           )}
         </figure>
