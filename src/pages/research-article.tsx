@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getResearchArticle, type ResearchArticle } from "@/lib/research";
 import { Blocks } from "@/components/NotionBlocks";
+import { ResearchWordmark } from "@/components/Logo";
 import { useSeo } from "@/lib/seo";
 import { TickerBadge, TagPill } from "./research";
 
@@ -91,9 +92,12 @@ export function ResearchArticlePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
+      <Link to="/research" className="inline-block transition-opacity hover:opacity-80">
+        <ResearchWordmark />
+      </Link>
       <Link
         to="/research"
-        className="text-sm text-slate-500 hover:text-slate-800"
+        className="mt-6 block text-sm text-slate-500 hover:text-slate-800"
       >
         ← Totes les anàlisis
       </Link>

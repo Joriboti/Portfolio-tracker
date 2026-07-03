@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getResearchList, type ResearchCard } from "@/lib/research";
+import { ResearchWordmark } from "@/components/Logo";
 import { useSeo } from "@/lib/seo";
 
 function formatDate(iso: string | null): string {
@@ -56,7 +57,8 @@ export function ResearchPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <header className="mb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+        <ResearchWordmark />
+        <h1 className="mt-5 text-xl font-semibold text-slate-800">
           Anàlisis &amp; Idees d'Inversió
         </h1>
         <p className="mt-2 max-w-2xl text-slate-600">

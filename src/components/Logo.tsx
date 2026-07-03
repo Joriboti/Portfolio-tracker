@@ -83,3 +83,22 @@ export function Wordmark({ className = "" }: { className?: string }) {
     </span>
   );
 }
+
+/**
+ * Research-section lockup: the compass mark + the wordmark with a spaced
+ * "RESEARCH" label underneath, matching the brand sheet. Reuses <Logo> and
+ * <Wordmark> so it re-themes with the rest of the app.
+ */
+export function ResearchWordmark({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      <Logo className="h-11 w-11 shrink-0 sm:h-12 sm:w-12" />
+      <div className="leading-none">
+        <Wordmark className="text-3xl sm:text-4xl" />
+        <div className="mt-1.5 font-serif text-[0.6rem] uppercase tracking-[0.42em] text-slate-500 sm:text-xs">
+          Research
+        </div>
+      </div>
+    </div>
+  );
+}
