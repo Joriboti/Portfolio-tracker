@@ -77,13 +77,27 @@
     "notFound": "No se han encontrado datos para este ticker.",
     "price": "Precio actual",
     "tryFree": "Estás probando todos los modelos gratis, sin registro.",
-    "signInToSave": "Regístrate para guardar tus análisis →"
+    "signInToSave": "Regístrate para guardar tus análisis →",
+    "share": "Comparte la valoración",
+    "shareCopied": "¡Enlace copiado!",
+    "shareHint": "Copia un enlace con el ticker y todos tus supuestos. Quien lo abra verá exactamente esta valoración."
+  },
+  "dividends": {
+    "title": "Dividendos",
+    "ttm": "Ingresos últimos 12 meses",
+    "yield": "Rentabilidad por dividendo (sobre valor)",
+    "allTime": "Total recibido (histórico)",
+    "byYear": "Ingresos por año",
+    "byTicker": "Por posición (últimos 12 meses)",
+    "byTickerAll": "Por posición (histórico)",
+    "more": "y {{count}} posiciones más"
   },
   "seo": {
     "homeTitle": "TrimmTrack — Seguidor de cartera, calculadoras DCF y proyección de ETFs",
     "homeDesc": "Sube tu Excel y visualiza tu cartera en vivo: P&L, dividendos y pesos. Calculadoras gratuitas de valoración (DCF, Reverse DCF, Graham, Monte Carlo, NAV), simulación y predicción de carteras de ETFs, y análisis de empresas como Netflix o EXOR. Sin registro.",
     "exploreTitle": "Calculadora de valoración de acciones (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Valora cualquier acción gratis con 6 modelos: escenarios, DCF, Reverse DCF, número de Graham, Monte Carlo y suma de partes (NAV). Datos en vivo de Yahoo Finance, sin registro.",
+    "exploreTickerTitle": "Valoración de {{ticker}}: DCF, Graham y escenarios | TrimmTrack",
     "researchTitle": "Análisis de inversión: Netflix, EXOR y más | TrimmTrack Research",
     "researchDesc": "Tesis de inversión con modelos de valoración aplicados: Netflix (estrategia DCA), EXOR (descuento sobre NAV) y más. Análisis fundamental gratuito, sin registro."
   },
@@ -92,6 +106,7 @@
     "title": "Simulador de ETFs",
     "subtitle": "Proyecta cómo puede crecer una cartera pasiva/ETF con aportaciones periódicas, comisiones y una banda de incertidumbre (Monte Carlo). No es una predicción: es un rango de escenarios.",
     "startValue": "Valor inicial ({{currency}})",
+    "usePortfolio": "Usa mi cartera ({{value}})",
     "years": "Años",
     "contribution": "Aportación ({{currency}})",
     "frequency": "Frecuencia",

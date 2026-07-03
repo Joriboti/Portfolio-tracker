@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatMoney, formatPct, type Currency } from "@/lib/currency";
+import { convert, formatMoney, formatPct, type Currency } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
 import { useSeo } from "@/lib/seo";
+import { useUser } from "@/hooks/useUser";
+import { getPortfolio, getPrices } from "@/lib/api";
+import { aggregatePositions } from "@/lib/excel-parser";
 import {
   projectDeterministic,
   projectMonteCarlo,
@@ -23,8 +26,45 @@ const PRESETS: Record<string, { return: number; volatility: number }> = {
 export function ForecastPage() {
   const { t } = useTranslation();
   const { currency } = useDisplayCurrency();
+  const { user } = useUser();
 
   const [startValue, setStartValue] = useState(10_000);
+  // Logged-in prefill: the user's real portfolio value (live prices + FX),
+  // offered as a one-click starting point. Best-effort — any failure just
+  // means the button doesn't appear.
+  const [portfolioValue, setPortfolioValue] = useState<number | null>(null);
+  useEffect(() => {
+    if (!user) {
+      setPortfolioValue(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getPortfolio(user.id);
+        const open = aggregatePositions(data.transactions).filter((p) => p.isOpen);
+        if (open.length === 0) return;
+        const { quotes, fxRates } = await getPrices(open.map((p) => p.ticker));
+        const byTicker = new Map(quotes.map((q) => [q.ticker, q]));
+        let total = 0;
+        for (const p of open) {
+          const q = byTicker.get(p.ticker);
+          if (!q) continue;
+          const price =
+            q.currency && q.currency !== currency
+              ? convert(q.price, q.currency as Currency, currency, fxRates)
+              : q.price;
+          total += price * p.shares;
+        }
+        if (!cancelled && total > 0) setPortfolioValue(total);
+      } catch {
+        /* prefill is optional; the manual input always works */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, currency]);
   const [years, setYears] = useState(20);
   const [amount, setAmount] = useState(200);
   const [frequency, setFrequency] = useState<ContributionFrequency>("monthly");
@@ -92,6 +132,15 @@ export function ForecastPage() {
       <section className="card space-y-4">
         <div className="flex flex-wrap items-end gap-4">
           <Field label={t("forecast.startValue", { currency })} value={startValue} step={1000} min={0} onChange={setStartValue} />
+          {portfolioValue != null && (
+            <button
+              type="button"
+              className="mb-0.5 rounded-full border border-brand-300 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100"
+              onClick={() => setStartValue(Math.round(portfolioValue))}
+            >
+              {t("forecast.usePortfolio", { value: formatMoney(portfolioValue, currency) })}
+            </button>
+          )}
           <Field label={t("forecast.years")} value={years} step={1} min={1} max={60} onChange={setYears} />
           <Field label={t("forecast.contribution", { currency })} value={amount} step={50} min={0} onChange={setAmount} />
           <label className="flex flex-col gap-1">

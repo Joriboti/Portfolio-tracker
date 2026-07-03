@@ -32,6 +32,7 @@ import { hasTrial, getTrialTxns, clearTrial } from "@/lib/trial";
 import { PieChartModal } from "@/components/PieChartModal";
 import { AnalyticsCard } from "@/components/AnalyticsCard";
 import { PerformanceCard } from "@/components/PerformanceCard";
+import { DividendsCard } from "@/components/DividendsCard";
 import { HistoryChart } from "@/components/HistoryChart";
 import { ScenarioValuation } from "@/components/ScenarioValuation";
 import { CompanyLogo } from "@/components/CompanyLogo";
@@ -467,6 +468,14 @@ function DashboardInner() {
           currency={currency}
         />
       )}
+
+      <DividendsCard
+        autoDividends={autoDividends}
+        manualDividends={visibleData?.dividends ?? []}
+        totalValue={totalValue}
+        currency={currency}
+        fxRates={fxRates}
+      />
 
       {openPositions.length > 0 && (
         <section className="card overflow-x-auto">

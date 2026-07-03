@@ -77,13 +77,27 @@
     "notFound": "No data found for this ticker.",
     "price": "Current price",
     "tryFree": "You're trying every model for free, no account needed.",
-    "signInToSave": "Sign up to save your analyses →"
+    "signInToSave": "Sign up to save your analyses →",
+    "share": "Share valuation",
+    "shareCopied": "Link copied!",
+    "shareHint": "Copy a link with the ticker and all your assumptions. Anyone opening it sees exactly this valuation."
+  },
+  "dividends": {
+    "title": "Dividends",
+    "ttm": "Income, last 12 months",
+    "yield": "Dividend yield (on value)",
+    "allTime": "Total received (all time)",
+    "byYear": "Income per year",
+    "byTicker": "By position (last 12 months)",
+    "byTickerAll": "By position (all time)",
+    "more": "and {{count}} more positions"
   },
   "seo": {
     "homeTitle": "TrimmTrack — Portfolio tracker, DCF calculators & ETF forecasting",
     "homeDesc": "Upload your Excel and visualise your portfolio live: P&L, dividends and weights. Free valuation calculators (DCF, Reverse DCF, Graham, Monte Carlo, NAV), ETF portfolio simulation and forecasting, plus equity research on Netflix, EXOR and more. No sign-up.",
     "exploreTitle": "Stock valuation calculator (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Value any stock for free with 6 models: scenarios, DCF, Reverse DCF, Graham number, Monte Carlo and sum-of-the-parts (NAV). Live Yahoo Finance data, no sign-up.",
+    "exploreTickerTitle": "{{ticker}} valuation: DCF, Graham & scenarios | TrimmTrack",
     "researchTitle": "Equity research: Netflix, EXOR and more | TrimmTrack Research",
     "researchDesc": "Investment theses with applied valuation models: Netflix (DCA strategy), EXOR (discount to NAV) and more. Free fundamental analysis, no sign-up."
   },
@@ -92,6 +106,7 @@
     "title": "ETF Simulator",
     "subtitle": "Project how a passive/ETF portfolio could grow with recurring contributions, fees and an uncertainty band (Monte Carlo). Not a prediction — a range of scenarios.",
     "startValue": "Starting value ({{currency}})",
+    "usePortfolio": "Use my portfolio ({{value}})",
     "years": "Years",
     "contribution": "Contribution ({{currency}})",
     "frequency": "Frequency",

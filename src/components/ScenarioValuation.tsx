@@ -46,7 +46,7 @@ import {
   type SotpLiveQuote,
 } from "@/lib/api";
 
-type ValuationTab =
+export type ValuationTab =
   | "scenarios"
   | "dcf"
   | "reverse"
@@ -72,6 +72,9 @@ export function ScenarioValuation({
   totalPortfolioValueEur,
   displayCurrency,
   fxRates,
+  initialModel,
+  initialTab,
+  onStateChange,
 }: {
   userId: string;
   ticker: string;
@@ -87,11 +90,17 @@ export function ScenarioValuation({
   totalPortfolioValueEur: number;
   displayCurrency: Currency;
   fxRates: Record<string, number>;
+  /** Starting model (e.g. decoded from a share link); wins over the saved one. */
+  initialModel?: Partial<ValuationModel> | null;
+  /** Tab to open on mount (e.g. from a share link). */
+  initialTab?: ValuationTab | null;
+  /** Reports the live model + tab upwards (used to build share links). */
+  onStateChange?: (model: ValuationModel, tab: ValuationTab) => void;
 }) {
   const { t, i18n } = useTranslation();
   const [model, setModel] = useState<ValuationModel | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [tab, setTab] = useState<ValuationTab>("scenarios");
+  const [tab, setTab] = useState<ValuationTab>(initialTab ?? "scenarios");
   const dirtyRef = useRef(false);
 
   // Quote currency, falling back to the display currency when Yahoo didn't
@@ -103,6 +112,18 @@ export function ScenarioValuation({
     let cancelled = false;
     dirtyRef.current = false;
     setModel(null);
+    // A share-link model wins over anything saved: merge it over the defaults
+    // (tolerates partial/older shapes) and skip the fetch. It stays ephemeral
+    // until the user edits — then the normal autosave path persists it (for
+    // logged-in users), which is exactly "import these assumptions".
+    if (initialModel) {
+      setModel({
+        ...defaultModel(),
+        ...initialModel,
+        dca: normalizeDca(initialModel.dca),
+      });
+      return;
+    }
     // Anonymous (no userId — e.g. the public Explore page): run the panel
     // ephemerally with the defaults. No fetch, no persistence; visitors can
     // still try every model in memory, they just can't save.
@@ -122,7 +143,14 @@ export function ScenarioValuation({
     return () => {
       cancelled = true;
     };
-  }, [userId, ticker]);
+    // initialModel is decoded once by the caller (stable), so it belongs in
+    // the deps without causing re-runs on every render.
+  }, [userId, ticker, initialModel]);
+
+  // Surface the live state so the caller can build share links from it.
+  useEffect(() => {
+    if (model && onStateChange) onStateChange(model, tab);
+  }, [model, tab, onStateChange]);
 
   // Debounced autosave — only after a real user edit (dirtyRef), never on the
   // initial load. All persistence goes to Postgres; no localStorage.

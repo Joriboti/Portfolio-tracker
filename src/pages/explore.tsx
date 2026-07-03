@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   searchTickers,
@@ -10,8 +10,13 @@ import { formatMoney, type Currency } from "@/lib/currency";
 import { useUser } from "@/hooks/useUser";
 import { useDisplayCurrency } from "@/lib/preferences";
 import { useSeo } from "@/lib/seo";
+import { decodeShare, buildShareUrl, type ShareState } from "@/lib/share";
 import { CompanyLogo } from "@/components/CompanyLogo";
-import { ScenarioValuation } from "@/components/ScenarioValuation";
+import {
+  ScenarioValuation,
+  type ValuationTab,
+} from "@/components/ScenarioValuation";
+import type { ValuationModel } from "@/lib/scenarioValuation";
 
 // "Explore" — search any company by ticker and run the same valuation models
 // available on the dashboard (Scenarios / DCF / Reverse / Graham / Monte Carlo /
@@ -22,11 +27,6 @@ function ExploreInner() {
   const { t } = useTranslation();
   const { user } = useUser();
   const { currency } = useDisplayCurrency();
-  useSeo({
-    title: t("seo.exploreTitle"),
-    description: t("seo.exploreDesc"),
-    url: "https://www.trimmtrack.com/explore",
-  });
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TickerSearchResult[]>([]);
@@ -36,6 +36,65 @@ function ExploreInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+
+  // Share-link support: a ?s= param carries {ticker, tab, model}. Decoded
+  // exactly once on mount (state initializer → stable object) so the panel's
+  // load effect doesn't re-run. A bad/tampered param degrades to null.
+  const [shared] = useState<ShareState | null>(() => {
+    const p = new URLSearchParams(window.location.search).get("s");
+    return p ? decodeShare(p) : null;
+  });
+  const [copied, setCopied] = useState(false);
+  // Latest model+tab from the valuation panel, for building the share URL.
+  const shareStateRef = useRef<{ model: ValuationModel; tab: ValuationTab } | null>(null);
+  const onValuationState = useCallback(
+    (model: ValuationModel, tab: ValuationTab) => {
+      shareStateRef.current = { model, tab };
+    },
+    [],
+  );
+
+  useSeo({
+    title: company
+      ? t("seo.exploreTickerTitle", { ticker: company.ticker })
+      : t("seo.exploreTitle"),
+    description: t("seo.exploreDesc"),
+    url: "https://www.trimmtrack.com/explore",
+  });
+
+  // Opening a share link auto-loads its ticker, same path as picking a result.
+  useEffect(() => {
+    if (!shared) return;
+    setQuery(shared.t);
+    setLoading(true);
+    getLiveCompany(shared.t)
+      .then((c) => {
+        if (c) setCompany(c);
+        else setError(t("explore.notFound"));
+      })
+      .catch((e) => setError((e as Error).message))
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shared]);
+
+  async function handleShare() {
+    const cur = shareStateRef.current;
+    if (!company) return;
+    const url = buildShareUrl({
+      t: company.ticker,
+      tab: cur?.tab,
+      m: cur?.model,
+    });
+    // Reflect the link in the address bar too, so it can be copied manually.
+    window.history.replaceState(null, "", url);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard denied → the address bar already holds the link */
+    }
+  }
 
   // Debounced ticker autocomplete (only while still choosing).
   useEffect(() => {
@@ -170,6 +229,14 @@ function ExploreInner() {
                 {company.price != null ? formatMoney(company.price, qc) : "—"}
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => void handleShare()}
+              className="btn-ghost px-3 py-1.5 text-xs"
+              title={t("explore.shareHint")}
+            >
+              {copied ? `✓ ${t("explore.shareCopied")}` : `🔗 ${t("explore.share")}`}
+            </button>
           </div>
 
           {!user && (
@@ -193,12 +260,34 @@ function ExploreInner() {
               totalPortfolioValueEur={0}
               displayCurrency={currency}
               fxRates={{}}
+              initialModel={
+                shared && company.ticker === shared.t ? shared.m ?? null : null
+              }
+              initialTab={
+                shared && company.ticker === shared.t && isValuationTab(shared.tab)
+                  ? shared.tab
+                  : null
+              }
+              onStateChange={onValuationState}
             />
           </div>
         </section>
       )}
     </div>
   );
+}
+
+const VALUATION_TABS = [
+  "scenarios",
+  "dcf",
+  "reverse",
+  "graham",
+  "montecarlo",
+  "sotp",
+] as const;
+
+function isValuationTab(v: string | undefined): v is ValuationTab {
+  return v != null && (VALUATION_TABS as readonly string[]).includes(v);
 }
 
 export function ExplorePage() {

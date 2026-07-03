@@ -77,13 +77,27 @@
     "notFound": "No s'han trobat dades per a aquest ticker.",
     "price": "Preu actual",
     "tryFree": "Estàs provant tots els models gratis, sense registre.",
-    "signInToSave": "Registra't per desar les teves anàlisis →"
+    "signInToSave": "Registra't per desar les teves anàlisis →",
+    "share": "Comparteix la valoració",
+    "shareCopied": "Enllaç copiat!",
+    "shareHint": "Copia un enllaç amb el ticker i totes les teves assumpcions. Qui l'obri veurà exactament aquesta valoració."
+  },
+  "dividends": {
+    "title": "Dividends",
+    "ttm": "Ingressos últims 12 mesos",
+    "yield": "Rendibilitat per dividend (sobre valor)",
+    "allTime": "Total rebut (històric)",
+    "byYear": "Ingressos per any",
+    "byTicker": "Per posició (últims 12 mesos)",
+    "byTickerAll": "Per posició (històric)",
+    "more": "i {{count}} posicions més"
   },
   "seo": {
     "homeTitle": "TrimmTrack — Seguidor de cartera, calculadores DCF i projecció d'ETFs",
     "homeDesc": "Puja el teu Excel i visualitza la cartera en viu: P&L, dividends i pesos. Calculadores gratuïtes de valoració (DCF, Reverse DCF, Graham, Monte Carlo, NAV), simulació i predicció de carteres d'ETFs, i anàlisis d'empreses com Netflix o EXOR. Sense registre.",
     "exploreTitle": "Calculadora de valoració d'accions (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Valora qualsevol acció gratis amb 6 models: escenaris, DCF, Reverse DCF, número de Graham, Monte Carlo i suma de parts (NAV). Dades en viu de Yahoo Finance, sense registre.",
+    "exploreTickerTitle": "Valoració de {{ticker}}: DCF, Graham i escenaris | TrimmTrack",
     "researchTitle": "Anàlisis d'inversió: Netflix, EXOR i més | TrimmTrack Research",
     "researchDesc": "Tesis d'inversió amb models de valoració aplicats: Netflix (estratègia DCA), EXOR (descompte sobre NAV) i més. Anàlisi fonamental gratuïta, sense registre."
   },
@@ -92,6 +106,7 @@
     "title": "Simulador d'ETFs",
     "subtitle": "Projecta com pot créixer una cartera passiva/ETF amb aportacions periòdiques, comissions i un ventall d'incertesa (Monte Carlo). No és una predicció: és un rang d'escenaris.",
     "startValue": "Valor inicial ({{currency}})",
+    "usePortfolio": "Utilitza el meu portfoli ({{value}})",
     "years": "Anys",
     "contribution": "Aportació ({{currency}})",
     "frequency": "Freqüència",
