@@ -18,6 +18,7 @@
     "heroTitle": "Tu cartera, siempre actualizada",
     "heroSubtitle": "Sube tu hoja de cálculo y transfórmala en un panel con precios en tiempo real, P&L y dividendos. Con calculadora FIFO para plusvalías, valoración DCF y número de Graham — gratis y sin registro.",
     "ctaStart": "Empieza gratis",
+    "ctaTry": "Prueba un modelo de valoración",
     "ctaHowTo": "Cómo preparar mi Excel",
     "feat1Title": "Sin fricción",
     "feat1Desc": "Compatible con Excel y Google Sheets exportados como XLSX.",
@@ -73,7 +74,9 @@
     "empty": "Busca una empresa para empezar.",
     "loading": "Cargando datos de la empresa…",
     "notFound": "No se han encontrado datos para este ticker.",
-    "price": "Precio actual"
+    "price": "Precio actual",
+    "tryFree": "Estás probando todos los modelos gratis, sin registro.",
+    "signInToSave": "Regístrate para guardar tus análisis →"
   },
   "upload": {
     "title": "Construir tu cartera",

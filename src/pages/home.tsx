@@ -34,11 +34,11 @@ export function HomePage() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/disclaimer" className="btn-primary px-5 py-2.5 text-base">
-              {t("home.ctaStart")}
+            <Link to="/explore" className="btn-primary px-5 py-2.5 text-base">
+              {t("home.ctaTry")}
             </Link>
-            <Link to="/upload" className="btn-ghost px-5 py-2.5 text-base">
-              {t("home.ctaHowTo")}
+            <Link to="/disclaimer" className="btn-ghost px-5 py-2.5 text-base">
+              {t("home.ctaStart")}
             </Link>
           </div>
         </div>

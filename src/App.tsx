@@ -42,11 +42,13 @@ export default function App() {
         <Route path="/research" element={<ResearchPage />} />
         <Route path="/research/:slug" element={<ResearchArticlePage />} />
         <Route path="/disclaimer" element={<DisclaimerPage />} />
+        {/* Public taster: anyone can run the 6 valuation models on any ticker
+            (no account). The panel runs ephemerally without a userId. */}
+        <Route path="/explore" element={<ExplorePage />} />
 
         <Route path="/dashboard" element={<Private><DashboardPage /></Private>} />
         <Route path="/debug" element={<Private><DebugPage /></Private>} />
         <Route path="/upload" element={<Private><UploadPage /></Private>} />
-        <Route path="/explore" element={<Private><ExplorePage /></Private>} />
         {/* Folded into /upload (Build portfolio → Excel subsection). */}
         <Route path="/how-to-prepare" element={<Navigate to="/upload" replace />} />
         <Route path="/account" element={<Private><AccountPage /></Private>} />

@@ -18,6 +18,7 @@
     "heroTitle": "El teu portfolio, sempre actualitzat",
     "heroSubtitle": "Puja el teu full de càlcul i transforma-lo en un panell amb preus en temps real, P&L i dividends. Amb calculadora FIFO per a plusvàlues, valoració DCF i número de Graham — gratis i sense registre.",
     "ctaStart": "Comença gratuïtament",
+    "ctaTry": "Prova un model de valoració",
     "ctaHowTo": "Com preparar el meu Excel",
     "feat1Title": "Sense fricció",
     "feat1Desc": "Compatibilitat amb Excel i Google Sheets exportats com a XLSX.",
@@ -73,7 +74,9 @@
     "empty": "Cerca una empresa per començar.",
     "loading": "Carregant dades de l'empresa…",
     "notFound": "No s'han trobat dades per a aquest ticker.",
-    "price": "Preu actual"
+    "price": "Preu actual",
+    "tryFree": "Estàs provant tots els models gratis, sense registre.",
+    "signInToSave": "Registra't per desar les teves anàlisis →"
   },
   "upload": {
     "title": "Construir la teva cartera",

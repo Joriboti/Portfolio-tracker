@@ -103,6 +103,13 @@ export function ScenarioValuation({
     let cancelled = false;
     dirtyRef.current = false;
     setModel(null);
+    // Anonymous (no userId — e.g. the public Explore page): run the panel
+    // ephemerally with the defaults. No fetch, no persistence; visitors can
+    // still try every model in memory, they just can't save.
+    if (!userId) {
+      setModel(defaultModel());
+      return;
+    }
     getScenarioModel(userId, ticker)
       .then((m) => {
         // Migrate the persisted DCA shape: pre-multi-buy models stored a single
@@ -120,7 +127,8 @@ export function ScenarioValuation({
   // Debounced autosave — only after a real user edit (dirtyRef), never on the
   // initial load. All persistence goes to Postgres; no localStorage.
   useEffect(() => {
-    if (!model || !dirtyRef.current) return;
+    // No userId → ephemeral (public Explore): never persist.
+    if (!model || !dirtyRef.current || !userId) return;
     setSaveState("saving");
     const id = setTimeout(() => {
       saveScenarioModel(userId, ticker, model)

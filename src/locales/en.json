@@ -18,6 +18,7 @@
     "heroTitle": "Your portfolio, always up to date",
     "heroSubtitle": "Upload your spreadsheet and turn it into a dashboard with live prices, P&L, and dividends. Plus a free FIFO calculator, DCF and Reverse DCF valuation, and the Graham Number — no sign-up needed.",
     "ctaStart": "Get started for free",
+    "ctaTry": "Try a valuation model",
     "ctaHowTo": "How to prepare my Excel",
     "feat1Title": "Frictionless",
     "feat1Desc": "Works with Excel and Google Sheets exported as XLSX.",
@@ -73,7 +74,9 @@
     "empty": "Search for a company to get started.",
     "loading": "Loading company data…",
     "notFound": "No data found for this ticker.",
-    "price": "Current price"
+    "price": "Current price",
+    "tryFree": "You're trying every model for free, no account needed.",
+    "signInToSave": "Sign up to save your analyses →"
   },
   "upload": {
     "title": "Build your portfolio",

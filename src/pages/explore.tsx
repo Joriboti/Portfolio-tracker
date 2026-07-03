@@ -138,7 +138,7 @@ function ExploreInner() {
         </div>
       )}
 
-      {company && user && (
+      {company && (
         <section className="card space-y-5">
           {/* Company header */}
           <div className="flex flex-wrap items-center gap-4">
@@ -166,9 +166,18 @@ function ExploreInner() {
             </div>
           </div>
 
+          {!user && (
+            <div className="rounded-lg border border-brand-100 bg-brand-50/60 px-4 py-3 text-sm text-slate-600">
+              {t("explore.tryFree")}{" "}
+              <a href="/auth/sign-in" className="font-medium text-brand-700 underline">
+                {t("explore.signInToSave")}
+              </a>
+            </div>
+          )}
+
           <div className="border-t border-slate-200 pt-4">
             <ScenarioValuation
-              userId={user.id}
+              userId={user?.id ?? ""}
               ticker={company.ticker}
               shares={0}
               avgCostEur={0}
