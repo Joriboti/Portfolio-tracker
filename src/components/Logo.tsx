@@ -74,10 +74,19 @@ export function Logo({ className = "h-8 w-8" }: { className?: string }) {
 }
 
 /** TrimmTrack wordmark — serif logotype, two-tone with the brand accent. */
-export function Wordmark({ className = "" }: { className?: string }) {
+export function Wordmark({
+  className = "",
+  light = false,
+}: {
+  className?: string;
+  /** Cream "Trimm" for dark surfaces (the orange "Track" reads on both). */
+  light?: boolean;
+}) {
   return (
     <span
-      className={`font-serif font-semibold tracking-tight text-slate-900 ${className}`}
+      className={`font-serif font-semibold tracking-tight ${
+        light ? "text-[#f3ead9]" : "text-slate-900"
+      } ${className}`}
     >
       Trimm<span className="text-brand-600">Track</span>
     </span>

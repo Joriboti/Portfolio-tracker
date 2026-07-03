@@ -14,53 +14,54 @@ export function HomePage() {
     url: "https://www.trimmtrack.com/",
   });
   return (
-    <div className="relative overflow-hidden">
-      {/* warm ambient glow */}
+    <div className="relative overflow-hidden bg-[#14100d]">
+      {/* warm ember glow behind the hero */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-24 -z-10 h-[28rem] bg-gradient-to-b from-brand-100/70 via-brand-50/40 to-transparent"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-brand-300/20 blur-3xl"
+        className="pointer-events-none absolute left-1/2 -top-40 -z-0 h-[34rem] w-[54rem] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
+        style={{ background: "radial-gradient(closest-side, #e76b1c 0%, transparent 70%)" }}
       />
 
-      <div className="mx-auto max-w-6xl px-4 pt-20 pb-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-brand-200/70 bg-white/70 px-3 py-1 text-xs font-medium text-brand-700 shadow-sm backdrop-blur">
+      <div className="relative mx-auto max-w-6xl px-4 pt-20 pb-16">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-brand-300 backdrop-blur">
             <Logo className="h-4 w-4" />
             {t("app.tagline")}
           </span>
 
-          <h1 className="mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-6xl">
+          <h1 className="mt-8 font-display text-5xl font-semibold leading-[1.05] tracking-tight text-[#f3ead9] sm:text-7xl">
             {t("home.heroTitle")}
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-slate-600">
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[#c9bda9]">
             {t("home.heroSubtitle")}
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/explore" className="btn-primary px-5 py-2.5 text-base">
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/explore" className="btn-primary px-6 py-3 text-base">
               {t("home.ctaTry")}
             </Link>
-            <Link to="/disclaimer" className="btn-ghost px-5 py-2.5 text-base">
+            <Link
+              to="/disclaimer"
+              className="inline-flex items-center rounded-lg border border-white/20 px-6 py-3 text-base font-medium text-[#f3ead9] transition-colors hover:border-white/40 hover:bg-white/5"
+            >
               {t("home.ctaStart")}
             </Link>
           </div>
         </div>
 
         {/* Preview of the actual output, so a first-time visitor knows what
-            they'll get. Decorative mock — illustrative numbers only. */}
-        <figure className="mt-16">
+            they'll get. Decorative mock — illustrative numbers only. The card
+            stays light on purpose: it reads as a product screenshot. */}
+        <figure className="mt-20">
           <DashboardPreview />
-          <figcaption className="mt-3 text-center text-xs text-slate-400">
+          <figcaption className="mt-3 text-center text-xs text-[#8a7f6d]">
             {t("home.previewCaption")}
           </figcaption>
         </figure>
 
         {/* How it works, in 3 steps. */}
-        <section className="mt-24">
-          <h2 className="text-center text-2xl font-bold tracking-tight text-slate-900">
+        <section className="mt-28">
+          <h2 className="text-center font-display text-3xl font-semibold tracking-tight text-[#f3ead9]">
             {t("home.steps.title")}
           </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -70,7 +71,7 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* Tool showcase: dark charcoal band with cream cards + hex badges,
+        {/* Tool showcase: cream cards + hex badges over the charcoal page,
             echoing the brand's compass tile (charcoal / orange / cream). */}
         <ToolsShowcase />
 
@@ -78,14 +79,14 @@ export function HomePage() {
         <RecentResearch />
 
         {/* Trust strip. */}
-        <section className="mt-16 grid gap-4 rounded-2xl border border-slate-200 bg-white/60 p-6 sm:grid-cols-3">
+        <section className="mt-20 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:grid-cols-3">
           <Trust icon={<IconLock />} title={t("home.trust.t1t")} desc={t("home.trust.t1d")} />
           <Trust icon={<IconChart />} title={t("home.trust.t2t")} desc={t("home.trust.t2d")} />
           <Trust icon={<IconSteer />} title={t("home.trust.t3t")} desc={t("home.trust.t3d")} />
         </section>
 
-        <div className="mt-14 text-center">
-          <Link to="/disclaimer" className="btn-primary px-6 py-3 text-base">
+        <div className="mt-16 text-center">
+          <Link to="/disclaimer" className="btn-primary px-7 py-3.5 text-base">
             {t("home.ctaStart")}
           </Link>
         </div>
@@ -221,12 +222,12 @@ function RecentResearch() {
   return (
     <section className="mt-24">
       <div className="flex items-end justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h2 className="font-display text-3xl font-semibold tracking-tight text-[#f3ead9]">
           Anàlisis recents
         </h2>
         <Link
           to="/research"
-          className="shrink-0 text-sm font-medium text-brand-700 hover:text-brand-800"
+          className="shrink-0 text-sm font-medium text-brand-400 hover:text-brand-300"
         >
           Veure totes les anàlisis →
         </Link>
@@ -236,13 +237,14 @@ function RecentResearch() {
           <Link
             key={a.slug}
             to={`/research/${a.slug}`}
-            className="card group flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover"
+            className="group flex flex-col rounded-2xl p-5 shadow-lg transition-transform duration-200 hover:-translate-y-1"
+            style={{ background: "linear-gradient(180deg, #f8f2e6 0%, #e8dcc6 100%)" }}
           >
             <TickerBadge ticker={a.ticker} />
-            <h3 className="mt-2 font-semibold text-slate-900 group-hover:text-brand-700">
+            <h3 className="mt-2 font-display font-semibold text-[#26211d] group-hover:text-brand-700">
               {a.title}
             </h3>
-            <p className="mt-1 flex-1 text-sm leading-relaxed text-slate-600">
+            <p className="mt-1 flex-1 text-sm leading-relaxed text-[#6b6152]">
               {a.summary}
             </p>
             {a.tags.length > 0 && (
@@ -277,10 +279,10 @@ function ToolsShowcase() {
   const { t } = useTranslation();
   return (
     <section
-      className="mt-24 rounded-3xl px-5 py-10 sm:px-8"
+      className="mt-24 rounded-3xl px-5 py-10 ring-1 ring-white/10 sm:px-8"
       style={{ background: `linear-gradient(180deg, ${CHARCOAL} 0%, ${CHARCOAL_DEEP} 100%)` }}
     >
-      <h2 className="text-center font-serif text-3xl font-bold text-[#f3ead9]">
+      <h2 className="text-center font-display text-3xl font-semibold text-[#f3ead9]">
         {t("home.tools.title")}
       </h2>
       <p className="mx-auto mt-2 max-w-xl text-center text-sm text-[#c9bda9]">
@@ -298,7 +300,7 @@ function ToolsShowcase() {
             style={{ background: "linear-gradient(180deg, #f8f2e6 0%, #e8dcc6 100%)" }}
           >
             <HexBadge>{tool.icon}</HexBadge>
-            <h3 className="mt-5 font-serif text-lg font-bold" style={{ color: CHARCOAL }}>
+            <h3 className="mt-5 font-display text-lg font-semibold" style={{ color: CHARCOAL }}>
               {t(`home.tools.${tool.key}.title`)}
             </h3>
             <p className="mt-1.5 text-xs leading-relaxed text-[#6b6152]">
@@ -397,12 +399,12 @@ function ToolIconBook() {
 
 function Step({ n, title, desc }: { n: string; title: string; desc: string }) {
   return (
-    <div className="relative rounded-2xl border border-slate-200 bg-white/70 p-6">
+    <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-6">
       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
         {n}
       </div>
-      <h3 className="mt-4 font-semibold text-slate-900">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">{desc}</p>
+      <h3 className="mt-4 font-semibold text-[#f3ead9]">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-[#b3a793]">{desc}</p>
     </div>
   );
 }
@@ -418,12 +420,12 @@ function Trust({
 }) {
   return (
     <div className="flex gap-3">
-      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 ring-1 ring-inset ring-brand-100">
+      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-500/15 text-brand-400 ring-1 ring-inset ring-brand-500/25">
         {icon}
       </div>
       <div>
-        <p className="text-sm font-semibold text-slate-900">{title}</p>
-        <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{desc}</p>
+        <p className="text-sm font-semibold text-[#f3ead9]">{title}</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-[#a99e8c]">{desc}</p>
       </div>
     </div>
   );

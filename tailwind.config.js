@@ -13,6 +13,8 @@ export default {
           "Roboto",
           "sans-serif",
         ],
+        // Chunky display serif for the landing's editorial headings.
+        display: ['"Fraunces"', "Georgia", "serif"],
       },
       boxShadow: {
         card: "0 1px 2px rgba(16,24,40,0.04), 0 16px 40px -20px rgba(16,24,40,0.18)",
