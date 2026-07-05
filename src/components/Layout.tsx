@@ -101,9 +101,17 @@ export function Layout() {
           <span className="flex items-center gap-1.5">
             <Logo className="h-4 w-4" />© {new Date().getFullYear()} TrimmTrack
           </span>
-          <Link to="/disclaimer" className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}>
-            Disclaimer
-          </Link>
+          <span className="flex items-center gap-3">
+            <Link
+              to="/calculadora-fifo"
+              className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
+            >
+              {t("fifoPage.short")}
+            </Link>
+            <Link to="/disclaimer" className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}>
+              Disclaimer
+            </Link>
+          </span>
         </div>
       </footer>
     </div>

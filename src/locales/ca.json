@@ -101,14 +101,66 @@
     "byTickerAll": "Per posició (històric)",
     "more": "i {{count}} posicions més"
   },
+  "research": {
+    "title": "Anàlisis & Idees d'Inversió",
+    "subtitle": "Anàlisis fonamentals, models de valoració i tesis d'inversió. Accés gratuït i sense registre.",
+    "loading": "Carregant anàlisis…",
+    "empty": "Encara no hi ha anàlisis publicades. Torna aviat!",
+    "read": "Llegir anàlisi",
+    "loadingArticle": "Carregant anàlisi…",
+    "notFound": "No hem trobat aquesta anàlisi.",
+    "backToAll": "Totes les anàlisis",
+    "fallbackTitle": "Anàlisi | TrimmTrack",
+    "ctaTitle": "Segueix {{name}} a TrimmTrack",
+    "ctaCompany": "aquesta empresa",
+    "ctaBody": "Afegeix-la a la teva cartera i aplica-hi els models de valoració (DCF, Graham, NAV…) amb dades en viu. Gratis i sense registre.",
+    "ctaButton": "Comença gratis"
+  },
   "seo": {
     "homeTitle": "TrimmTrack — Seguidor de cartera, calculadores DCF i projecció d'ETFs",
     "homeDesc": "Puja el teu Excel i visualitza la cartera en viu: P&L, dividends i pesos. Calculadores gratuïtes de valoració (DCF, Reverse DCF, Graham, Monte Carlo, NAV), simulació i predicció de carteres d'ETFs, i anàlisis d'empreses com Netflix o EXOR. Sense registre.",
     "exploreTitle": "Calculadora de valoració d'accions (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Valora qualsevol acció gratis amb 6 models: escenaris, DCF, Reverse DCF, número de Graham, Monte Carlo i suma de parts (NAV). Dades en viu de Yahoo Finance, sense registre.",
     "exploreTickerTitle": "Valoració de {{ticker}}: DCF, Graham i escenaris | TrimmTrack",
-    "researchTitle": "Anàlisis d'inversió: Netflix, EXOR i més | TrimmTrack Research",
-    "researchDesc": "Tesis d'inversió amb models de valoració aplicats: Netflix (estratègia DCA), EXOR (descompte sobre NAV) i més. Anàlisi fonamental gratuïta, sense registre."
+    "researchTitle": "Anàlisis d'inversió: Meta, Netflix, EXOR i més | TrimmTrack Research",
+    "researchDesc": "Tesis d'inversió amb models de valoració aplicats: Meta (capex i IA), Netflix (estratègia DCA), EXOR (descompte sobre NAV) i més. Anàlisi fonamental gratuïta, sense registre."
+  },
+  "fifoPage": {
+    "seoTitle": "Calculadora FIFO de plusvàlues: accions i criptomonedes | TrimmTrack",
+    "seoDesc": "Calcula gratis el guany o pèrdua realitzat amb el mètode FIFO quan vens accions o cripto en diverses tandes. Introdueix les compres i vendes en ordre i obtén el resultat de cada venda, els títols restants i el cost mitjà.",
+    "h1": "Calculadora FIFO de plusvàlues",
+    "short": "Calculadora FIFO",
+    "lead": "Quan compres el mateix valor en diverses tandes i després en vens una part, el resultat fiscal es calcula pel mètode FIFO: es venen primer els títols comprats abans. Introdueix les teves operacions en ordre cronològic i la calculadora et dona el guany o pèrdua realitzat de cada venda, els títols que et queden i el seu cost mitjà.",
+    "whatTitle": "Què és el mètode FIFO?",
+    "whatBody": "FIFO («First In, First Out», primer entrat, primer sortit) és la regla que determina quins títols es consideren venuts quan tens compres a preus diferents. Amb FIFO, una venda consumeix sempre les accions més antigues que encara tens obertes. És el mètode que exigeix Hisenda a Espanya per calcular el guany patrimonial d'accions i participacions, i el més habitual també per a criptomonedes.",
+    "howTitle": "Com es calcula el resultat?",
+    "howBody": "Per cada venda, la calculadora recorre les teves compres de la més antiga a la més nova i n'agafa títols fins a cobrir la quantitat venuda. El guany o pèrdua és la diferència entre el preu de venda i el preu de compra de cada lot consumit. Si una venda supera els títols disponibles, t'avisa. El total realitzat és la suma de totes les vendes.",
+    "exampleTitle": "Exemple",
+    "exampleBody": "Compres 10 accions a 100 € i després 10 més a 120 €. Si en vens 15 a 130 €, FIFO consumeix primer les 10 primeres (guany 10 × 30 € = 300 €) i després 5 de les segones (guany 5 × 10 € = 50 €): resultat realitzat de 350 €. Et queden 5 accions amb un cost mitjà de 120 €.",
+    "faqTitle": "Preguntes freqüents",
+    "faq": {
+      "what": {
+        "q": "Per a què serveix aquesta calculadora?",
+        "a": "Per saber quant has guanyat o perdut quan vens una part d'una posició comprada a preus diferents, seguint el mètode FIFO. És el número que has de declarar com a guany o pèrdua patrimonial i el que va a la columna «Resultat» del teu full de càlcul."
+      },
+      "crypto": {
+        "q": "Funciona per a criptomonedes?",
+        "a": "Sí. El càlcul és idèntic per a accions, ETFs o cripto: introdueix les compres i vendes de qualsevol actiu en ordre i la calculadora aplica FIFO igual."
+      },
+      "partial": {
+        "q": "I si només venc una part de la posició?",
+        "a": "Ho gestiona automàticament. Consumeix els lots més antics fins a cobrir la venda i et mostra els títols que et queden oberts i el seu cost mitjà, perquè puguis continuar el seguiment."
+      },
+      "tax": {
+        "q": "Aquest resultat és el que he de declarar?",
+        "a": "El mètode FIFO és el que fa servir Hisenda per a accions, però la declaració pot tenir particularitats (comissions, retencions, normes antiaplicació). Fes servir aquesta eina com a ajuda de càlcul, no com a assessorament fiscal."
+      }
+    },
+    "ctaTitle": "Segueix tota la teva cartera, no només una venda",
+    "ctaBody": "TrimmTrack calcula el resultat FIFO de totes les teves posicions automàticament a partir del teu Excel, i hi afegeix P&L en viu, dividends, valoracions i projeccions. Gratis i sense registre per provar-ho.",
+    "ctaPrimary": "Construeix la teva cartera",
+    "ctaSecondary": "Explora empreses",
+    "taxNote": "Aquesta calculadora és una ajuda de càlcul general i no constitueix assessorament fiscal. Consulta un professional per a la teva declaració."
   },
   "forecast": {
     "seoTitle": "Calculadora de projecció i simulació d'ETFs | TrimmTrack",

@@ -56,6 +56,24 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.trimmtrack.com/calculadora-fifo</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/calculadora-fifo"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/calculadora-fifo?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/calculadora-fifo?lng=en"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/calculadora-fifo?lng=es</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/calculadora-fifo?lng=en</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.trimmtrack.com/research</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/research"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/research?lng=es"/>
@@ -80,6 +98,11 @@
   </url>
   <url>
     <loc>https://www.trimmtrack.com/research/exor</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/research/meta</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

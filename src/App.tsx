@@ -15,6 +15,7 @@ const DebugPage = lazy(() => import("@/pages/debug").then((m) => ({ default: m.D
 const UploadPage = lazy(() => import("@/pages/upload").then((m) => ({ default: m.UploadPage })));
 const ExplorePage = lazy(() => import("@/pages/explore").then((m) => ({ default: m.ExplorePage })));
 const ForecastPage = lazy(() => import("@/pages/forecast").then((m) => ({ default: m.ForecastPage })));
+const FifoCalculatorPage = lazy(() => import("@/pages/calculadora-fifo").then((m) => ({ default: m.FifoCalculatorPage })));
 const DisclaimerPage = lazy(() => import("@/pages/disclaimer").then((m) => ({ default: m.DisclaimerPage })));
 const ResearchPage = lazy(() => import("@/pages/research").then((m) => ({ default: m.ResearchPage })));
 const ResearchArticlePage = lazy(() => import("@/pages/research-article").then((m) => ({ default: m.ResearchArticlePage })));
@@ -47,6 +48,10 @@ export default function App() {
             (no account). The panel runs ephemerally without a userId. */}
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/forecast" element={<ForecastPage />} />
+        {/* Standalone indexable landing for the FIFO realized-gain calculator
+            (the tool itself is also embedded in /upload). SEO play — see
+            GROWTH_PLAN.md phase 1. */}
+        <Route path="/calculadora-fifo" element={<FifoCalculatorPage />} />
 
         {/* Public with a trial: no account → capped in-memory taste, sign-in →
             the real thing. Each page branches internally on the session. */}

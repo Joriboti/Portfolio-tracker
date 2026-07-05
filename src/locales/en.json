@@ -101,14 +101,66 @@
     "byTickerAll": "By position (all time)",
     "more": "and {{count}} more positions"
   },
+  "research": {
+    "title": "Analysis & Investment Ideas",
+    "subtitle": "Fundamental analysis, valuation models and investment theses. Free access, no sign-up.",
+    "loading": "Loading analyses…",
+    "empty": "No analyses published yet. Check back soon!",
+    "read": "Read analysis",
+    "loadingArticle": "Loading analysis…",
+    "notFound": "We couldn't find this analysis.",
+    "backToAll": "All analyses",
+    "fallbackTitle": "Analysis | TrimmTrack",
+    "ctaTitle": "Follow {{name}} on TrimmTrack",
+    "ctaCompany": "this company",
+    "ctaBody": "Add it to your portfolio and apply the valuation models (DCF, Graham, NAV…) with live data. Free, no sign-up.",
+    "ctaButton": "Start free"
+  },
   "seo": {
     "homeTitle": "TrimmTrack — Portfolio tracker, DCF calculators & ETF forecasting",
     "homeDesc": "Upload your Excel and visualise your portfolio live: P&L, dividends and weights. Free valuation calculators (DCF, Reverse DCF, Graham, Monte Carlo, NAV), ETF portfolio simulation and forecasting, plus equity research on Netflix, EXOR and more. No sign-up.",
     "exploreTitle": "Stock valuation calculator (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Value any stock for free with 6 models: scenarios, DCF, Reverse DCF, Graham number, Monte Carlo and sum-of-the-parts (NAV). Live Yahoo Finance data, no sign-up.",
     "exploreTickerTitle": "{{ticker}} valuation: DCF, Graham & scenarios | TrimmTrack",
-    "researchTitle": "Equity research: Netflix, EXOR and more | TrimmTrack Research",
-    "researchDesc": "Investment theses with applied valuation models: Netflix (DCA strategy), EXOR (discount to NAV) and more. Free fundamental analysis, no sign-up."
+    "researchTitle": "Equity research: Meta, Netflix, EXOR and more | TrimmTrack Research",
+    "researchDesc": "Investment theses with applied valuation models: Meta (capex & AI), Netflix (DCA strategy), EXOR (discount to NAV) and more. Free fundamental analysis, no sign-up."
+  },
+  "fifoPage": {
+    "seoTitle": "FIFO capital gains calculator: stocks & crypto | TrimmTrack",
+    "seoDesc": "Free FIFO calculator for realized gains and losses when you sell stocks or crypto bought in several lots. Enter your buys and sells in order and get the result per sale, remaining shares and average cost.",
+    "h1": "FIFO capital gains calculator",
+    "short": "FIFO calculator",
+    "lead": "When you buy the same asset in several lots and later sell part of it, the taxable result is worked out with the FIFO method: the earliest shares you bought are sold first. Enter your trades in chronological order and the calculator gives you the realized gain or loss for each sale, the shares you have left and their average cost.",
+    "whatTitle": "What is the FIFO method?",
+    "whatBody": "FIFO (First In, First Out) is the rule that decides which shares count as sold when you have buys at different prices. Under FIFO, a sale always consumes the oldest shares you still hold open. It is the method most tax authorities apply to shares, and the most common convention for crypto too.",
+    "howTitle": "How is the result calculated?",
+    "howBody": "For each sale, the calculator walks your buys from oldest to newest and takes shares until the sold quantity is covered. The gain or loss is the difference between the sell price and the buy price of each lot consumed. If a sale exceeds the shares available, it warns you. The total realized is the sum of all sales.",
+    "exampleTitle": "Example",
+    "exampleBody": "You buy 10 shares at €100 and then 10 more at €120. If you sell 15 at €130, FIFO consumes the first 10 (gain 10 × €30 = €300) and then 5 of the second lot (gain 5 × €10 = €50): a realized result of €350. You are left with 5 shares at an average cost of €120.",
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "what": {
+        "q": "What is this calculator for?",
+        "a": "To know how much you gained or lost when you sell part of a position bought at different prices, using the FIFO method. It is the figure you report as a capital gain or loss and the one that goes in the «Result» column of your spreadsheet."
+      },
+      "crypto": {
+        "q": "Does it work for crypto?",
+        "a": "Yes. The calculation is identical for stocks, ETFs or crypto: enter the buys and sells of any asset in order and the calculator applies FIFO the same way."
+      },
+      "partial": {
+        "q": "What if I only sell part of the position?",
+        "a": "It handles that automatically. It consumes the oldest lots until the sale is covered and shows you the shares you have left open and their average cost, so you can keep tracking."
+      },
+      "tax": {
+        "q": "Is this the figure I have to declare?",
+        "a": "FIFO is the method tax authorities use for shares, but a tax return can have specifics (fees, withholdings, wash-sale rules). Use this tool as a calculation aid, not as tax advice."
+      }
+    },
+    "ctaTitle": "Track your whole portfolio, not just one sale",
+    "ctaBody": "TrimmTrack computes the FIFO result of every position automatically from your Excel, and adds live P&L, dividends, valuations and projections. Free and no sign-up to try it.",
+    "ctaPrimary": "Build your portfolio",
+    "ctaSecondary": "Explore companies",
+    "taxNote": "This calculator is a general calculation aid and does not constitute tax advice. Consult a professional for your tax return."
   },
   "forecast": {
     "seoTitle": "ETF portfolio forecast & simulation calculator | TrimmTrack",

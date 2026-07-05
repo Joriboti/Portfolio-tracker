@@ -101,14 +101,66 @@
     "byTickerAll": "Por posición (histórico)",
     "more": "y {{count}} posiciones más"
   },
+  "research": {
+    "title": "Análisis e Ideas de Inversión",
+    "subtitle": "Análisis fundamentales, modelos de valoración y tesis de inversión. Acceso gratuito y sin registro.",
+    "loading": "Cargando análisis…",
+    "empty": "Todavía no hay análisis publicados. ¡Vuelve pronto!",
+    "read": "Leer análisis",
+    "loadingArticle": "Cargando análisis…",
+    "notFound": "No hemos encontrado este análisis.",
+    "backToAll": "Todos los análisis",
+    "fallbackTitle": "Análisis | TrimmTrack",
+    "ctaTitle": "Sigue a {{name}} en TrimmTrack",
+    "ctaCompany": "esta empresa",
+    "ctaBody": "Añádela a tu cartera y aplícale los modelos de valoración (DCF, Graham, NAV…) con datos en vivo. Gratis y sin registro.",
+    "ctaButton": "Empieza gratis"
+  },
   "seo": {
     "homeTitle": "TrimmTrack — Seguidor de cartera, calculadoras DCF y proyección de ETFs",
     "homeDesc": "Sube tu Excel y visualiza tu cartera en vivo: P&L, dividendos y pesos. Calculadoras gratuitas de valoración (DCF, Reverse DCF, Graham, Monte Carlo, NAV), simulación y predicción de carteras de ETFs, y análisis de empresas como Netflix o EXOR. Sin registro.",
     "exploreTitle": "Calculadora de valoración de acciones (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Valora cualquier acción gratis con 6 modelos: escenarios, DCF, Reverse DCF, número de Graham, Monte Carlo y suma de partes (NAV). Datos en vivo de Yahoo Finance, sin registro.",
     "exploreTickerTitle": "Valoración de {{ticker}}: DCF, Graham y escenarios | TrimmTrack",
-    "researchTitle": "Análisis de inversión: Netflix, EXOR y más | TrimmTrack Research",
-    "researchDesc": "Tesis de inversión con modelos de valoración aplicados: Netflix (estrategia DCA), EXOR (descuento sobre NAV) y más. Análisis fundamental gratuito, sin registro."
+    "researchTitle": "Análisis de inversión: Meta, Netflix, EXOR y más | TrimmTrack Research",
+    "researchDesc": "Tesis de inversión con modelos de valoración aplicados: Meta (capex e IA), Netflix (estrategia DCA), EXOR (descuento sobre NAV) y más. Análisis fundamental gratuito, sin registro."
+  },
+  "fifoPage": {
+    "seoTitle": "Calculadora FIFO de plusvalías: acciones y criptomonedas | TrimmTrack",
+    "seoDesc": "Calcula gratis la ganancia o pérdida realizada con el método FIFO al vender acciones o cripto en varios tramos. Introduce tus compras y ventas en orden y obtén el resultado de cada venta, los títulos restantes y el coste medio.",
+    "h1": "Calculadora FIFO de plusvalías",
+    "short": "Calculadora FIFO",
+    "lead": "Cuando compras el mismo valor en varios tramos y luego vendes una parte, el resultado fiscal se calcula por el método FIFO: se venden primero los títulos comprados antes. Introduce tus operaciones en orden cronológico y la calculadora te da la ganancia o pérdida realizada de cada venta, los títulos que te quedan y su coste medio.",
+    "whatTitle": "¿Qué es el método FIFO?",
+    "whatBody": "FIFO («First In, First Out», primero en entrar, primero en salir) es la regla que determina qué títulos se consideran vendidos cuando tienes compras a precios distintos. Con FIFO, una venta consume siempre las acciones más antiguas que sigues teniendo abiertas. Es el método que exige Hacienda en España para calcular la ganancia patrimonial de acciones y participaciones, y el más habitual también para criptomonedas.",
+    "howTitle": "¿Cómo se calcula el resultado?",
+    "howBody": "Por cada venta, la calculadora recorre tus compras de la más antigua a la más nueva y toma títulos hasta cubrir la cantidad vendida. La ganancia o pérdida es la diferencia entre el precio de venta y el precio de compra de cada lote consumido. Si una venta supera los títulos disponibles, te avisa. El total realizado es la suma de todas las ventas.",
+    "exampleTitle": "Ejemplo",
+    "exampleBody": "Compras 10 acciones a 100 € y luego 10 más a 120 €. Si vendes 15 a 130 €, FIFO consume primero las 10 primeras (ganancia 10 × 30 € = 300 €) y luego 5 de las segundas (ganancia 5 × 10 € = 50 €): resultado realizado de 350 €. Te quedan 5 acciones con un coste medio de 120 €.",
+    "faqTitle": "Preguntas frecuentes",
+    "faq": {
+      "what": {
+        "q": "¿Para qué sirve esta calculadora?",
+        "a": "Para saber cuánto has ganado o perdido cuando vendes parte de una posición comprada a precios distintos, siguiendo el método FIFO. Es el número que debes declarar como ganancia o pérdida patrimonial y el que va en la columna «Resultado» de tu hoja de cálculo."
+      },
+      "crypto": {
+        "q": "¿Funciona para criptomonedas?",
+        "a": "Sí. El cálculo es idéntico para acciones, ETFs o cripto: introduce las compras y ventas de cualquier activo en orden y la calculadora aplica FIFO igual."
+      },
+      "partial": {
+        "q": "¿Y si solo vendo una parte de la posición?",
+        "a": "Lo gestiona automáticamente. Consume los lotes más antiguos hasta cubrir la venta y te muestra los títulos que te quedan abiertos y su coste medio, para que puedas seguir el seguimiento."
+      },
+      "tax": {
+        "q": "¿Este resultado es el que tengo que declarar?",
+        "a": "El método FIFO es el que usa Hacienda para acciones, pero la declaración puede tener particularidades (comisiones, retenciones, regla antiaplicación). Usa esta herramienta como ayuda de cálculo, no como asesoramiento fiscal."
+      }
+    },
+    "ctaTitle": "Sigue toda tu cartera, no solo una venta",
+    "ctaBody": "TrimmTrack calcula el resultado FIFO de todas tus posiciones automáticamente a partir de tu Excel, y añade P&L en vivo, dividendos, valoraciones y proyecciones. Gratis y sin registro para probarlo.",
+    "ctaPrimary": "Construye tu cartera",
+    "ctaSecondary": "Explora empresas",
+    "taxNote": "Esta calculadora es una ayuda de cálculo general y no constituye asesoramiento fiscal. Consulta a un profesional para tu declaración."
   },
   "forecast": {
     "seoTitle": "Calculadora de proyección y simulación de ETFs | TrimmTrack",
