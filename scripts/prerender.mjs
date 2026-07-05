@@ -78,10 +78,23 @@ async function run() {
   });
   await new Promise((resolve) => server.listen(PORT, resolve));
 
-  const browser = await puppeteer.launch({
+  // Locally, Puppeteer's bundled Chromium works. In Vercel's build image it
+  // can't launch (missing system libraries), so there we drive @sparticuz's
+  // Amazon-Linux-compatible Chromium via its executablePath instead.
+  const onVercel = !!process.env.VERCEL || !!process.env.CI;
+  let launchOptions = {
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  };
+  if (onVercel) {
+    const { default: chromium } = await import("@sparticuz/chromium");
+    launchOptions = {
+      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    };
+  }
+  const browser = await puppeteer.launch(launchOptions);
 
   try {
     for (const route of ROUTES) {

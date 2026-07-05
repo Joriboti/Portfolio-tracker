@@ -25,6 +25,7 @@
     "yahoo-finance2": "^3.14.0"
   },
   "devDependencies": {
+    "@sparticuz/chromium": "^149.0.0",
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
