@@ -104,17 +104,20 @@ whatever period you request. Consequences, in order:
 
 ## Phases
 
-**Phase 1 — data layer + stat panels (1 session)**
-API mode `?statements=`, Neon table, `statements.ts` transforms + tests, the
-five stat panels on a new "Resum" tab of `/explore/:ticker`. Add the missing
-quoteSummary fields (P/S, EV/EBITDA, operating margin, payout ratio/date,
-earningsTrend forward estimates).
+**Phase 1 — data layer + stat panels — ✅ DONE (2026-07-07, commit `5e82d26`,
+deployed & live-verified on /explore/aapl).** `?statements=` mode in
+`api/_statements-core.ts` (still 12 routes), `financial_statements` Neon table
+(append-only accumulation), `src/lib/statements.ts` + 17 vitest cases, five
+stat panels incl. PE TTM|NTM|+1y, P/S, EV/EBITDA, FCF yield + SBC-adjusted,
+payout ratio/date, next-year EPS from earningsTrend.
 
-**Phase 2 — chart grid (1 session)**
-`<QuarterlyBars>` SVG component; grid: Revenue, EBITDA, Net Income, FCF, EPS,
-Cash & Debt (grouped), Dividends paid, Return of Capital (stacked div+buyback),
-Shares Outstanding, SBC, Expenses (R&D/SG&A). Quarterly/annual toggle. 1-year
-price chart at the top.
+**Phase 2 — chart grid — ✅ DONE (same commit).** `<QuarterlyBars>` SVG
+component (1–2 series, grouped/stacked, negatives); grid: Revenue, EBITDA, Net
+Income, FCF, EPS, Cash & Debt (grouped), Return of Capital (stacked
+div+buybacks), Shares, SBC, Expenses (R&D/SG&A stacked). Quarterly/annual
+toggle (auto-picks annual while the quarterly cache is young). 1y price chart
+with change badge. Tabs Resum | Valoració on /explore/:ticker (share links
+open on Valoració). Live-verified: 13 SVGs, 65 bars, real AAPL figures.
 
 **Phase 3 — later, pick as needed**
 - SEC EDGAR backfill: deep quarterly history + revenue segments (US-only).
