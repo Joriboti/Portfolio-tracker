@@ -165,3 +165,17 @@ ALTER TABLE fundamentals
 -- Company website, used to derive a logo domain on the dashboard.
 ALTER TABLE fundamentals
   ADD COLUMN IF NOT EXISTS website TEXT;
+
+-- Quarterly/annual financial statements cache (company dashboard on
+-- /explore/:ticker). Yahoo's free API only returns the last ~5 periods, so
+-- rows are upserted append-only and history ACCUMULATES with each refresh —
+-- never bulk-delete this table. `data` is the slim metrics JSON produced by
+-- api/_statements-core.ts.
+CREATE TABLE IF NOT EXISTS financial_statements (
+  ticker      TEXT NOT NULL,
+  period_end  DATE NOT NULL,
+  period_type TEXT NOT NULL, -- 'q' | 'a'
+  data        JSONB NOT NULL,
+  fetched_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (ticker, period_end, period_type)
+);

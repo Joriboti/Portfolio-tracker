@@ -81,6 +81,8 @@
     "tickerHeading": "Valoración de {{name}} ({{ticker}})",
     "tickerSubtitle": "Aplica seis modelos de valoración a {{name}} con datos en vivo: DCF, Reverse DCF, número de Graham, Monte Carlo, escenarios y suma de partes (NAV).",
     "popularTitle": "Empresas populares",
+    "tabOverview": "Resumen",
+    "tabValuation": "Valoración",
     "title": "Explorar empresas",
     "subtitle": "Busca cualquier empresa por su ticker y aplícale los modelos de valoración, sin necesidad de tenerla en la cartera.",
     "searchPlaceholder": "Busca por ticker o nombre (p. ej. AAPL, Nvidia)…",
@@ -93,6 +95,54 @@
     "share": "Comparte la valoración",
     "shareCopied": "¡Enlace copiado!",
     "shareHint": "Copia un enlace con el ticker y todos tus supuestos. Quien lo abra verá exactamente esta valoración."
+  },
+  "company": {
+    "loading": "Cargando estados financieros…",
+    "noData": "No hay estados financieros disponibles para esta empresa.",
+    "depthNote": "Fuente: Yahoo Finance. El histórico trimestral se amplía automáticamente con el tiempo a medida que se publican nuevos trimestres.",
+    "toggle": { "quarterly": "Trimestral", "annual": "Anual" },
+    "panels": {
+      "valuation": "Valoración",
+      "cashflow": "Flujo de caja",
+      "marginsGrowth": "Márgenes y crecimiento",
+      "balance": "Balance",
+      "dividend": "Dividendo"
+    },
+    "rows": {
+      "marketCap": "Capitalización",
+      "pe": "PER (TTM | NTM | +1a)",
+      "priceToSales": "Precio / Ventas",
+      "evToEbitda": "EV / EBITDA",
+      "priceToBook": "Precio / Valor contable",
+      "fcfYield": "Rentabilidad FCF",
+      "adjFcfYield": "Rentabilidad FCF ajustada (SBC)",
+      "sbcImpact": "Impacto SBC",
+      "profitMargin": "Margen neto",
+      "operatingMargin": "Margen operativo",
+      "earningsYoY": "Beneficios trimestrales (interanual)",
+      "revenueYoY": "Ingresos trimestrales (interanual)",
+      "cash": "Caja",
+      "debt": "Deuda",
+      "netCash": "Posición neta",
+      "divYield": "Rentabilidad por dividendo",
+      "payoutRatio": "Ratio de payout",
+      "payoutDate": "Próximo pago"
+    },
+    "charts": {
+      "price": "Precio (1 año)",
+      "revenue": "Ingresos",
+      "ebitda": "EBITDA",
+      "netIncome": "Beneficio neto",
+      "fcf": "Flujo de caja libre",
+      "eps": "BPA (EPS)",
+      "cashDebt": "Caja y deuda",
+      "returnOfCapital": "Retorno de capital",
+      "dividends": "Dividendos",
+      "buybacks": "Recompras",
+      "shares": "Acciones en circulación",
+      "sbc": "Compensación en acciones",
+      "expenses": "Gastos operativos"
+    }
   },
   "dividends": {
     "title": "Dividendos",

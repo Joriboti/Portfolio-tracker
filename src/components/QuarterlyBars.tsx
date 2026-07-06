@@ -1,0 +1,171 @@
+// Hand-rolled SVG bar chart for the company dashboard (house style — no chart
+// lib, like HistoryChart / DividendsCard). Supports 1–2 series, grouped or
+// stacked, negative values (bars hang below the zero line) and per-bar
+// <title> tooltips. Labels/series arrive pre-aligned from the caller.
+
+export type BarSeries = {
+  name: string;
+  /** Any CSS color; tailwind palette hexes look best on the cream cards. */
+  color: string;
+  values: Array<number | null>;
+};
+
+const W = 320;
+const H = 130;
+const PAD_TOP = 14;
+const PAD_BOTTOM = 18;
+const PAD_X = 6;
+
+export function QuarterlyBars({
+  title,
+  labels,
+  series,
+  stacked = false,
+  format,
+  negativeColor = "#e11d48",
+}: {
+  title: string;
+  labels: string[];
+  series: BarSeries[];
+  stacked?: boolean;
+  format: (v: number) => string;
+  /** Single-series charts paint below-zero bars this color. */
+  negativeColor?: string;
+}) {
+  const n = labels.length;
+  const hasData = n > 0 && series.some((s) => s.values.some((v) => v != null));
+  if (!hasData) return null;
+
+  // Extent across bars (stacked sums positives/negatives separately).
+  let min = 0;
+  let max = 0;
+  for (let i = 0; i < n; i++) {
+    if (stacked) {
+      let up = 0;
+      let down = 0;
+      for (const s of series) {
+        const v = s.values[i];
+        if (v == null) continue;
+        if (v >= 0) up += v;
+        else down += v;
+      }
+      max = Math.max(max, up);
+      min = Math.min(min, down);
+    } else {
+      for (const s of series) {
+        const v = s.values[i];
+        if (v == null) continue;
+        max = Math.max(max, v);
+        min = Math.min(min, v);
+      }
+    }
+  }
+  if (max === min) max = min + 1;
+
+  const plotH = H - PAD_TOP - PAD_BOTTOM;
+  const y = (v: number) => PAD_TOP + ((max - v) / (max - min)) * plotH;
+  const zeroY = y(0);
+
+  const slot = (W - PAD_X * 2) / n;
+  const groupGap = Math.min(6, slot * 0.25);
+  const groupW = slot - groupGap;
+  const perBarW = stacked || series.length === 1 ? groupW : groupW / series.length;
+
+  // Sparse x labels: aim for ~6, always include first and last.
+  const step = Math.max(1, Math.ceil(n / 6));
+  const showLabel = (i: number) => i === n - 1 || (i % step === 0 && i < n - 1 - step / 2);
+
+  const singleSeries = series.length === 1;
+
+  return (
+    <div className="card">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="text-sm font-medium text-slate-700">{title}</h3>
+        {series.length > 1 && (
+          <div className="flex items-center gap-2.5 text-[10px] text-slate-500">
+            {series.map((s) => (
+              <span key={s.name} className="flex items-center gap-1">
+                <span
+                  className="inline-block h-2 w-2 rounded-[2px]"
+                  style={{ background: s.color }}
+                />
+                {s.name}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="mt-1 w-full"
+        role="img"
+        aria-label={title}
+      >
+        {/* zero line */}
+        <line x1={PAD_X} x2={W - PAD_X} y1={zeroY} y2={zeroY} stroke="#e2e8f0" strokeWidth={1} />
+        {labels.map((label, i) => {
+          const x0 = PAD_X + i * slot + groupGap / 2;
+          let stackUp = 0;
+          let stackDown = 0;
+          return (
+            <g key={`${label}-${i}`}>
+              {series.map((s, si) => {
+                const v = s.values[i];
+                if (v == null) return null;
+                let bx = x0;
+                let bw = perBarW;
+                let by: number;
+                let bh: number;
+                if (stacked && series.length > 1) {
+                  if (v >= 0) {
+                    by = y(stackUp + v);
+                    bh = y(stackUp) - by;
+                    stackUp += v;
+                  } else {
+                    by = y(stackDown);
+                    bh = y(stackDown + v) - by;
+                    stackDown += v;
+                  }
+                } else {
+                  bx = x0 + (singleSeries ? 0 : si * perBarW);
+                  by = v >= 0 ? y(v) : zeroY;
+                  bh = Math.abs(y(v) - zeroY);
+                }
+                const fill = singleSeries && v < 0 ? negativeColor : s.color;
+                return (
+                  <rect
+                    key={s.name}
+                    x={bx}
+                    y={by}
+                    width={Math.max(1, bw - 1)}
+                    height={Math.max(0.5, bh)}
+                    rx={1.5}
+                    fill={fill}
+                    opacity={0.9}
+                  >
+                    <title>{`${label}${series.length > 1 ? ` · ${s.name}` : ""}: ${format(v)}`}</title>
+                  </rect>
+                );
+              })}
+              {showLabel(i) && (
+                <text
+                  x={x0 + groupW / 2}
+                  y={H - 5}
+                  textAnchor="middle"
+                  fontSize={8.5}
+                  fill="#94a3b8"
+                >
+                  {label}
+                </text>
+              )}
+            </g>
+          );
+        })}
+        {/* max marker */}
+        <text x={PAD_X} y={9} fontSize={8.5} fill="#94a3b8">
+          {format(max)}
+        </text>
+      </svg>
+    </div>
+  );
+}

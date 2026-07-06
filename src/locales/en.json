@@ -81,6 +81,8 @@
     "tickerHeading": "{{name}} ({{ticker}}) valuation",
     "tickerSubtitle": "Run six valuation models on {{name}} with live data: DCF, Reverse DCF, Graham number, Monte Carlo, scenarios and sum-of-the-parts (NAV).",
     "popularTitle": "Popular companies",
+    "tabOverview": "Overview",
+    "tabValuation": "Valuation",
     "title": "Explore stocks",
     "subtitle": "Search any company by ticker and run the valuation models on it — no need to own it.",
     "searchPlaceholder": "Search by ticker or name (e.g. AAPL, Nvidia)…",
@@ -93,6 +95,54 @@
     "share": "Share valuation",
     "shareCopied": "Link copied!",
     "shareHint": "Copy a link with the ticker and all your assumptions. Anyone opening it sees exactly this valuation."
+  },
+  "company": {
+    "loading": "Loading financial statements…",
+    "noData": "No financial statements available for this company.",
+    "depthNote": "Source: Yahoo Finance. Quarterly history grows automatically over time as new quarters are published.",
+    "toggle": { "quarterly": "Quarterly", "annual": "Annual" },
+    "panels": {
+      "valuation": "Valuation",
+      "cashflow": "Cash flow",
+      "marginsGrowth": "Margins & growth",
+      "balance": "Balance",
+      "dividend": "Dividend"
+    },
+    "rows": {
+      "marketCap": "Market cap",
+      "pe": "PE (TTM | NTM | +1y)",
+      "priceToSales": "Price / Sales",
+      "evToEbitda": "EV / EBITDA",
+      "priceToBook": "Price / Book",
+      "fcfYield": "FCF yield",
+      "adjFcfYield": "SBC-adjusted FCF yield",
+      "sbcImpact": "SBC impact",
+      "profitMargin": "Profit margin",
+      "operatingMargin": "Operating margin",
+      "earningsYoY": "Quarterly earnings (YoY)",
+      "revenueYoY": "Quarterly revenue (YoY)",
+      "cash": "Cash",
+      "debt": "Debt",
+      "netCash": "Net position",
+      "divYield": "Dividend yield",
+      "payoutRatio": "Payout ratio",
+      "payoutDate": "Next payout"
+    },
+    "charts": {
+      "price": "Price (1 year)",
+      "revenue": "Revenue",
+      "ebitda": "EBITDA",
+      "netIncome": "Net income",
+      "fcf": "Free cash flow",
+      "eps": "EPS",
+      "cashDebt": "Cash & debt",
+      "returnOfCapital": "Return of capital",
+      "dividends": "Dividends",
+      "buybacks": "Buybacks",
+      "shares": "Shares outstanding",
+      "sbc": "Stock-based compensation",
+      "expenses": "Operating expenses"
+    }
   },
   "dividends": {
     "title": "Dividends",

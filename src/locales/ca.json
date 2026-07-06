@@ -81,6 +81,8 @@
     "tickerHeading": "Valoració de {{name}} ({{ticker}})",
     "tickerSubtitle": "Aplica sis models de valoració a {{name}} amb dades en viu: DCF, Reverse DCF, número de Graham, Monte Carlo, escenaris i suma de parts (NAV).",
     "popularTitle": "Empreses populars",
+    "tabOverview": "Resum",
+    "tabValuation": "Valoració",
     "title": "Explorar empreses",
     "subtitle": "Cerca qualsevol empresa pel seu ticker i aplica-hi els models de valoració, sense necessitat de tenir-la a la cartera.",
     "searchPlaceholder": "Cerca per ticker o nom (p. ex. AAPL, Nvidia)…",
@@ -93,6 +95,54 @@
     "share": "Comparteix la valoració",
     "shareCopied": "Enllaç copiat!",
     "shareHint": "Copia un enllaç amb el ticker i totes les teves assumpcions. Qui l'obri veurà exactament aquesta valoració."
+  },
+  "company": {
+    "loading": "Carregant estats financers…",
+    "noData": "No hi ha estats financers disponibles per a aquesta empresa.",
+    "depthNote": "Font: Yahoo Finance. L'històric trimestral s'amplia automàticament amb el temps a mesura que es publiquen nous trimestres.",
+    "toggle": { "quarterly": "Trimestral", "annual": "Anual" },
+    "panels": {
+      "valuation": "Valoració",
+      "cashflow": "Flux de caixa",
+      "marginsGrowth": "Marges i creixement",
+      "balance": "Balanç",
+      "dividend": "Dividend"
+    },
+    "rows": {
+      "marketCap": "Capitalització",
+      "pe": "PER (TTM | NTM | +1a)",
+      "priceToSales": "Preu / Vendes",
+      "evToEbitda": "EV / EBITDA",
+      "priceToBook": "Preu / Valor comptable",
+      "fcfYield": "Rendibilitat FCF",
+      "adjFcfYield": "Rendibilitat FCF ajustada (SBC)",
+      "sbcImpact": "Impacte SBC",
+      "profitMargin": "Marge net",
+      "operatingMargin": "Marge operatiu",
+      "earningsYoY": "Beneficis trimestrals (interanual)",
+      "revenueYoY": "Ingressos trimestrals (interanual)",
+      "cash": "Caixa",
+      "debt": "Deute",
+      "netCash": "Posició neta",
+      "divYield": "Rendibilitat per dividend",
+      "payoutRatio": "Ràtio de payout",
+      "payoutDate": "Proper pagament"
+    },
+    "charts": {
+      "price": "Preu (1 any)",
+      "revenue": "Ingressos",
+      "ebitda": "EBITDA",
+      "netIncome": "Benefici net",
+      "fcf": "Flux de caixa lliure",
+      "eps": "BPA (EPS)",
+      "cashDebt": "Caixa i deute",
+      "returnOfCapital": "Retorn de capital",
+      "dividends": "Dividends",
+      "buybacks": "Recompres",
+      "shares": "Accions en circulació",
+      "sbc": "Compensació en accions",
+      "expenses": "Despeses operatives"
+    }
   },
   "dividends": {
     "title": "Dividends",

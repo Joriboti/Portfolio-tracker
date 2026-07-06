@@ -1,0 +1,193 @@
+// Pure display math for the company dashboard ("Resum" tab): shapes the
+// `?statements=` API payload into chart series and panel figures. No API or
+// React here — covered by statements.test.ts.
+
+export type StatementMetrics = {
+  revenue: number | null;
+  ebitda: number | null;
+  netIncome: number | null;
+  eps: number | null;
+  operatingIncome: number | null;
+  grossProfit: number | null;
+  rnd: number | null;
+  sga: number | null;
+  shares: number | null;
+  totalDebt: number | null;
+  cash: number | null;
+  fcf: number | null;
+  ocf: number | null;
+  capex: number | null;
+  sbc: number | null;
+  /** Filing sign convention: outflows are negative. */
+  dividendsPaid: number | null;
+  buybacks: number | null;
+};
+
+export type StatementRow = { periodEnd: string; metrics: StatementMetrics };
+
+export type PanelExtras = {
+  priceToSales: number | null;
+  evToEbitda: number | null;
+  operatingMargin: number | null;
+  grossMargin: number | null;
+  payoutRatio: number | null;
+  dividendDate: string | null;
+  nextYearEps: number | null;
+};
+
+export type PricePoint = { date: string; close: number };
+
+export type CompanyStatements = {
+  ticker: string;
+  panel: PanelExtras | null;
+  prices: PricePoint[];
+  quarters: StatementRow[];
+  annual: StatementRow[];
+};
+
+export type SeriesPoint = { label: string; value: number };
+
+/** "2026-03-31" → "Q1 26" (calendar quarter of the period end). */
+export function quarterLabel(periodEnd: string): string {
+  const [y, m] = periodEnd.split("-").map(Number);
+  const q = Math.ceil((m || 1) / 3);
+  return `Q${q} ${String(y).slice(2)}`;
+}
+
+/** "2025-09-30" → "2025" (fiscal-year rows are labelled by their end year). */
+export function annualLabel(periodEnd: string): string {
+  return periodEnd.slice(0, 4);
+}
+
+/**
+ * Chart series for one metric: rows (already period-sorted ascending) → labelled
+ * points, skipping periods where the metric is missing. `transform` lets a
+ * chart flip filing-sign outflows (dividends, buybacks) positive for display.
+ */
+export function series(
+  rows: StatementRow[],
+  key: keyof StatementMetrics,
+  opts?: { annual?: boolean; transform?: (v: number) => number },
+): SeriesPoint[] {
+  const label = opts?.annual ? annualLabel : quarterLabel;
+  const out: SeriesPoint[] = [];
+  for (const r of rows) {
+    const v = r.metrics[key];
+    if (v == null) continue;
+    out.push({ label: label(r.periodEnd), value: opts?.transform ? opts.transform(v) : v });
+  }
+  return out;
+}
+
+/** Sum of the metric over the last 4 quarters; null unless all 4 report it. */
+export function ttm(quarters: StatementRow[], key: keyof StatementMetrics): number | null {
+  const last4 = quarters.slice(-4);
+  if (last4.length < 4) return null;
+  let sum = 0;
+  for (const r of last4) {
+    const v = r.metrics[key];
+    if (v == null) return null;
+    sum += v;
+  }
+  return sum;
+}
+
+/**
+ * Latest year-over-year growth of a quarterly metric: newest quarter vs the
+ * quarter ending ~1 year earlier (±45 days tolerance for fiscal drift). Null
+ * when either side is missing or the base is ~zero (a sign flip through zero
+ * has no meaningful growth rate).
+ */
+export function yoyLatest(
+  quarters: StatementRow[],
+  key: keyof StatementMetrics,
+): number | null {
+  for (let i = quarters.length - 1; i >= 0; i--) {
+    const cur = quarters[i];
+    const curV = cur.metrics[key];
+    if (curV == null) continue;
+    const curT = Date.parse(cur.periodEnd);
+    const year = 365.25 * 24 * 3600 * 1000;
+    const tol = 45 * 24 * 3600 * 1000;
+    for (let j = i - 1; j >= 0; j--) {
+      const base = quarters[j];
+      const gap = curT - Date.parse(base.periodEnd);
+      if (gap < year - tol) continue;
+      if (gap > year + tol) break;
+      const baseV = base.metrics[key];
+      if (baseV == null || Math.abs(baseV) < 1e-9) return null;
+      return curV / baseV - 1;
+    }
+    return null;
+  }
+  return null;
+}
+
+/**
+ * Compact money label for big figures ("$379.60b", "31,23 kM€" per locale).
+ * Falls back to a plain compact number when Intl rejects the currency code.
+ */
+export function formatCompact(value: number, currency?: string | null): string {
+  const opts: Intl.NumberFormatOptions = {
+    notation: "compact",
+    maximumFractionDigits: 2,
+  };
+  try {
+    if (currency) {
+      return new Intl.NumberFormat(undefined, {
+        ...opts,
+        style: "currency",
+        currency,
+      }).format(value);
+    }
+  } catch {
+    /* unknown currency code → plain number below */
+  }
+  return new Intl.NumberFormat(undefined, opts).format(value);
+}
+
+/** Percent with sign, 2 decimals: 0.0518 → "+5,18 %" (locale-aware). */
+export function formatSignedPct(fraction: number): string {
+  const pct = new Intl.NumberFormat(undefined, {
+    style: "percent",
+    maximumFractionDigits: 2,
+    signDisplay: "exceptZero",
+  }).format(fraction);
+  return pct;
+}
+
+/** Derived stat-panel figures that mix live fundamentals with TTM statements. */
+export function cashFlowPanel(input: {
+  freeCashflow: number | null;
+  sharesOutstanding: number | null;
+  price: number | null;
+  sbcTtm: number | null;
+}): {
+  fcfPerShare: number | null;
+  fcfYield: number | null;
+  adjFcfPerShare: number | null;
+  adjFcfYield: number | null;
+  /** Relative reduction of FCF yield caused by SBC (negative fraction). */
+  sbcImpact: number | null;
+} {
+  const { freeCashflow, sharesOutstanding, price, sbcTtm } = input;
+  const perShare =
+    freeCashflow != null && sharesOutstanding ? freeCashflow / sharesOutstanding : null;
+  const fcfYield = perShare != null && price ? perShare / price : null;
+  const adjPerShare =
+    freeCashflow != null && sbcTtm != null && sharesOutstanding
+      ? (freeCashflow - sbcTtm) / sharesOutstanding
+      : null;
+  const adjYield = adjPerShare != null && price ? adjPerShare / price : null;
+  const impact =
+    fcfYield != null && adjYield != null && Math.abs(fcfYield) > 1e-12
+      ? (adjYield - fcfYield) / Math.abs(fcfYield)
+      : null;
+  return {
+    fcfPerShare: perShare,
+    fcfYield,
+    adjFcfPerShare: adjPerShare,
+    adjFcfYield: adjYield,
+    sbcImpact: impact,
+  };
+}

@@ -236,6 +236,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    // Quarterly/annual statements mode (company dashboard on /explore/:ticker).
+    // Folded in (not a new /api route) to stay under the 12-function limit.
+    if (req.query.statements != null) {
+      const { handleStatements } = await import("./_statements-core.js");
+      await handleStatements(req, res);
+      return;
+    }
+
     // Live Yahoo quotes mode (SoTP / NAV) — no DB needed.
     if (req.query.live != null) {
       await handleLiveQuotes(req, res);

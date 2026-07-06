@@ -401,6 +401,29 @@ export async function getLiveCompany(ticker: string): Promise<LiveCompany | null
   };
 }
 
+// Quarterly/annual statements + panel extras for the company dashboard
+// ("Resum" tab on /explore/:ticker). Served by fundamentals-get's
+// `?statements=` mode (folded in — 12-function limit). Types live in
+// src/lib/statements.ts next to the display math.
+export async function getStatements(
+  ticker: string,
+): Promise<import("./statements").CompanyStatements | null> {
+  const q = ticker.trim().toUpperCase();
+  if (q.length === 0) return null;
+  const params = new URLSearchParams({ statements: q });
+  const data = await jsonFetch<
+    { ticker: string | null } & import("./statements").CompanyStatements
+  >(`/api/fundamentals-get?${params.toString()}`);
+  if (!data.ticker) return null;
+  return {
+    ticker: data.ticker,
+    panel: data.panel ?? null,
+    prices: data.prices ?? [],
+    quarters: data.quarters ?? [],
+    annual: data.annual ?? [],
+  };
+}
+
 export type FundamentalsRefreshResult = {
   ok: boolean;
   tickers?: number;

@@ -14,6 +14,7 @@ import { useDisplayCurrency } from "@/lib/preferences";
 import { useSeo } from "@/lib/seo";
 import { decodeShare, buildShareUrl, type ShareState } from "@/lib/share";
 import { CompanyLogo } from "@/components/CompanyLogo";
+import { CompanyOverview } from "@/components/CompanyOverview";
 import {
   ScenarioValuation,
   type ValuationTab,
@@ -58,6 +59,11 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
     return p ? decodeShare(p) : null;
   });
   const [copied, setCopied] = useState(false);
+  // "Resum" (company overview) | "Valoració" (the 6 models). A share link
+  // carries valuation assumptions, so it opens on the valuation tab.
+  const [view, setView] = useState<"overview" | "valuation">(() =>
+    new URLSearchParams(window.location.search).get("s") ? "valuation" : "overview",
+  );
   // Latest model+tab from the valuation panel, for building the share URL.
   const shareStateRef = useRef<{ model: ValuationModel; tab: ValuationTab } | null>(null);
   const onValuationState = useCallback(
@@ -312,27 +318,49 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
           )}
 
           <div className="border-t border-slate-200 pt-4">
-            <ScenarioValuation
-              userId={user?.id ?? ""}
-              ticker={company.ticker}
-              shares={0}
-              avgCostEur={0}
-              currentPrice={company.price}
-              quoteCurrency={company.currency ?? currency}
-              fundamentals={company.fundamentals}
-              totalPortfolioValueEur={0}
-              displayCurrency={currency}
-              fxRates={{}}
-              initialModel={
-                shared && company.ticker === shared.t ? shared.m ?? null : null
-              }
-              initialTab={
-                shared && company.ticker === shared.t && isValuationTab(shared.tab)
-                  ? shared.tab
-                  : null
-              }
-              onStateChange={onValuationState}
-            />
+            {/* Resum | Valoració tabs */}
+            <div className="mb-4 flex items-center gap-1.5">
+              {(["overview", "valuation"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setView(v)}
+                  className={`rounded-full border px-4 py-1.5 text-sm ${
+                    view === v
+                      ? "border-brand-300 bg-brand-50 font-medium text-brand-700"
+                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  {t(v === "overview" ? "explore.tabOverview" : "explore.tabValuation")}
+                </button>
+              ))}
+            </div>
+
+            {view === "overview" ? (
+              <CompanyOverview company={company} />
+            ) : (
+              <ScenarioValuation
+                userId={user?.id ?? ""}
+                ticker={company.ticker}
+                shares={0}
+                avgCostEur={0}
+                currentPrice={company.price}
+                quoteCurrency={company.currency ?? currency}
+                fundamentals={company.fundamentals}
+                totalPortfolioValueEur={0}
+                displayCurrency={currency}
+                fxRates={{}}
+                initialModel={
+                  shared && company.ticker === shared.t ? shared.m ?? null : null
+                }
+                initialTab={
+                  shared && company.ticker === shared.t && isValuationTab(shared.tab)
+                    ? shared.tab
+                    : null
+                }
+                onStateChange={onValuationState}
+              />
+            )}
           </div>
         </section>
       )}
