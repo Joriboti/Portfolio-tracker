@@ -25,11 +25,15 @@ sitemap + hreflang ca/es/en, JSON-LD, og.png, robots.txt). The three real gaps:
 
 The tools are strong but hidden behind 1 URL each. Turn them into many keyword-targeted URLs:
 
-- [ ] **Per-ticker explore pages**: `/explore/aapl`, `/explore/msft`, … as real routes
-      with unique `useSeo` title/description ("Valoració DCF d'Apple (AAPL) — calculadora
-      gratuïta") + JSON-LD, generated for a curated list (~100 popular tickers + your
-      holdings), all added to sitemap. This is the classic programmatic-SEO play for
-      finance tools.
+- [x] **Per-ticker explore pages** — DONE (2026-07-06, commit `7280853`). Real routes
+      `/explore/:ticker` for ~80 curated companies (`src/data/tickers.json`), each with a
+      unique title/H1/description rendered from static data (so JS-crawlers get
+      differentiated content instantly) and auto-loading the live valuation. Added a
+      "popular companies" internal-link grid on every explore page + a generated
+      `public/sitemap-tickers.xml` (80 URLs, hreflang) referenced as a 2nd sitemap in
+      robots.txt. ca/es/en. **Follow-ups:** grow the list (add your holdings + IBEX/EU
+      names); consider prerendering the top ~20 against the live API for static-HTML
+      content (currently CSR — meta/H1 are static but the valuation panel needs JS).
 - [ ] **Standalone calculator landing pages** — each one targets a real search:
       - [x] `/calculadora-fifo` — DONE (2026-07-05). Standalone public page shipped:
         reuses the existing `<FifoCalculator>` + SEO copy (what/how/example), a 4-Q
@@ -39,12 +43,15 @@ The tools are strong but hidden behind 1 URL each. Turn them into many keyword-t
       - `/calculadora-dcf` — the Simple DCF as a standalone page (Explore stays as-is).
       - `/calculadora-interes-compost` — thin wrapper/alias view of /forecast targeting
         the compound-interest query (huge volume in ES).
-- [ ] **Prerender public pages at build time**. The app is CSR (Vite SPA): Google *can*
-      render JS but it's slow and unreliable for ranking; Bing/social scrapers barely do.
-      A build-step prerender (e.g. puppeteer snapshot or vite prerender plugin) that emits
-      static HTML for `/`, `/forecast`, `/research`, `/research/:slug`, calculators and
-      per-ticker pages fixes this **without any serverless function** (12-fn Hobby cap
-      untouched). This is the single biggest technical SEO item left.
+- [x] **Prerender public pages at build time** — DONE (2026-07-05). Post-build Puppeteer
+      snapshot (`scripts/prerender.mjs`, wired into `npm run build`) emits static HTML for
+      the backend-free public routes (`/`, `/calculadora-fifo`, `/forecast`, `/disclaimer`)
+      with real body content + per-route title/description/canonical/JSON-LD baked in.
+      Locale forced to `ca` so default-URL snapshots match the ca canonical. Non-fatal by
+      design (exits 0 on any failure) so it can never break the Vercel build. No serverless
+      function added (12-fn Hobby cap untouched). **Still CSR (not prerendered):** `/research`
+      + `/research/:slug` (need Notion API at build) and `/explore` (needs live data) — a
+      future pass could prerender these against the live API or a build-time fetch.
 
 ## Phase 2 — Content engine (ongoing; compounds over months)
 
