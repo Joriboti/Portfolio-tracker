@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   searchTickers,
@@ -6,6 +7,7 @@ import {
   type TickerSearchResult,
   type LiveCompany,
 } from "@/lib/api";
+import tickers from "@/data/tickers.json";
 import { formatMoney, type Currency } from "@/lib/currency";
 import { useUser } from "@/hooks/useUser";
 import { useDisplayCurrency } from "@/lib/preferences";
@@ -18,15 +20,26 @@ import {
 } from "@/components/ScenarioValuation";
 import type { ValuationModel } from "@/lib/scenarioValuation";
 
+const CURATED = tickers as { symbol: string; name: string }[];
+const TICKER_NAMES: Record<string, string> = Object.fromEntries(
+  CURATED.map((c) => [c.symbol.toUpperCase(), c.name]),
+);
+
 // "Explore" — search any company by ticker and run the same valuation models
 // available on the dashboard (Scenarios / DCF / Reverse / Graham / Monte Carlo /
 // SoTP), without needing to own it. Live fundamentals come from
 // fundamentals-get's `?quote=` mode; the valuation panel is reused verbatim with
 // shares/avgCost = 0 (its engine returns null for the "vs cost" ratios then).
-function ExploreInner() {
+function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
   const { t } = useTranslation();
   const { user } = useUser();
   const { currency } = useDisplayCurrency();
+
+  // On a /explore/:ticker route we know the name up front (from the curated
+  // list), so the heading + SEO tags render immediately — the live numbers fill
+  // in async. Falls back to the raw symbol for tickers outside the list.
+  const staticName = routeTicker ? TICKER_NAMES[routeTicker] ?? null : null;
+  const displayName = staticName ?? routeTicker ?? "";
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TickerSearchResult[]>([]);
@@ -54,13 +67,55 @@ function ExploreInner() {
     [],
   );
 
-  useSeo({
-    title: company
-      ? t("seo.exploreTickerTitle", { ticker: company.ticker })
-      : t("seo.exploreTitle"),
-    description: t("seo.exploreDesc"),
-    url: "https://www.trimmtrack.com/explore",
-  });
+  useSeo(
+    routeTicker
+      ? {
+          title: t("seo.exploreTickerNameTitle", {
+            name: displayName,
+            ticker: routeTicker,
+          }),
+          description: t("seo.exploreTickerDesc", {
+            name: displayName,
+            ticker: routeTicker,
+          }),
+          url: `https://www.trimmtrack.com/explore/${routeTicker.toLowerCase()}`,
+        }
+      : {
+          title: company
+            ? t("seo.exploreTickerTitle", { ticker: company.ticker })
+            : t("seo.exploreTitle"),
+          description: t("seo.exploreDesc"),
+          url: "https://www.trimmtrack.com/explore",
+        },
+  );
+
+  // /explore/:ticker → auto-load that company on mount. A synthetic `selected`
+  // suppresses the autocomplete dropdown and feeds the header its name + logo.
+  useEffect(() => {
+    if (!routeTicker) return;
+    setSelected({ symbol: routeTicker, name: displayName, exchange: null, type: null });
+    setQuery(routeTicker);
+    setCompany(null);
+    setError(null);
+    setLoading(true);
+    let cancelled = false;
+    getLiveCompany(routeTicker)
+      .then((c) => {
+        if (cancelled) return;
+        if (c) setCompany(c);
+        else setError(t("explore.notFound"));
+      })
+      .catch((e) => {
+        if (!cancelled) setError((e as Error).message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeTicker]);
 
   // Opening a share link auto-loads its ticker, same path as picking a result.
   useEffect(() => {
@@ -151,8 +206,16 @@ function ExploreInner() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">{t("explore.title")}</h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-600">{t("explore.subtitle")}</p>
+        <h1 className="text-2xl font-semibold text-slate-900">
+          {routeTicker
+            ? t("explore.tickerHeading", { name: displayName, ticker: routeTicker })
+            : t("explore.title")}
+        </h1>
+        <p className="mt-1 max-w-2xl text-sm text-slate-600">
+          {routeTicker
+            ? t("explore.tickerSubtitle", { name: displayName })
+            : t("explore.subtitle")}
+        </p>
       </div>
 
       {/* Ticker search */}
@@ -214,7 +277,7 @@ function ExploreInner() {
             />
             <div className="min-w-0">
               <p className="text-lg font-semibold text-slate-900">
-                {selected?.name ?? company.ticker}
+                {selected?.name ?? staticName ?? company.ticker}
               </p>
               <p className="text-xs text-slate-500">
                 {company.ticker}
@@ -273,7 +336,33 @@ function ExploreInner() {
           </div>
         </section>
       )}
+
+      <PopularCompanies exclude={routeTicker} />
     </div>
+  );
+}
+
+// Internal-link grid to the per-ticker pages: gives Google a crawl path to
+// every /explore/:ticker (alongside the sitemap) and lets visitors jump between
+// companies. Also renders as indexable, keyword-rich anchor text.
+function PopularCompanies({ exclude }: { exclude: string | null }) {
+  const { t } = useTranslation();
+  const list = CURATED.filter((c) => c.symbol.toUpperCase() !== exclude).slice(0, 30);
+  return (
+    <section className="border-t border-slate-200 pt-6">
+      <h2 className="text-sm font-semibold text-slate-700">{t("explore.popularTitle")}</h2>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {list.map((c) => (
+          <Link
+            key={c.symbol}
+            to={`/explore/${c.symbol.toLowerCase()}`}
+            className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 transition-colors hover:border-brand-300 hover:bg-brand-50"
+          >
+            {c.name}
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -291,5 +380,9 @@ function isValuationTab(v: string | undefined): v is ValuationTab {
 }
 
 export function ExplorePage() {
-  return <ExploreInner />;
+  const { ticker } = useParams();
+  const routeTicker = ticker ? ticker.toUpperCase() : null;
+  // Remount on ticker change so per-route state (loaded company, share) resets
+  // cleanly instead of leaking between /explore/aapl and /explore/msft.
+  return <ExploreInner key={routeTicker ?? "hub"} routeTicker={routeTicker} />;
 }

@@ -47,6 +47,9 @@ export default function App() {
         {/* Public taster: anyone can run the 6 valuation models on any ticker
             (no account). The panel runs ephemerally without a userId. */}
         <Route path="/explore" element={<ExplorePage />} />
+        {/* Programmatic per-company valuation pages (SEO). Each renders a unique
+            title/H1/description from the curated list; see GROWTH_PLAN.md phase 1. */}
+        <Route path="/explore/:ticker" element={<ExplorePage />} />
         <Route path="/forecast" element={<ForecastPage />} />
         {/* Standalone indexable landing for the FIFO realized-gain calculator
             (the tool itself is also embedded in /upload). SEO play — see

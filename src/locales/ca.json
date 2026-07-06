@@ -78,6 +78,9 @@
     "errorPrice": "Indica un preu mitjà vàlid."
   },
   "explore": {
+    "tickerHeading": "Valoració de {{name}} ({{ticker}})",
+    "tickerSubtitle": "Aplica sis models de valoració a {{name}} amb dades en viu: DCF, Reverse DCF, número de Graham, Monte Carlo, escenaris i suma de parts (NAV).",
+    "popularTitle": "Empreses populars",
     "title": "Explorar empreses",
     "subtitle": "Cerca qualsevol empresa pel seu ticker i aplica-hi els models de valoració, sense necessitat de tenir-la a la cartera.",
     "searchPlaceholder": "Cerca per ticker o nom (p. ex. AAPL, Nvidia)…",
@@ -122,6 +125,8 @@
     "exploreTitle": "Calculadora de valoració d'accions (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Valora qualsevol acció gratis amb 6 models: escenaris, DCF, Reverse DCF, número de Graham, Monte Carlo i suma de parts (NAV). Dades en viu de Yahoo Finance, sense registre.",
     "exploreTickerTitle": "Valoració de {{ticker}}: DCF, Graham i escenaris | TrimmTrack",
+    "exploreTickerNameTitle": "Valoració de {{name}} ({{ticker}}): DCF, Graham i escenaris — gratis | TrimmTrack",
+    "exploreTickerDesc": "Valora {{name}} ({{ticker}}) gratis amb 6 models: DCF, Reverse DCF, número de Graham, Monte Carlo, escenaris i NAV. Dades en viu de Yahoo Finance, sense registre.",
     "researchTitle": "Anàlisis d'inversió: Meta, Netflix, EXOR i més | TrimmTrack Research",
     "researchDesc": "Tesis d'inversió amb models de valoració aplicats: Meta (capex i IA), Netflix (estratègia DCA), EXOR (descompte sobre NAV) i més. Anàlisi fonamental gratuïta, sense registre."
   },

@@ -78,6 +78,9 @@
     "errorPrice": "Enter a valid average price."
   },
   "explore": {
+    "tickerHeading": "{{name}} ({{ticker}}) valuation",
+    "tickerSubtitle": "Run six valuation models on {{name}} with live data: DCF, Reverse DCF, Graham number, Monte Carlo, scenarios and sum-of-the-parts (NAV).",
+    "popularTitle": "Popular companies",
     "title": "Explore stocks",
     "subtitle": "Search any company by ticker and run the valuation models on it — no need to own it.",
     "searchPlaceholder": "Search by ticker or name (e.g. AAPL, Nvidia)…",
@@ -122,6 +125,8 @@
     "exploreTitle": "Stock valuation calculator (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Value any stock for free with 6 models: scenarios, DCF, Reverse DCF, Graham number, Monte Carlo and sum-of-the-parts (NAV). Live Yahoo Finance data, no sign-up.",
     "exploreTickerTitle": "{{ticker}} valuation: DCF, Graham & scenarios | TrimmTrack",
+    "exploreTickerNameTitle": "{{name}} ({{ticker}}) valuation: DCF, Graham & scenarios — free | TrimmTrack",
+    "exploreTickerDesc": "Value {{name}} ({{ticker}}) free with 6 models: DCF, Reverse DCF, Graham number, Monte Carlo, scenarios and NAV. Live Yahoo Finance data, no sign-up.",
     "researchTitle": "Equity research: Meta, Netflix, EXOR and more | TrimmTrack Research",
     "researchDesc": "Investment theses with applied valuation models: Meta (capex & AI), Netflix (DCA strategy), EXOR (discount to NAV) and more. Free fundamental analysis, no sign-up."
   },

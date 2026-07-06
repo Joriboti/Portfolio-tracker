@@ -6,3 +6,4 @@ Disallow: /account
 Disallow: /debug
 
 Sitemap: https://www.trimmtrack.com/sitemap.xml
+Sitemap: https://www.trimmtrack.com/sitemap-tickers.xml
