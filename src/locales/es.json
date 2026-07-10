@@ -180,9 +180,9 @@
     "homeDesc": "Sube tu Excel y visualiza tu cartera en vivo: P&L, dividendos y pesos. Calculadoras gratuitas de valoración (DCF, Reverse DCF, Graham, Monte Carlo, NAV), simulación y predicción de carteras de ETFs, y análisis de empresas como Netflix o EXOR. Sin registro.",
     "exploreTitle": "Calculadora de valoración de acciones (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Valora cualquier acción gratis con 6 modelos: escenarios, DCF, Reverse DCF, número de Graham, Monte Carlo y suma de partes (NAV). Datos en vivo de Yahoo Finance, sin registro.",
-    "exploreTickerTitle": "Valoración de {{ticker}}: DCF, Graham y escenarios | TrimmTrack",
-    "exploreTickerNameTitle": "Valoración de {{name}} ({{ticker}}): DCF, Graham y escenarios — gratis | TrimmTrack",
-    "exploreTickerDesc": "Valora {{name}} ({{ticker}}) gratis con 6 modelos: DCF, Reverse DCF, número de Graham, Monte Carlo, escenarios y NAV. Datos en vivo de Yahoo Finance, sin registro.",
+    "exploreTickerTitle": "Análisis y valoración de {{ticker}}: finanzas, DCF y escenarios | TrimmTrack",
+    "exploreTickerNameTitle": "{{name}} ({{ticker}}): análisis, finanzas y valoración DCF — gratis | TrimmTrack",
+    "exploreTickerDesc": "Ficha completa de {{name}} ({{ticker}}): ingresos, beneficios y márgenes trimestrales, flujo de caja libre, dividendos y recompras con hasta 15 años de histórico, 6 modelos de valoración (DCF, Graham, Monte Carlo) y análisis cualitativo. Gratis y sin registro.",
     "researchTitle": "Análisis de inversión: Meta, Netflix, EXOR y más | TrimmTrack Research",
     "researchDesc": "Tesis de inversión con modelos de valoración aplicados: Meta (capex e IA), Netflix (estrategia DCA), EXOR (descuento sobre NAV) y más. Análisis fundamental gratuito, sin registro."
   },

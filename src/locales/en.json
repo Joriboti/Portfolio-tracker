@@ -180,9 +180,9 @@
     "homeDesc": "Upload your Excel and visualise your portfolio live: P&L, dividends and weights. Free valuation calculators (DCF, Reverse DCF, Graham, Monte Carlo, NAV), ETF portfolio simulation and forecasting, plus equity research on Netflix, EXOR and more. No sign-up.",
     "exploreTitle": "Stock valuation calculator (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Value any stock for free with 6 models: scenarios, DCF, Reverse DCF, Graham number, Monte Carlo and sum-of-the-parts (NAV). Live Yahoo Finance data, no sign-up.",
-    "exploreTickerTitle": "{{ticker}} valuation: DCF, Graham & scenarios | TrimmTrack",
-    "exploreTickerNameTitle": "{{name}} ({{ticker}}) valuation: DCF, Graham & scenarios — free | TrimmTrack",
-    "exploreTickerDesc": "Value {{name}} ({{ticker}}) free with 6 models: DCF, Reverse DCF, Graham number, Monte Carlo, scenarios and NAV. Live Yahoo Finance data, no sign-up.",
+    "exploreTickerTitle": "{{ticker}} analysis & valuation: financials, DCF & scenarios | TrimmTrack",
+    "exploreTickerNameTitle": "{{name}} ({{ticker}}): analysis, financials & DCF valuation — free | TrimmTrack",
+    "exploreTickerDesc": "Full {{name}} ({{ticker}}) breakdown: quarterly revenue, earnings and margins, free cash flow, dividends and buybacks with up to 15 years of history, 6 valuation models (DCF, Graham, Monte Carlo) and a qualitative analysis. Free, no sign-up.",
     "researchTitle": "Equity research: Meta, Netflix, EXOR and more | TrimmTrack Research",
     "researchDesc": "Investment theses with applied valuation models: Meta (capex & AI), Netflix (DCA strategy), EXOR (discount to NAV) and more. Free fundamental analysis, no sign-up."
   },

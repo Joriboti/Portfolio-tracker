@@ -180,9 +180,9 @@
     "homeDesc": "Puja el teu Excel i visualitza la cartera en viu: P&L, dividends i pesos. Calculadores gratuïtes de valoració (DCF, Reverse DCF, Graham, Monte Carlo, NAV), simulació i predicció de carteres d'ETFs, i anàlisis d'empreses com Netflix o EXOR. Sense registre.",
     "exploreTitle": "Calculadora de valoració d'accions (DCF, Graham, Monte Carlo) | TrimmTrack",
     "exploreDesc": "Valora qualsevol acció gratis amb 6 models: escenaris, DCF, Reverse DCF, número de Graham, Monte Carlo i suma de parts (NAV). Dades en viu de Yahoo Finance, sense registre.",
-    "exploreTickerTitle": "Valoració de {{ticker}}: DCF, Graham i escenaris | TrimmTrack",
-    "exploreTickerNameTitle": "Valoració de {{name}} ({{ticker}}): DCF, Graham i escenaris — gratis | TrimmTrack",
-    "exploreTickerDesc": "Valora {{name}} ({{ticker}}) gratis amb 6 models: DCF, Reverse DCF, número de Graham, Monte Carlo, escenaris i NAV. Dades en viu de Yahoo Finance, sense registre.",
+    "exploreTickerTitle": "Anàlisi i valoració de {{ticker}}: finances, DCF i escenaris | TrimmTrack",
+    "exploreTickerNameTitle": "{{name}} ({{ticker}}): anàlisi, finances i valoració DCF — gratis | TrimmTrack",
+    "exploreTickerDesc": "Fitxa completa de {{name}} ({{ticker}}): ingressos, beneficis i marges trimestrals, flux de caixa lliure, dividends i recompres amb fins a 15 anys d'històric, 6 models de valoració (DCF, Graham, Monte Carlo) i anàlisi qualitativa. Gratis i sense registre.",
     "researchTitle": "Anàlisis d'inversió: Meta, Netflix, EXOR i més | TrimmTrack Research",
     "researchDesc": "Tesis d'inversió amb models de valoració aplicats: Meta (capex i IA), Netflix (estratègia DCA), EXOR (descompte sobre NAV) i més. Anàlisi fonamental gratuïta, sense registre."
   },

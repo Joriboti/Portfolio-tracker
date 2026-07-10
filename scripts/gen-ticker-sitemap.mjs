@@ -21,6 +21,11 @@ const tickers = JSON.parse(
   readFileSync(path.join(root, "src/data/tickers.json"), "utf8"),
 );
 
+// Build date as <lastmod>: the pages carry live financials + accumulating EDGAR
+// history that refresh with each weekly deploy, so a fresh lastmod on every
+// build tells Google to recrawl the updated content.
+const today = new Date().toISOString().slice(0, 10);
+
 const urls = tickers
   .map(({ symbol }) => {
     const loc = `${BASE}/explore/${symbol.toLowerCase()}`;
@@ -28,7 +33,7 @@ const urls = tickers
       ([l, q]) =>
         `    <xhtml:link rel="alternate" hreflang="${l}" href="${loc}${q}"/>`,
     ).join("\n");
-    return `  <url>\n    <loc>${loc}</loc>\n${alts}\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`;
+    return `  <url>\n    <loc>${loc}</loc>\n${alts}\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
   })
   .join("\n");
 
