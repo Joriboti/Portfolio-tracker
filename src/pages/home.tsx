@@ -14,11 +14,17 @@ export function HomePage() {
     url: "https://www.trimmtrack.com/",
   });
   return (
-    <div className="relative overflow-hidden bg-[#14100d]">
+    <div
+      className="relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(163deg, #4a3320 0%, #33220f 42%, #241811 78%, #1c130c 100%)",
+      }}
+    >
       {/* warm ember glow behind the hero */}
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 -top-40 -z-0 h-[34rem] w-[54rem] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
+        className="pointer-events-none absolute left-1/2 -top-40 -z-0 h-[34rem] w-[54rem] -translate-x-1/2 rounded-full opacity-30 blur-3xl"
         style={{ background: "radial-gradient(closest-side, #e76b1c 0%, transparent 70%)" }}
       />
 

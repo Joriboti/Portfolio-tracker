@@ -30,8 +30,8 @@ export function Layout() {
       <header
         className={`sticky top-0 z-40 border-b backdrop-blur ${
           dark
-            ? "border-white/10 bg-[#14100d]/85 supports-[backdrop-filter]:bg-[#14100d]/70"
-            : "border-slate-200/80 bg-white/85 supports-[backdrop-filter]:bg-white/70"
+            ? "border-white/10 bg-[#2a1c12]/85 supports-[backdrop-filter]:bg-[#2a1c12]/70"
+            : "border-[#ece0cb] bg-[#f7f1e7]/85 supports-[backdrop-filter]:bg-[#f7f1e7]/70"
         }`}
       >
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-6">
@@ -85,12 +85,12 @@ export function Layout() {
           </div>
         </div>
       </header>
-      <main className={`flex-1 ${dark ? "bg-[#14100d]" : ""}`}>
+      <main className={`flex-1 ${dark ? "bg-[#1c130c]" : ""}`}>
         <Outlet />
       </main>
       <footer
         className={
-          dark ? "border-t border-white/10 bg-[#100d0b]" : "border-t border-slate-200 bg-white"
+          dark ? "border-t border-white/10 bg-[#1a120b]" : "border-t border-[#ece0cb] bg-[#f7f1e7]"
         }
       >
         <div

@@ -13,13 +13,13 @@ export default {
           "Roboto",
           "sans-serif",
         ],
-        // Chunky display serif for the landing's editorial headings.
-        display: ['"Fraunces"', "Georgia", "serif"],
+        // Rounded display sans for headings — the brand's Capstone-style voice.
+        display: ['"Fredoka"', "ui-rounded", '"Segoe UI"', "system-ui", "sans-serif"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(16,24,40,0.04), 0 16px 40px -20px rgba(16,24,40,0.18)",
+        card: "0 1px 2px rgba(122,86,32,0.05), 0 18px 42px -24px rgba(122,86,32,0.30)",
         "card-hover":
-          "0 1px 2px rgba(16,24,40,0.05), 0 24px 48px -22px rgba(209,85,15,0.22)",
+          "0 1px 2px rgba(122,86,32,0.06), 0 26px 50px -24px rgba(209,85,15,0.28)",
       },
       colors: {
         // TrimmTrack — burnt-amber palette inspired by the orange of Blur's "13"
