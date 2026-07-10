@@ -333,6 +333,67 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
     }
   }
 
+  // Optional one-shot deep-history backfill from SEC EDGAR (US filers only).
+  // Explicit trigger (&backfill=edgar) — companyfacts is multi-MB, so it stays
+  // off the hot path and is run once per ticker (rows persist forever). Only
+  // fills periods Yahoo doesn't already cover: a ±20-day proximity guard drops
+  // any EDGAR period near an existing one, avoiding fiscal-vs-calendar
+  // near-duplicate bars at the boundary; ON CONFLICT DO NOTHING never
+  // overwrites Yahoo data. Non-US tickers / EDGAR errors degrade to a no-op.
+  if (sql && req.query.backfill === "edgar") {
+    try {
+      const { fetchEdgarStatements } = await import("./_edgar-core.js");
+      const edgar = await fetchEdgarStatements(ticker);
+      if (edgar && edgar.length > 0) {
+        const existing: Record<string, number[]> = { q: [], a: [] };
+        for (const r of cached) {
+          (existing[r.period_type] ?? (existing[r.period_type] = [])).push(
+            Date.parse(r.period_end),
+          );
+        }
+        const near = (isoDay: string, type: string) => {
+          const d = Date.parse(isoDay);
+          return (existing[type] ?? []).some(
+            (m) => Math.abs(m - d) < 20 * 24 * 3600 * 1000,
+          );
+        };
+        let inserted = 0;
+        for (const row of edgar) {
+          if (near(row.periodEnd, row.periodType)) continue;
+          try {
+            await sql`
+              INSERT INTO financial_statements (ticker, period_end, period_type, data, fetched_at)
+              VALUES (${ticker}, ${row.periodEnd}, ${row.periodType}, ${JSON.stringify(row.metrics)}::jsonb, NOW())
+              ON CONFLICT (ticker, period_end, period_type) DO NOTHING
+            `;
+            inserted++;
+          } catch {
+            /* one bad row must not sink the rest */
+          }
+        }
+        if (inserted > 0) {
+          try {
+            const rows = await sql`
+              SELECT period_end::text AS period_end, period_type, data
+              FROM financial_statements
+              WHERE ticker = ${ticker}
+              ORDER BY period_end
+            `;
+            cached = rows.map((r) => ({
+              period_end: String(r.period_end),
+              period_type: String(r.period_type),
+              data: r.data as StatementMetrics,
+            }));
+          } catch {
+            /* keep prior cached on re-read failure */
+          }
+        }
+      }
+    } catch {
+      /* EDGAR module/network unavailable → Yahoo-only, no-op */
+    }
+  }
+
   // Panel extras + price series (parallel, both best-effort).
   const [panel, prices] = await Promise.all([
     fetchPanel(yahoo, ticker),
