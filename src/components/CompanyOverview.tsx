@@ -205,6 +205,7 @@ function ChartsGrid({
   ccy: string | null;
 }) {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState<ChartCfg | null>(null);
   const rows = period === "q" ? data.quarters : data.annual;
   const label = period === "q" ? quarterLabel : annualLabel;
 
@@ -233,16 +234,14 @@ function ChartsGrid({
     color: string,
     format: (v: number) => string = money,
     flip = false,
-  ) => {
+  ): ChartCfg => {
     const c = chart([key], flip);
-    return (
-      <QuarterlyBars
-        title={t(titleKey)}
-        labels={c.labels}
-        series={[{ name: t(titleKey), color, values: c.values[0] }]}
-        format={format}
-      />
-    );
+    return {
+      title: t(titleKey),
+      labels: c.labels,
+      series: [{ name: t(titleKey), color, values: c.values[0] }],
+      format,
+    };
   };
 
   const cashDebt = chart(["cash", "totalDebt"]);
@@ -255,21 +254,47 @@ function ChartsGrid({
     names: [string, string],
     colors: [string, string],
     stacked: boolean,
-  ) => {
-    const series: BarSeries[] = [
+  ): ChartCfg => ({
+    title: t(titleKey),
+    labels: c.labels,
+    series: [
       { name: names[0], color: colors[0], values: c.values[0] },
       { name: names[1], color: colors[1], values: c.values[1] },
-    ];
-    return (
-      <QuarterlyBars
-        title={t(titleKey)}
-        labels={c.labels}
-        series={series}
-        stacked={stacked}
-        format={money}
-      />
-    );
-  };
+    ],
+    stacked,
+    format: money,
+  });
+
+  const charts: ChartCfg[] = [
+    single("company.charts.revenue", "revenue", PALETTE.revenue),
+    single("company.charts.ebitda", "ebitda", PALETTE.ebitda),
+    single("company.charts.netIncome", "netIncome", PALETTE.netIncome),
+    single("company.charts.fcf", "fcf", PALETTE.fcf),
+    single("company.charts.eps", "eps", PALETTE.eps, perShare),
+    duo(
+      "company.charts.cashDebt",
+      cashDebt,
+      [t("company.rows.cash"), t("company.rows.debt")],
+      [PALETTE.cash, PALETTE.debt],
+      false,
+    ),
+    duo(
+      "company.charts.returnOfCapital",
+      roc,
+      [t("company.charts.dividends"), t("company.charts.buybacks")],
+      [PALETTE.dividends, PALETTE.buybacks],
+      true,
+    ),
+    single("company.charts.shares", "shares", PALETTE.shares, plain),
+    single("company.charts.sbc", "sbc", PALETTE.sbc),
+    duo(
+      "company.charts.expenses",
+      expenses,
+      ["R&D", "SG&A"],
+      [PALETTE.rnd, PALETTE.sga],
+      true,
+    ),
+  ];
 
   return (
     <div className="space-y-3">
@@ -290,36 +315,56 @@ function ChartsGrid({
         ))}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {single("company.charts.revenue", "revenue", PALETTE.revenue)}
-        {single("company.charts.ebitda", "ebitda", PALETTE.ebitda)}
-        {single("company.charts.netIncome", "netIncome", PALETTE.netIncome)}
-        {single("company.charts.fcf", "fcf", PALETTE.fcf)}
-        {single("company.charts.eps", "eps", PALETTE.eps, perShare)}
-        {duo(
-          "company.charts.cashDebt",
-          cashDebt,
-          [t("company.rows.cash"), t("company.rows.debt")],
-          [PALETTE.cash, PALETTE.debt],
-          false,
-        )}
-        {duo(
-          "company.charts.returnOfCapital",
-          roc,
-          [t("company.charts.dividends"), t("company.charts.buybacks")],
-          [PALETTE.dividends, PALETTE.buybacks],
-          true,
-        )}
-        {single("company.charts.shares", "shares", PALETTE.shares, plain)}
-        {single("company.charts.sbc", "sbc", PALETTE.sbc)}
-        {duo(
-          "company.charts.expenses",
-          expenses,
-          ["R&D", "SG&A"],
-          [PALETTE.rnd, PALETTE.sga],
-          true,
-        )}
+        {charts.map((c) => (
+          <QuarterlyBars key={c.title} {...c} onExpand={() => setExpanded(c)} />
+        ))}
       </div>
       <p className="text-[11px] text-slate-400">{t("company.depthNote")}</p>
+
+      {expanded && (
+        <ChartModal cfg={expanded} onClose={() => setExpanded(null)} />
+      )}
+    </div>
+  );
+}
+
+/* ───────────────────────── expand-chart modal ───────────────────────── */
+
+type ChartCfg = {
+  title: string;
+  labels: string[];
+  series: BarSeries[];
+  stacked?: boolean;
+  format: (v: number) => string;
+};
+
+function ChartModal({ cfg, onClose }: { cfg: ChartCfg; onClose: () => void }) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="relative w-full max-w-3xl">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -top-9 right-0 text-2xl leading-none text-white/80 hover:text-white"
+          aria-label="Close"
+        >
+          &times;
+        </button>
+        <QuarterlyBars {...cfg} />
+      </div>
     </div>
   );
 }

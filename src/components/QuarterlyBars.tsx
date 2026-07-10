@@ -23,6 +23,7 @@ export function QuarterlyBars({
   stacked = false,
   format,
   negativeColor = "#e11d48",
+  onExpand,
 }: {
   title: string;
   labels: string[];
@@ -31,6 +32,8 @@ export function QuarterlyBars({
   format: (v: number) => string;
   /** Single-series charts paint below-zero bars this color. */
   negativeColor?: string;
+  /** When set, a ⤢ button appears and clicking the card enlarges it. */
+  onExpand?: () => void;
 }) {
   const n = labels.length;
   const hasData = n > 0 && series.some((s) => s.values.some((v) => v != null));
@@ -78,12 +81,15 @@ export function QuarterlyBars({
   const singleSeries = series.length === 1;
 
   return (
-    <div className="card">
+    <div
+      className={`card ${onExpand ? "cursor-zoom-in transition-shadow hover:shadow-card-hover" : ""}`}
+      onClick={onExpand}
+    >
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="text-sm font-medium text-slate-700">{title}</h3>
-        {series.length > 1 && (
-          <div className="flex items-center gap-2.5 text-[10px] text-slate-500">
-            {series.map((s) => (
+        <div className="flex items-center gap-2.5 text-[10px] text-slate-500">
+          {series.length > 1 &&
+            series.map((s) => (
               <span key={s.name} className="flex items-center gap-1">
                 <span
                   className="inline-block h-2 w-2 rounded-[2px]"
@@ -92,8 +98,20 @@ export function QuarterlyBars({
                 {s.name}
               </span>
             ))}
-          </div>
-        )}
+          {onExpand && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onExpand();
+              }}
+              className="text-slate-300 hover:text-brand-600"
+              aria-label="Expand chart"
+            >
+              ⤢
+            </button>
+          )}
+        </div>
       </div>
       <svg
         viewBox={`0 0 ${W} ${H}`}

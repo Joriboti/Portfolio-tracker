@@ -21,6 +21,7 @@ import {
   appendHoldings,
   type PriceQuote,
   type Fundamentals,
+  type LiveCompany,
 } from "@/lib/api";
 import {
   computeSinceInception,
@@ -35,6 +36,7 @@ import { PerformanceCard } from "@/components/PerformanceCard";
 import { DividendsCard } from "@/components/DividendsCard";
 import { HistoryChart } from "@/components/HistoryChart";
 import { ScenarioValuation } from "@/components/ScenarioValuation";
+import { CompanyOverview } from "@/components/CompanyOverview";
 import { CompanyLogo } from "@/components/CompanyLogo";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
@@ -928,38 +930,16 @@ function PositionsTable({
               {isExpanded && (
                 <tr className="bg-slate-50/70">
                   <td colSpan={10} className="px-4 py-3">
-                    <div className="space-y-5">
-                      <FundamentalsDetail
-                        fund={fund}
-                        // Yield on cost: estimated annual dividends (yield ×
-                        // current price × shares) over the FIFO cost basis of
-                        // the open position.
-                        yieldOnCost={
-                          fund?.dividendYield != null &&
-                          currentPriceDisp != null &&
-                          p.totalCost > 0
-                            ? (fund.dividendYield * currentPriceDisp * p.shares) /
-                              p.totalCost
-                            : null
-                        }
-                      />
-                      {userId && (
-                        <div className="border-t border-slate-200 pt-4">
-                          <ScenarioValuation
-                            userId={userId}
-                            ticker={p.ticker}
-                            shares={p.shares}
-                            avgCostEur={p.avgCost}
-                            currentPrice={quote ? quote.price : null}
-                            quoteCurrency={quote?.currency ?? currency}
-                            fundamentals={fund}
-                            totalPortfolioValueEur={totalPortfolioValue}
-                            displayCurrency={currency}
-                            fxRates={fxRates}
-                          />
-                        </div>
-                      )}
-                    </div>
+                    <ExpandedPositionDetail
+                      p={p}
+                      quote={quote}
+                      fund={fund}
+                      currentPriceDisp={currentPriceDisp}
+                      userId={userId}
+                      currency={currency}
+                      totalPortfolioValue={totalPortfolioValue}
+                      fxRates={fxRates}
+                    />
                   </td>
                 </tr>
               )}
@@ -968,6 +948,101 @@ function PositionsTable({
         })}
       </tbody>
     </table>
+  );
+}
+
+// Expanded holding row: tabs Resum | Valoració, mirroring /explore/:ticker.
+// "Resum" reuses the CompanyOverview company dashboard (statements, charts,
+// insights); "Valoració" keeps the existing fundamentals + valuation models.
+// The Resum tab only appears when we have a cached fundamentals row to seed the
+// LiveCompany the overview expects; without it we fall back to Valoració only.
+function ExpandedPositionDetail({
+  p,
+  quote,
+  fund,
+  currentPriceDisp,
+  userId,
+  currency,
+  totalPortfolioValue,
+  fxRates,
+}: {
+  p: Position;
+  quote: PriceQuote | undefined;
+  fund: Fundamentals | undefined;
+  currentPriceDisp: number | null;
+  userId: string | null;
+  currency: Currency;
+  totalPortfolioValue: number;
+  fxRates: Record<string, number>;
+}) {
+  const { t } = useTranslation();
+  const [tab, setTab] = useState<"resum" | "valoracio">("resum");
+
+  // The overview needs statements in the company's own quote currency, so pass
+  // the native quote price/currency (not the display-converted figure).
+  const liveCompany: LiveCompany | null = fund
+    ? {
+        ticker: p.ticker,
+        price: quote?.price ?? null,
+        currency: quote?.currency ?? currency,
+        fundamentals: fund,
+      }
+    : null;
+
+  // Yield on cost: estimated annual dividends (yield × current price × shares)
+  // over the FIFO cost basis of the open position.
+  const yieldOnCost =
+    fund?.dividendYield != null && currentPriceDisp != null && p.totalCost > 0
+      ? (fund.dividendYield * currentPriceDisp * p.shares) / p.totalCost
+      : null;
+
+  const showOverview = liveCompany != null && tab === "resum";
+
+  return (
+    <div className="space-y-4">
+      {liveCompany && (
+        <div className="flex items-center gap-1.5">
+          {(["resum", "valoracio"] as const).map((tb) => (
+            <button
+              key={tb}
+              type="button"
+              onClick={() => setTab(tb)}
+              className={`rounded-full border px-3 py-1 text-xs ${
+                tab === tb
+                  ? "border-brand-300 bg-brand-50 font-medium text-brand-700"
+                  : "border-slate-200 text-slate-500 hover:bg-slate-50"
+              }`}
+            >
+              {t(tb === "resum" ? "explore.tabOverview" : "explore.tabValuation")}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {showOverview ? (
+        <CompanyOverview company={liveCompany!} />
+      ) : (
+        <div className="space-y-5">
+          <FundamentalsDetail fund={fund} yieldOnCost={yieldOnCost} />
+          {userId && (
+            <div className="border-t border-slate-200 pt-4">
+              <ScenarioValuation
+                userId={userId}
+                ticker={p.ticker}
+                shares={p.shares}
+                avgCostEur={p.avgCost}
+                currentPrice={quote ? quote.price : null}
+                quoteCurrency={quote?.currency ?? currency}
+                fundamentals={fund}
+                totalPortfolioValueEur={totalPortfolioValue}
+                displayCurrency={currency}
+                fxRates={fxRates}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
