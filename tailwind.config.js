@@ -22,6 +22,22 @@ export default {
           "0 1px 2px rgba(122,86,32,0.06), 0 26px 50px -24px rgba(209,85,15,0.28)",
       },
       colors: {
+        // Warm neutral — overrides Tailwind's cool blue-gray `slate` app-wide so
+        // every hardcoded bg-slate-*/text-slate-*/border-slate-* across the 30+
+        // internal components picks up the warm, branded ground in one place
+        // (a taupe with a slight amber bias — a chosen neutral, not cool default).
+        slate: {
+          50: "#f7f3ec",
+          100: "#efe9df",
+          200: "#e5ddce",
+          300: "#d3c9b7",
+          400: "#a99e8b",
+          500: "#847a6a",
+          600: "#655c4e",
+          700: "#4b4336",
+          800: "#332d22",
+          900: "#221d15",
+        },
         // TrimmTrack — burnt-amber palette inspired by the orange of Blur's "13"
         brand: {
           50: "#fff7ed",
