@@ -345,8 +345,14 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
       const { fetchEdgarStatements } = await import("./_edgar-core.js");
       const edgar = await fetchEdgarStatements(ticker);
       if (edgar && edgar.length > 0) {
+        // Proximity set = existing periods that actually carry data. Yahoo
+        // occasionally leaves an all-null placeholder row (odd report date, no
+        // usable metrics); those must NOT block EDGAR from filling that period.
+        const hasData = (m: StatementMetrics) =>
+          Object.values(m).some((v) => v != null);
         const existing: Record<string, number[]> = { q: [], a: [] };
         for (const r of cached) {
+          if (!hasData(r.data)) continue;
           (existing[r.period_type] ?? (existing[r.period_type] = [])).push(
             Date.parse(r.period_end),
           );

@@ -206,7 +206,15 @@ function ChartsGrid({
 }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<ChartCfg | null>(null);
-  const rows = period === "q" ? data.quarters : data.annual;
+  // EDGAR backfill can push the quarterly series past 100 periods; cap the
+  // VIEW (not the stored data) to a readable recent window and let the annual
+  // toggle carry the multi-decade trend, like the reference dashboards.
+  const QUARTER_CAP = 24;
+  const ANNUAL_CAP = 16;
+  const rows =
+    period === "q"
+      ? data.quarters.slice(-QUARTER_CAP)
+      : data.annual.slice(-ANNUAL_CAP);
   const label = period === "q" ? quarterLabel : annualLabel;
 
   // Aligned label/value extraction: one label per period that has ANY of the
