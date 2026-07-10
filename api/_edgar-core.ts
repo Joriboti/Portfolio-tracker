@@ -252,9 +252,18 @@ export function extractStatements(facts: Facts): EdgarRow[] {
 const SEC_UA = "TrimmTrack research bot (+https://www.trimmtrack.com)";
 let cikMap: Record<string, string> | null = null;
 
+// A few tickers resolve in company_tickers.json to a holding/shell entity that
+// carries no XBRL statements, shadowing the real operating filer; pin those to
+// the operating company's CIK so the backfill finds their data.
+const CIK_OVERRIDES: Record<string, string> = {
+  XOM: "0000034088", // Exxon Mobil Corporation (map points to a holdings shell)
+};
+
 async function resolveCik(ticker: string): Promise<string | null> {
   // Market-suffixed symbols (SAN.MC, MC.PA…) are non-US listings → not on EDGAR.
   if (ticker.includes(".")) return null;
+  const override = CIK_OVERRIDES[ticker.toUpperCase()];
+  if (override) return override;
   if (!cikMap) {
     const r = await fetch("https://www.sec.gov/files/company_tickers.json", {
       headers: { "User-Agent": SEC_UA },
