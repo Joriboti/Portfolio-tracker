@@ -20,6 +20,30 @@ export interface ResearchArticle extends ResearchCard {
   blocks: NotionBlock[];
 }
 
+export interface CompanyInsights {
+  ticker: string;
+  pros: string[];
+  risks: string[];
+  thesis: string | null;
+}
+
+// Qualitative Pros/Risks for a ticker, authored in the same Notion CMS.
+// Returns null when nothing is authored → the section self-hides.
+export async function getInsights(
+  ticker: string,
+): Promise<CompanyInsights | null> {
+  try {
+    const res = await fetch(
+      `/api/fundamentals-get?research=insights&ticker=${encodeURIComponent(ticker)}`,
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data.insights ?? null) as CompanyInsights | null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getResearchList(): Promise<ResearchCard[]> {
   try {
     const res = await fetch("/api/fundamentals-get?research=list");

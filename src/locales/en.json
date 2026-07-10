@@ -142,6 +142,12 @@
       "shares": "Shares outstanding",
       "sbc": "Stock-based compensation",
       "expenses": "Operating expenses"
+    },
+    "insights": {
+      "title": "Qualitative analysis",
+      "pros": "Competitive advantages",
+      "risks": "Investment risks",
+      "source": "TrimmTrack analysis"
     }
   },
   "dividends": {

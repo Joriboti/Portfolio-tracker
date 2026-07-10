@@ -13,6 +13,7 @@ import {
   type StatementMetrics,
 } from "@/lib/statements";
 import { QuarterlyBars, type BarSeries } from "@/components/QuarterlyBars";
+import { CompanyInsights } from "@/components/CompanyInsights";
 
 // "Resum" tab of /explore/:ticker — Qualtrim-style company overview: stat
 // panels (Valuation / Cash Flow / Margins & Growth / Balance / Dividend) over
@@ -183,6 +184,9 @@ export function CompanyOverview({ company }: { company: LiveCompany }) {
       {!loading && data && (
         <ChartsGrid data={data} period={period} setPeriod={setPeriod} ccy={ccy} />
       )}
+
+      {/* ───────── Insights (Notion-authored, self-hides) ───────── */}
+      <CompanyInsights ticker={company.ticker} />
     </div>
   );
 }

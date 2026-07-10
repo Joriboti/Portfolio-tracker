@@ -142,6 +142,12 @@
       "shares": "Accions en circulació",
       "sbc": "Compensació en accions",
       "expenses": "Despeses operatives"
+    },
+    "insights": {
+      "title": "Anàlisi qualitativa",
+      "pros": "Avantatges competitius",
+      "risks": "Riscos d'inversió",
+      "source": "Anàlisi de TrimmTrack"
     }
   },
   "dividends": {

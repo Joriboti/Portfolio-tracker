@@ -9,6 +9,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 // Modes:
 //   ?research=list                 → published articles, newest first
 //   ?research=article&slug=<slug>  → one article's properties + block tree
+//   ?research=insights&ticker=<T>  → qualitative Pros/Risks for a ticker
+//                                     (company dashboard "Insights" section)
 //
 // Degrades gracefully: if the env vars are missing or Notion errors, responds
 // 200 with an empty payload so the public pages render an empty/friendly state
@@ -20,6 +22,25 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 function plain(rich: any[] | undefined): string {
   return (rich ?? []).map((t) => t?.plain_text ?? "").join("");
+}
+
+// Split a multi-line rich_text property into clean bullet strings: one per
+// line, leading list markers (-, •, *) stripped, blank lines dropped. Authors
+// write the Pros/Risks columns as one advantage/risk per line.
+function bullets(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^\s*[-•*]\s*/, "").trim())
+    .filter(Boolean);
+}
+
+function readInsights(props: any) {
+  return {
+    ticker: plain(props?.Ticker?.rich_text),
+    pros: bullets(plain(props?.Pros?.rich_text)),
+    risks: bullets(plain(props?.Risks?.rich_text)),
+    thesis: plain(props?.Thesis?.rich_text) || null,
+  };
 }
 
 function readProps(props: any) {
@@ -93,6 +114,8 @@ export async function handleResearch(req: VercelRequest, res: VercelResponse) {
   if (!apiKey || !dbId) {
     if (mode === "article") {
       res.status(200).end(JSON.stringify({ ok: true, article: null }));
+    } else if (mode === "insights") {
+      res.status(200).end(JSON.stringify({ ok: true, insights: null }));
     } else {
       res.status(200).end(JSON.stringify({ ok: true, articles: [] }));
     }
@@ -134,6 +157,38 @@ export async function handleResearch(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    // Insights mode: qualitative Pros/Risks keyed by Ticker. Any row carrying
+    // the ticker with non-empty Pros/Risks counts (an insight-only row can have
+    // a blank Status so it never surfaces as an article). Self-hides client-side
+    // when null, so tickers without authored insights simply show no section.
+    if (mode === "insights") {
+      const tRaw = req.query.ticker;
+      const ticker = (Array.isArray(tRaw) ? tRaw[0] : (tRaw ?? ""))
+        .trim()
+        .toUpperCase();
+      if (!ticker) {
+        res.status(200).end(JSON.stringify({ ok: true, insights: null }));
+        return;
+      }
+      const q: any = await notion.databases.query({
+        database_id: dbId,
+        page_size: 10,
+        filter: { property: "Ticker", rich_text: { equals: ticker } },
+      });
+      let found:
+        | { ticker: string; pros: string[]; risks: string[]; thesis: string | null }
+        | null = null;
+      for (const p of q.results ?? []) {
+        const ins = readInsights(p.properties);
+        if (ins.pros.length || ins.risks.length) {
+          found = ins;
+          break;
+        }
+      }
+      res.status(200).end(JSON.stringify({ ok: true, insights: found }));
+      return;
+    }
+
     // Listing mode.
     const q: any = await notion.databases.query({
       database_id: dbId,
@@ -163,7 +218,11 @@ export async function handleResearch(req: VercelRequest, res: VercelResponse) {
       JSON.stringify({
         ok: false,
         error: err?.message ?? "Notion query failed",
-        ...(mode === "article" ? { article: null } : { articles: [] }),
+        ...(mode === "article"
+          ? { article: null }
+          : mode === "insights"
+            ? { insights: null }
+            : { articles: [] }),
       }),
     );
   }
