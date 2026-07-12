@@ -11,10 +11,13 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const BASE = "https://www.trimmtrack.com";
+// Path-based locale prefixes (were ?lng= querystrings). Catalan is the bare
+// path; x-default points at English (the prioritized market).
 const LANGS = [
   ["ca", ""],
-  ["es", "?lng=es"],
-  ["en", "?lng=en"],
+  ["es", "/es"],
+  ["en", "/en"],
+  ["x-default", "/en"],
 ];
 
 const tickers = JSON.parse(
@@ -28,10 +31,11 @@ const today = new Date().toISOString().slice(0, 10);
 
 const urls = tickers
   .map(({ symbol }) => {
-    const loc = `${BASE}/explore/${symbol.toLowerCase()}`;
+    const slug = `/explore/${symbol.toLowerCase()}`;
+    const loc = `${BASE}${slug}`;
     const alts = LANGS.map(
-      ([l, q]) =>
-        `    <xhtml:link rel="alternate" hreflang="${l}" href="${loc}${q}"/>`,
+      ([l, prefix]) =>
+        `    <xhtml:link rel="alternate" hreflang="${l}" href="${BASE}${prefix}${slug}"/>`,
     ).join("\n");
     return `  <url>\n    <loc>${loc}</loc>\n${alts}\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
   })

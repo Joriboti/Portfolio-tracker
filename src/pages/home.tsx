@@ -11,7 +11,6 @@ export function HomePage() {
   useSeo({
     title: t("seo.homeTitle"),
     description: t("seo.homeDesc"),
-    url: "https://www.trimmtrack.com/",
   });
   return (
     <div

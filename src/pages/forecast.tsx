@@ -76,7 +76,6 @@ export function ForecastPage() {
   useSeo({
     title: t("forecast.seoTitle"),
     description: t("forecast.subtitle"),
-    url: "https://www.trimmtrack.com/forecast",
   });
 
   const contribution = { amount, frequency };

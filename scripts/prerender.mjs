@@ -20,9 +20,38 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.resolve(__dirname, "..", "dist");
 const PORT = 4317;
 
-// Only routes whose content renders without a backend. /explore and the
-// auth-gated pages are skipped (they need live API/session data).
-const ROUTES = ["/", "/calculadora-fifo", "/forecast", "/disclaimer"];
+// Backend-free public routes, snapshotted once per language so every locale URL
+// (/, /es/…, /en/…) ships real translated HTML + its own canonical/hreflang,
+// instead of only the Catalan version. /explore and the auth-gated pages are
+// skipped (they need live API/session data).
+const LANGS = ["ca", "es", "en"];
+const NEUTRAL = ["/", "/calculadora-fifo", "/forecast", "/disclaimer"];
+// English-only SEO tool pages (Phase 1) — each only exists under /en.
+const EN_TOOLS = [
+  "/en/dcf-calculator",
+  "/en/reverse-dcf-calculator",
+  "/en/graham-number-calculator",
+  "/en/monte-carlo-stock-simulator",
+  "/en/fifo-capital-gains-calculator",
+  "/en/etf-growth-calculator",
+  "/en/portfolio-tracker",
+];
+
+function withPrefix(route, lng) {
+  if (lng === "ca") return route;
+  return route === "/" ? `/${lng}` : `/${lng}${route}`;
+}
+
+const ROUTES = [
+  ...LANGS.flatMap((lng) => NEUTRAL.map((r) => ({ url: withPrefix(r, lng), lng }))),
+  ...EN_TOOLS.map((url) => ({ url, lng: "en" })),
+];
+
+const ACCEPT_LANGUAGE = {
+  ca: "ca-ES,ca;q=0.9",
+  es: "es-ES,es;q=0.9",
+  en: "en-US,en;q=0.9",
+};
 
 const MIME = {
   ".html": "text/html",
@@ -97,18 +126,20 @@ async function run() {
   const browser = await puppeteer.launch(launchOptions);
 
   try {
-    for (const route of ROUTES) {
+    for (const { url: route, lng } of ROUTES) {
       const page = await browser.newPage();
-      // Headless Chrome defaults to en-US; force Catalan so the default-URL
-      // prerender matches the ca canonical (i18next reads localStorage first).
-      await page.evaluateOnNewDocument(() => {
+      // Seed the language both ways: localStorage (i18next cache) and
+      // Accept-Language. The URL path prefix is the primary signal (i18n's
+      // "path" detector), but seeding avoids any first-paint flicker for the
+      // Catalan root, which has no prefix.
+      await page.evaluateOnNewDocument((lng) => {
         try {
-          localStorage.setItem("i18nextLng", "ca");
+          localStorage.setItem("i18nextLng", lng);
         } catch {
           /* no-op */
         }
-      });
-      await page.setExtraHTTPHeaders({ "Accept-Language": "ca-ES,ca;q=0.9" });
+      }, lng);
+      await page.setExtraHTTPHeaders({ "Accept-Language": ACCEPT_LANGUAGE[lng] });
 
       await page.goto(`http://localhost:${PORT}${route}`, {
         waitUntil: "networkidle0",

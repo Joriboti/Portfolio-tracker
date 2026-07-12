@@ -1,25 +1,34 @@
 import { useEffect } from "react";
-import i18n from "@/lib/i18n";
-
-/** Languages exposed as indexable variants (?lng=…). ca is the default URL. */
-const LANGS = ["ca", "es", "en"] as const;
-
-function langUrl(url: string, lng: string): string {
-  if (lng === "ca") return url;
-  return `${url}${url.includes("?") ? "&" : "?"}lng=${lng}`;
-}
+import {
+  LOCALES,
+  OG_LOCALE,
+  SITE_ORIGIN,
+  X_DEFAULT_LOCALE,
+  type Locale,
+  localeFromPath,
+  localeUrl,
+  stripLocale,
+} from "@/lib/locale";
 
 // Per-route SEO for the CSR app: upserts <title>, meta description, canonical,
-// Open Graph / Twitter tags and an optional JSON-LD <script>. Googlebot renders
-// JS, so these are picked up on crawl. Everything is restored/cleaned on unmount
-// so tags from one route don't leak into the next.
+// per-language hreflang alternates, Open Graph / Twitter tags and an optional
+// JSON-LD <script>. Canonical + hreflang + og:locale are derived from the URL's
+// locale prefix (/en/…, /es/…, or the bare Catalan root), so each language has a
+// self-referencing canonical and the whole set cross-links via hreflang. The
+// prerender step snapshots these into the static HTML for every language URL.
 
 type SeoInput = {
   title: string;
   description?: string;
-  url?: string;
+  /** Optional explicit language-neutral path ("/calculadora-fifo"). Defaults to
+   *  the current location, with any locale prefix stripped. */
+  path?: string;
   image?: string;
   jsonLd?: Record<string, unknown>;
+  /** Languages this page actually exists in, for the hreflang set. Defaults to
+   *  all three. English-only pages (the /en tool pages) pass ["en"] so we don't
+   *  advertise ca/es alternates that would 404. */
+  alternates?: Locale[];
 };
 
 function upsertMeta(selector: string, attr: "name" | "property", key: string) {
@@ -32,12 +41,30 @@ function upsertMeta(selector: string, attr: "name" | "property", key: string) {
   return el;
 }
 
-export function useSeo({ title, description, url, image, jsonLd }: SeoInput) {
+export function useSeo({
+  title,
+  description,
+  path,
+  image,
+  jsonLd,
+  alternates: hreflangLocales,
+}: SeoInput) {
   useEffect(() => {
     const prevTitle = document.title;
     document.title = title;
 
-    const tags: HTMLElement[] = [];
+    const pathname =
+      typeof window !== "undefined" ? window.location.pathname : "/";
+    const currentLocale = localeFromPath(pathname);
+    const neutralPath = path ?? stripLocale(pathname);
+    const canonicalHref = localeUrl(neutralPath, currentLocale);
+
+    // Keep <html lang> accurate per URL so each prerendered snapshot declares
+    // its real language (index.html hardcodes lang="ca").
+    const prevLang = document.documentElement.lang;
+    document.documentElement.lang = currentLocale;
+
+    const created: HTMLElement[] = [];
     const set = (
       selector: string,
       attr: "name" | "property",
@@ -46,7 +73,7 @@ export function useSeo({ title, description, url, image, jsonLd }: SeoInput) {
     ) => {
       const el = upsertMeta(selector, attr, key);
       el.setAttribute("content", content);
-      tags.push(el);
+      created.push(el);
     };
 
     if (description) {
@@ -56,40 +83,45 @@ export function useSeo({ title, description, url, image, jsonLd }: SeoInput) {
     }
     set('meta[property="og:title"]', "property", "og:title", title);
     set('meta[name="twitter:title"]', "name", "twitter:title", title);
-    if (url) set('meta[property="og:url"]', "property", "og:url", url);
+    set('meta[property="og:url"]', "property", "og:url", canonicalHref);
+    // og:locale reflects the language actually served at this URL (was hardcoded
+    // ca_ES in index.html for every language).
+    set('meta[property="og:locale"]', "property", "og:locale", OG_LOCALE[currentLocale]);
     if (image) {
       set('meta[property="og:image"]', "property", "og:image", image);
       set('meta[name="twitter:image"]', "name", "twitter:image", image);
     }
 
+    // Canonical: self-referencing per language.
     let canonical = document.head.querySelector<HTMLLinkElement>(
       'link[rel="canonical"]',
     );
     const prevCanonical = canonical?.getAttribute("href") ?? null;
-    const alternates: HTMLLinkElement[] = [];
-    if (url) {
-      if (!canonical) {
-        canonical = document.createElement("link");
-        canonical.setAttribute("rel", "canonical");
-        document.head.appendChild(canonical);
-      }
-      // Each language variant is its own indexable page: canonical is
-      // self-referencing (…?lng=es canonicalises to itself, not to ca).
-      const current = (i18n.language ?? "ca").slice(0, 2);
-      canonical.setAttribute(
-        "href",
-        langUrl(url, LANGS.includes(current as (typeof LANGS)[number]) ? current : "ca"),
-      );
-      // hreflang alternates so Google serves the right language per query.
-      for (const l of [...LANGS, "x-default"] as const) {
-        const link = document.createElement("link");
-        link.setAttribute("rel", "alternate");
-        link.setAttribute("hreflang", l);
-        link.setAttribute("href", langUrl(url, l === "x-default" ? "ca" : l));
-        document.head.appendChild(link);
-        alternates.push(link);
-      }
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
     }
+    canonical.setAttribute("href", canonicalHref);
+
+    // Remove any hreflang alternates a previous route left behind, then emit a
+    // fresh set for this page (ca / es / en + x-default).
+    document.head
+      .querySelectorAll('link[rel="alternate"][hreflang]')
+      .forEach((el) => el.remove());
+    const alternates: HTMLLinkElement[] = [];
+    const addAlt = (hreflang: string, locale: Locale) => {
+      const link = document.createElement("link");
+      link.setAttribute("rel", "alternate");
+      link.setAttribute("hreflang", hreflang);
+      link.setAttribute("href", localeUrl(neutralPath, locale));
+      document.head.appendChild(link);
+      alternates.push(link);
+    };
+    const langs = hreflangLocales ?? LOCALES;
+    for (const l of langs) addAlt(l, l);
+    // x-default → en when the page exists in en, else the first available.
+    addAlt("x-default", langs.includes(X_DEFAULT_LOCALE) ? X_DEFAULT_LOCALE : langs[0]);
 
     let ld: HTMLScriptElement | null = null;
     if (jsonLd) {
@@ -101,9 +133,12 @@ export function useSeo({ title, description, url, image, jsonLd }: SeoInput) {
 
     return () => {
       document.title = prevTitle;
+      document.documentElement.lang = prevLang;
       if (ld) ld.remove();
       for (const a of alternates) a.remove();
       if (canonical && prevCanonical) canonical.setAttribute("href", prevCanonical);
     };
-  }, [title, description, url, image, jsonLd]);
+  }, [title, description, path, image, jsonLd, hreflangLocales]);
 }
+
+export { SITE_ORIGIN };

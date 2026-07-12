@@ -5,14 +5,23 @@ import { getResearchList, type ResearchCard } from "@/lib/research";
 import { ResearchWordmark } from "@/components/Logo";
 import { useSeo } from "@/lib/seo";
 
-function formatDate(iso: string | null): string {
+const DATE_LOCALES: Record<string, string> = {
+  ca: "ca-ES",
+  es: "es-ES",
+  en: "en-GB",
+};
+
+export function formatDate(iso: string | null, lang: string): string {
   if (!iso) return "";
   try {
-    return new Date(iso).toLocaleDateString("ca-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return new Date(iso).toLocaleDateString(
+      DATE_LOCALES[lang.slice(0, 2)] ?? "ca-ES",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      },
+    );
   } catch {
     return iso;
   }
@@ -36,13 +45,12 @@ export function TagPill({ tag }: { tag: string }) {
 }
 
 export function ResearchPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [articles, setArticles] = useState<ResearchCard[] | null>(null);
 
   useSeo({
     title: t("seo.researchTitle"),
     description: t("seo.researchDesc"),
-    url: "https://www.trimmtrack.com/research",
   });
 
   useEffect(() => {
@@ -60,19 +68,16 @@ export function ResearchPage() {
       <header className="mb-8">
         <ResearchWordmark />
         <h1 className="mt-5 text-xl font-semibold text-slate-800">
-          Anàlisis &amp; Idees d'Inversió
+          {t("research.title")}
         </h1>
-        <p className="mt-2 max-w-2xl text-slate-600">
-          Anàlisis fonamentals, models de valoració i tesis d'inversió. Accés
-          gratuït i sense registre.
-        </p>
+        <p className="mt-2 max-w-2xl text-slate-600">{t("research.subtitle")}</p>
       </header>
 
       {articles === null ? (
-        <p className="text-slate-400">Carregant anàlisis…</p>
+        <p className="text-slate-400">{t("research.loading")}</p>
       ) : articles.length === 0 ? (
         <div className="card text-center text-slate-500">
-          Encara no hi ha anàlisis publicades. Torna aviat!
+          {t("research.empty")}
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2">
@@ -98,7 +103,7 @@ export function ResearchPage() {
                 <TickerBadge ticker={a.ticker} />
                 {a.publishedAt && (
                   <span className="text-xs text-slate-400">
-                    {formatDate(a.publishedAt)}
+                    {formatDate(a.publishedAt, i18n.language)}
                   </span>
                 )}
               </div>
@@ -116,7 +121,7 @@ export function ResearchPage() {
                 </div>
               )}
               <span className="mt-4 text-sm font-medium text-brand-700">
-                Llegir anàlisi →
+                {t("research.read")} →
               </span>
             </Link>
           ))}

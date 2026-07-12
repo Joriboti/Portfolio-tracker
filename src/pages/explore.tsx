@@ -84,14 +84,12 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
             name: displayName,
             ticker: routeTicker,
           }),
-          url: `https://www.trimmtrack.com/explore/${routeTicker.toLowerCase()}`,
         }
       : {
           title: company
             ? t("seo.exploreTickerTitle", { ticker: company.ticker })
             : t("seo.exploreTitle"),
           description: t("seo.exploreDesc"),
-          url: "https://www.trimmtrack.com/explore",
         },
   );
 

@@ -4,720 +4,800 @@
   <url>
     <loc>https://www.trimmtrack.com/explore/aapl</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/aapl"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/aapl?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/aapl?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/aapl"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/aapl"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/aapl"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/nvda</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/nvda"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/nvda?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/nvda?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/nvda"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/nvda"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/nvda"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/tsla</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/tsla"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/tsla?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/tsla?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/tsla"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/tsla"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/tsla"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/msft</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/msft"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/msft?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/msft?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/msft"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/msft"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/msft"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/amzn</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/amzn"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/amzn?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/amzn?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/amzn"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/amzn"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/amzn"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/googl</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/googl"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/googl?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/googl?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/googl"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/googl"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/googl"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/meta</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/meta"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/meta?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/meta?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/meta"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/meta"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/meta"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/nflx</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/nflx"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/nflx?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/nflx?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/nflx"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/nflx"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/nflx"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/amd</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/amd"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/amd?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/amd?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/amd"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/amd"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/amd"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/pltr</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/pltr"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/pltr?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/pltr?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/pltr"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/pltr"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/pltr"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/brk-b</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/brk-b"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/brk-b?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/brk-b?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/brk-b"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/brk-b"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/brk-b"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/jpm</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/jpm"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/jpm?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/jpm?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/jpm"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/jpm"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/jpm"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/v</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/v"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/v?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/v?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/v"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/v"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/v"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/ma</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/ma"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/ma?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/ma?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/ma"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/ma"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/ma"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/dis</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/dis"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/dis?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/dis?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/dis"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/dis"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/dis"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/ko</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/ko"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/ko?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/ko?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/ko"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/ko"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/pep</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/pep"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/pep?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/pep?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/pep"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/pep"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/pep"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/mcd</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/mcd"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/mcd?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/mcd?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/mcd"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/mcd"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/mcd"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/nke</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/nke"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/nke?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/nke?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/nke"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/nke"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/nke"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/sbux</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/sbux"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/sbux?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/sbux?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/sbux"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/sbux"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/sbux"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/intc</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/intc"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/intc?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/intc?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/intc"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/intc"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/intc"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/avgo</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/avgo"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/avgo?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/avgo?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/avgo"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/avgo"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/avgo"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/qcom</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/qcom"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/qcom?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/qcom?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/qcom"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/qcom"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/qcom"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/orcl</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/orcl"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/orcl?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/orcl?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/orcl"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/orcl"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/orcl"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/crm</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/crm"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/crm?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/crm?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/crm"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/crm"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/crm"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/adbe</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/adbe"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/adbe?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/adbe?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/adbe"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/adbe"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/adbe"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/pypl</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/pypl"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/pypl?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/pypl?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/pypl"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/pypl"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/pypl"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/uber</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/uber"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/uber?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/uber?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/uber"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/uber"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/uber"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/abnb</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/abnb"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/abnb?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/abnb?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/abnb"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/abnb"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/abnb"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/coin</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/coin"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/coin?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/coin?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/coin"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/coin"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/coin"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/shop</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/shop"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/shop?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/shop?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/shop"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/shop"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/shop"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/sq</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/sq"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/sq?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/sq?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/sq"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/sq"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/sq"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/snow</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/snow"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/snow?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/snow?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/snow"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/snow"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/snow"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/mstr</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/mstr"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/mstr?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/mstr?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/mstr"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/mstr"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/mstr"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/baba</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/baba"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/baba?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/baba?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/baba"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/baba"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/baba"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/wmt</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/wmt"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/wmt?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/wmt?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/wmt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/wmt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/wmt"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/cost</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/cost"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/cost?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/cost?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/cost"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/cost"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/cost"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/hd</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/hd"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/hd?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/hd?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/hd"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/hd"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/hd"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/pg</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/pg"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/pg?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/pg?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/pg"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/pg"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/pg"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/jnj</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/jnj"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/jnj?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/jnj?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/jnj"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/jnj"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/jnj"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/unh</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/unh"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/unh?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/unh?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/unh"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/unh"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/unh"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/lly</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/lly"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/lly?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/lly?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/lly"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/lly"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/lly"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/pfe</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/pfe"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/pfe?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/pfe?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/pfe"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/pfe"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/pfe"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/mrna</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/mrna"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/mrna?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/mrna?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/mrna"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/mrna"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/mrna"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/xom</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/xom"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/xom?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/xom?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/xom"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/xom"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/xom"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/cvx</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/cvx"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/cvx?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/cvx?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/cvx"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/cvx"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/cvx"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/ba</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/ba"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/ba?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/ba?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/ba"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/ba"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/ba"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/cat</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/cat"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/cat?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/cat?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/cat"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/cat"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/cat"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/ge</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/ge"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/ge?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/ge?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/ge"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/ge"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/ge"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/f</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/f"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/f?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/f?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/f"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/f"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/f"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/gm</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/gm"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/gm?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/gm?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/gm"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/gm"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/gm"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/t</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/t"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/t?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/t?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/t"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/t"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/t"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/vz</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/vz"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/vz?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/vz?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/vz"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/vz"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/vz"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/csco</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/csco"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/csco?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/csco?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/csco"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/csco"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/csco"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/ibm</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/ibm"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/ibm?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/ibm?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/ibm"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/ibm"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/ibm"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/txn</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/txn"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/txn?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/txn?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/txn"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/txn"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/txn"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/mu</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/mu"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/mu?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/mu?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/mu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/mu"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/mu"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/arm</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/arm"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/arm?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/arm?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/arm"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/arm"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/arm"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/smci</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/smci"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/smci?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/smci?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/smci"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/smci"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/smci"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/dell</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/dell"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/dell?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/dell?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/dell"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/dell"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/dell"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/spot</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/spot"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/spot?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/spot?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/spot"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/spot"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/spot"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/rblx</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/rblx"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/rblx?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/rblx?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/rblx"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/rblx"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/rblx"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/snap</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/snap"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/snap?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/snap?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/snap"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/snap"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/snap"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/pins</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/pins"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/pins?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/pins?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/pins"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/pins"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/pins"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/rivn</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/rivn"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/rivn?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/rivn?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/rivn"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/rivn"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/rivn"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/lcid</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/lcid"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/lcid?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/lcid?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/lcid"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/lcid"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/lcid"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/nio</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/nio"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/nio?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/nio?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/nio"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/nio"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/nio"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/asml</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/asml"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/asml?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/asml?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/asml"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/asml"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/asml"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/tsm</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/tsm"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/tsm?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/tsm?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/tsm"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/tsm"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/tsm"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/sap</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/sap"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/sap?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/sap?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/sap"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/sap"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/sap"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/nvo</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/nvo"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/nvo?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/nvo?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/nvo"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/nvo"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/nvo"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/tm</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/tm"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/tm?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/tm?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/tm"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/tm"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/tm"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/sony</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/sony"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/sony?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/sony?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/sony"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/sony"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/sony"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/san.mc</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/san.mc"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/san.mc?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/san.mc?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/san.mc"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/san.mc"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/san.mc"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/bbva.mc</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/bbva.mc"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/bbva.mc?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/bbva.mc?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/bbva.mc"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/bbva.mc"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/bbva.mc"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/itx.mc</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/itx.mc"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/itx.mc?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/itx.mc?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/itx.mc"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/itx.mc"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/itx.mc"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/ibe.mc</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/ibe.mc"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/ibe.mc?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/ibe.mc?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/ibe.mc"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/ibe.mc"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/ibe.mc"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/tef.mc</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/tef.mc"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/tef.mc?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/tef.mc?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/tef.mc"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/tef.mc"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/tef.mc"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/mc.pa</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/mc.pa"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/mc.pa?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/mc.pa?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/mc.pa"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/mc.pa"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/mc.pa"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/explore/air.pa</loc>
     <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore/air.pa"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/explore/air.pa?lng=es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore/air.pa?lng=en"/>
-    <lastmod>2026-07-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore/air.pa"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore/air.pa"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore/air.pa"/>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

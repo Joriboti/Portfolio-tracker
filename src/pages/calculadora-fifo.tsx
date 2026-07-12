@@ -42,7 +42,6 @@ export function FifoCalculatorPage() {
   useSeo({
     title: t("fifoPage.seoTitle"),
     description: t("fifoPage.seoDesc"),
-    url: "https://www.trimmtrack.com/calculadora-fifo",
     jsonLd,
   });
 

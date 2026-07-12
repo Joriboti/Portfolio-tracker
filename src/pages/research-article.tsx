@@ -1,27 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getResearchArticle, type ResearchArticle } from "@/lib/research";
 import { Blocks } from "@/components/NotionBlocks";
 import { ResearchWordmark } from "@/components/Logo";
 import { useSeo } from "@/lib/seo";
-import { TickerBadge, TagPill } from "./research";
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "";
-  try {
-    return new Date(iso).toLocaleDateString("ca-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch {
-    return iso;
-  }
-}
+import { TickerBadge, TagPill, formatDate } from "./research";
 
 const FALLBACK_OG = "https://www.trimmtrack.com/og.png";
 
 export function ResearchArticlePage() {
+  const { t, i18n } = useTranslation();
   const { slug = "" } = useParams();
   const [state, setState] = useState<"loading" | "ready" | "notfound">(
     "loading",
@@ -53,9 +42,8 @@ export function ResearchArticlePage() {
   useSeo({
     title: article
       ? `${article.title} | TrimmTrack`
-      : "Anàlisi | TrimmTrack",
+      : t("research.fallbackTitle"),
     description: article?.summary,
-    url,
     image: article?.coverImage ?? FALLBACK_OG,
     jsonLd: article
       ? {
@@ -74,7 +62,7 @@ export function ResearchArticlePage() {
   if (state === "loading") {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12 text-slate-400">
-        Carregant anàlisi…
+        {t("research.loadingArticle")}
       </div>
     );
   }
@@ -82,9 +70,9 @@ export function ResearchArticlePage() {
   if (state === "notfound" || !article) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-slate-600">No hem trobat aquesta anàlisi.</p>
+        <p className="text-slate-600">{t("research.notFound")}</p>
         <Link to="/research" className="btn-primary mt-4 inline-flex">
-          ← Totes les anàlisis
+          ← {t("research.backToAll")}
         </Link>
       </div>
     );
@@ -99,7 +87,7 @@ export function ResearchArticlePage() {
         to="/research"
         className="mt-6 block text-sm text-slate-500 hover:text-slate-800"
       >
-        ← Totes les anàlisis
+        ← {t("research.backToAll")}
       </Link>
 
       <header className="mt-4">
@@ -107,7 +95,7 @@ export function ResearchArticlePage() {
           <TickerBadge ticker={article.ticker} />
           {article.publishedAt && (
             <span className="text-xs text-slate-400">
-              {formatDate(article.publishedAt)}
+              {formatDate(article.publishedAt, i18n.language)}
             </span>
           )}
         </div>
@@ -158,14 +146,15 @@ export function ResearchArticlePage() {
       {/* Acquisition CTA */}
       <div className="mt-12 rounded-2xl border border-brand-200 bg-brand-50/60 p-6 text-center">
         <p className="text-lg font-semibold text-slate-900">
-          Segueix {article.ticker || "aquesta empresa"} a TrimmTrack
+          {t("research.ctaTitle", {
+            name: article.ticker || t("research.ctaCompany"),
+          })}
         </p>
         <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">
-          Afegeix-la a la teva cartera i aplica-hi els models de valoració (DCF,
-          Graham, NAV…) amb dades en viu. Gratis i sense registre.
+          {t("research.ctaBody")}
         </p>
         <Link to="/disclaimer" className="btn-primary mt-4 inline-flex">
-          Comença gratis →
+          {t("research.ctaButton")} →
         </Link>
       </div>
     </div>

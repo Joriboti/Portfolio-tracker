@@ -1,9 +1,28 @@
+import { useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo, Wordmark } from "./Logo";
 import { useUser } from "@/hooks/useUser";
 import { authClient } from "@/lib/auth";
+import i18n from "@/lib/i18n";
+import { stripLocale } from "@/lib/locale";
+
+// Keep the active i18next language in sync with the URL's locale prefix so a
+// visitor landing directly on /en/… or /es/… (e.g. from Google) sees the right
+// language, and the prerenderer renders each locale URL in its own language.
+// Bare (Catalan-root) paths don't force a switch — the human's cached choice
+// wins there; crawlers get the Catalan snapshot from the prerender step.
+function LocaleSync() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const seg = pathname.split("/")[1];
+    if ((seg === "en" || seg === "es") && i18n.language?.slice(0, 2) !== seg) {
+      void i18n.changeLanguage(seg);
+    }
+  }, [pathname]);
+  return null;
+}
 
 export function Layout() {
   const { t } = useTranslation();
@@ -11,7 +30,8 @@ export function Layout() {
   const navigate = useNavigate();
   // The landing is a dark editorial page; header/footer follow it there so
   // the charcoal runs edge to edge. Every other route keeps the light chrome.
-  const dark = useLocation().pathname === "/";
+  // Match the home of every locale (/, /en, /es), not just the Catalan root.
+  const dark = stripLocale(useLocation().pathname) === "/";
 
   async function signOut() {
     try {
@@ -27,6 +47,7 @@ export function Layout() {
 
   return (
     <div className="min-h-full flex flex-col">
+      <LocaleSync />
       <header
         className={`sticky top-0 z-40 border-b backdrop-blur ${
           dark

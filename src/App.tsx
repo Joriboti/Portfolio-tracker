@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { Layout } from "@/components/Layout";
 import { AuthGuard } from "@/components/AuthGuard";
+import { PREFIXED_LOCALES } from "@/lib/locale";
 
 // Route-level code splitting: each page ships as its own chunk so the initial
 // load only pulls what the current route needs (heavy deps like the Excel
@@ -20,10 +21,38 @@ const DisclaimerPage = lazy(() => import("@/pages/disclaimer").then((m) => ({ de
 const ResearchPage = lazy(() => import("@/pages/research").then((m) => ({ default: m.ResearchPage })));
 const ResearchArticlePage = lazy(() => import("@/pages/research-article").then((m) => ({ default: m.ResearchArticlePage })));
 
+// English-only SEO tool pages (phase 1). Each targets one keyword under /en/*.
+const DcfCalculatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.DcfCalculatorPage })));
+const ReverseDcfCalculatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.ReverseDcfCalculatorPage })));
+const GrahamNumberCalculatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.GrahamNumberCalculatorPage })));
+const MonteCarloStockSimulatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.MonteCarloStockSimulatorPage })));
+const EtfGrowthCalculatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.EtfGrowthCalculatorPage })));
+const FifoCapitalGainsCalculatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.FifoCapitalGainsCalculatorPage })));
+const PortfolioTrackerPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.PortfolioTrackerPage })));
+
 // Wrap any page that should require an authenticated session. The auth
 // routes themselves stay public so the user can actually sign in.
 function Private({ children }: { children: React.ReactNode }) {
   return <AuthGuard>{children}</AuthGuard>;
+}
+
+// Public, indexable pages, mirrored under each locale prefix. Catalan lives at
+// the bare path (prefix ""), Spanish at "/es", English at "/en" — each URL is
+// its own crawlable, prerenderable page with a self-referencing canonical.
+// Returned as a flat array of <Route> so it can be spread into <Routes> three
+// times (React Router matches Route elements, not wrapper components).
+function publicRoutes(prefix: "" | "/es" | "/en") {
+  const at = (path: string) => (path === "/" ? prefix || "/" : `${prefix}${path}`);
+  return [
+    <Route key={`${prefix}:home`} path={at("/")} element={<HomePage />} />,
+    <Route key={`${prefix}:research`} path={at("/research")} element={<ResearchPage />} />,
+    <Route key={`${prefix}:article`} path={at("/research/:slug")} element={<ResearchArticlePage />} />,
+    <Route key={`${prefix}:disclaimer`} path={at("/disclaimer")} element={<DisclaimerPage />} />,
+    <Route key={`${prefix}:explore`} path={at("/explore")} element={<ExplorePage />} />,
+    <Route key={`${prefix}:exploreTicker`} path={at("/explore/:ticker")} element={<ExplorePage />} />,
+    <Route key={`${prefix}:forecast`} path={at("/forecast")} element={<ForecastPage />} />,
+    <Route key={`${prefix}:fifo`} path={at("/calculadora-fifo")} element={<FifoCalculatorPage />} />,
+  ];
 }
 
 export default function App() {
@@ -33,31 +62,11 @@ export default function App() {
     <Suspense fallback={<div className="mx-auto max-w-6xl px-4 py-10 text-slate-400" />}>
     <Routes>
       <Route element={<Layout />}>
+        {/* App / auth routes stay unprefixed: they're behind auth or a trial and
+            are Disallow-ed in robots.txt, so they need no per-language URL. The
+            UI language on them still follows the i18next localStorage choice. */}
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/:pathname" element={<AuthPage />} />
-
-        {/* Public content — indexable, no auth gate. The landing (and the
-            catch-all that renders it) MUST stay public: the canonical URL and
-            the sitemap point at "/", so Googlebot needs to read it. The page
-            uses no session data; its CTAs route through auth-gated pages. */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/research" element={<ResearchPage />} />
-        <Route path="/research/:slug" element={<ResearchArticlePage />} />
-        <Route path="/disclaimer" element={<DisclaimerPage />} />
-        {/* Public taster: anyone can run the 6 valuation models on any ticker
-            (no account). The panel runs ephemerally without a userId. */}
-        <Route path="/explore" element={<ExplorePage />} />
-        {/* Programmatic per-company valuation pages (SEO). Each renders a unique
-            title/H1/description from the curated list; see GROWTH_PLAN.md phase 1. */}
-        <Route path="/explore/:ticker" element={<ExplorePage />} />
-        <Route path="/forecast" element={<ForecastPage />} />
-        {/* Standalone indexable landing for the FIFO realized-gain calculator
-            (the tool itself is also embedded in /upload). SEO play — see
-            GROWTH_PLAN.md phase 1. */}
-        <Route path="/calculadora-fifo" element={<FifoCalculatorPage />} />
-
-        {/* Public with a trial: no account → capped in-memory taste, sign-in →
-            the real thing. Each page branches internally on the session. */}
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/debug" element={<Private><DebugPage /></Private>} />
@@ -65,6 +74,25 @@ export default function App() {
         <Route path="/how-to-prepare" element={<Navigate to="/upload" replace />} />
         <Route path="/account" element={<Private><AccountPage /></Private>} />
         <Route path="/account/:pathname" element={<Private><AccountPage /></Private>} />
+
+        {/* Public content — indexable, no auth gate — in all three languages. */}
+        {publicRoutes("")}
+        {publicRoutes("/es")}
+        {publicRoutes("/en")}
+
+        {/* English-only SEO tool pages (phase 1). Keyword-targeted, signup-free. */}
+        <Route path="/en/dcf-calculator" element={<DcfCalculatorPage />} />
+        <Route path="/en/reverse-dcf-calculator" element={<ReverseDcfCalculatorPage />} />
+        <Route path="/en/graham-number-calculator" element={<GrahamNumberCalculatorPage />} />
+        <Route path="/en/monte-carlo-stock-simulator" element={<MonteCarloStockSimulatorPage />} />
+        <Route path="/en/etf-growth-calculator" element={<EtfGrowthCalculatorPage />} />
+        <Route path="/en/fifo-capital-gains-calculator" element={<FifoCapitalGainsCalculatorPage />} />
+        <Route path="/en/portfolio-tracker" element={<PortfolioTrackerPage />} />
+
+        {/* Unknown paths fall back to the same-language home, else the root. */}
+        {PREFIXED_LOCALES.map((l) => (
+          <Route key={`${l}:catchall`} path={`/${l}/*`} element={<Navigate to={`/${l}`} replace />} />
+        ))}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
