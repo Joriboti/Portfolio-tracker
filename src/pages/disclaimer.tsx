@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useSeo } from "@/lib/seo";
 
 const STORAGE_KEY = "pt:disclaimerAccepted";
 
@@ -11,6 +12,11 @@ export function hasAcceptedDisclaimer(): boolean {
 export function DisclaimerPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  useSeo({
+    title: t("seo.disclaimerTitle"),
+    description: t("seo.disclaimerDesc"),
+  });
 
   function accept() {
     window.localStorage.setItem(STORAGE_KEY, "1");

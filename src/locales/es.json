@@ -31,11 +31,31 @@
     "tools": {
       "title": "Todo lo que puedes hacer con TrimmTrack",
       "intro": "Cinco herramientas, un objetivo: entender tus inversiones. Investigación profunda, visuales potentes.",
-      "dashboard": { "title": "Mi cartera", "desc": "Posiciones en vivo, P&L, pesos y evolución frente al S&P 500.", "tag": "En tiempo real" },
-      "build": { "title": "Construir cartera", "desc": "Sube el Excel de tu broker o añade posiciones buscando por ticker.", "tag": "2 minutos" },
-      "explore": { "title": "Explorar empresas", "desc": "Valora cualquier acción con DCF, Graham, Monte Carlo, escenarios y NAV.", "tag": "6 modelos" },
-      "forecast": { "title": "Simulador de ETFs", "desc": "Proyecta tu cartera a décadas vista con bandas de incertidumbre.", "tag": "Monte Carlo" },
-      "research": { "title": "Análisis", "desc": "Tesis de inversión con los modelos aplicados: Netflix, EXOR y más.", "tag": "Research" }
+      "dashboard": {
+        "title": "Mi cartera",
+        "desc": "Posiciones en vivo, P&L, pesos y evolución frente al S&P 500.",
+        "tag": "En tiempo real"
+      },
+      "build": {
+        "title": "Construir cartera",
+        "desc": "Sube el Excel de tu broker o añade posiciones buscando por ticker.",
+        "tag": "2 minutos"
+      },
+      "explore": {
+        "title": "Explorar empresas",
+        "desc": "Valora cualquier acción con DCF, Graham, Monte Carlo, escenarios y NAV.",
+        "tag": "6 modelos"
+      },
+      "forecast": {
+        "title": "Simulador de ETFs",
+        "desc": "Proyecta tu cartera a décadas vista con bandas de incertidumbre.",
+        "tag": "Monte Carlo"
+      },
+      "research": {
+        "title": "Análisis",
+        "desc": "Tesis de inversión con los modelos aplicados: Netflix, EXOR y más.",
+        "tag": "Research"
+      }
     },
     "steps": {
       "title": "Cómo funciona, en 3 pasos",
@@ -100,7 +120,10 @@
     "loading": "Cargando estados financieros…",
     "noData": "No hay estados financieros disponibles para esta empresa.",
     "depthNote": "Fuente: Yahoo Finance. El histórico trimestral se amplía automáticamente con el tiempo a medida que se publican nuevos trimestres.",
-    "toggle": { "quarterly": "Trimestral", "annual": "Anual" },
+    "toggle": {
+      "quarterly": "Trimestral",
+      "annual": "Anual"
+    },
     "panels": {
       "valuation": "Valoración",
       "cashflow": "Flujo de caja",
@@ -184,7 +207,9 @@
     "exploreTickerNameTitle": "{{name}} ({{ticker}}): análisis, finanzas y valoración DCF — gratis | TrimmTrack",
     "exploreTickerDesc": "Ficha completa de {{name}} ({{ticker}}): ingresos, beneficios y márgenes trimestrales, flujo de caja libre, dividendos y recompras con hasta 15 años de histórico, 6 modelos de valoración (DCF, Graham, Monte Carlo) y análisis cualitativo. Gratis y sin registro.",
     "researchTitle": "Análisis de inversión: Meta, Netflix, EXOR y más | TrimmTrack Research",
-    "researchDesc": "Tesis de inversión con modelos de valoración aplicados: Meta (capex e IA), Netflix (estrategia DCA), EXOR (descuento sobre NAV) y más. Análisis fundamental gratuito, sin registro."
+    "researchDesc": "Tesis de inversión con modelos de valoración aplicados: Meta (capex e IA), Netflix (estrategia DCA), EXOR (descuento sobre NAV) y más. Análisis fundamental gratuito, sin registro.",
+    "disclaimerTitle": "Aviso legal y limitación de responsabilidad | TrimmTrack",
+    "disclaimerDesc": "Condiciones de uso de TrimmTrack: los datos y valoraciones son orientativos y no constituyen asesoramiento financiero ni fiscal."
   },
   "fifoPage": {
     "seoTitle": "Calculadora FIFO de plusvalías: acciones y criptomonedas | TrimmTrack",

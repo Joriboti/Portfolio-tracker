@@ -16,7 +16,11 @@
       name="keywords"
       content="calculadora FIFO accions, calculadora FIFO acciones, càlcul plusvàlues IRPF, valoració empreses DCF, calculadora DCF gratis, descuento flujos de caja, reverse DCF, implied growth rate, número de Graham, Graham Number, seguidor de cartera, portfolio tracker, valoració d'accions, dividends"
     />
-    <link rel="canonical" href="https://www.trimmtrack.com/" />
+    <!-- No hardcoded canonical: this file is also the SPA fallback shell served
+         for every non-prerendered route, so a fixed href here would tell Google
+         those pages are the homepage. useSeo() emits a self-referencing
+         canonical per route (derived from the URL) for both the prerendered
+         snapshots and the client-rendered fallback. -->
 
     <!-- Open Graph / Twitter: professional link previews when shared -->
     <meta property="og:type" content="website" />

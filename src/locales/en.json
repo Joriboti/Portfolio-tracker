@@ -31,11 +31,31 @@
     "tools": {
       "title": "Everything you can do with TrimmTrack",
       "intro": "Five tools, one goal: understanding your investments. Deep research, powerful visuals.",
-      "dashboard": { "title": "My portfolio", "desc": "Live positions, P&L, weights and performance vs the S&P 500.", "tag": "Real time" },
-      "build": { "title": "Build portfolio", "desc": "Upload your broker's Excel or add positions by searching a ticker.", "tag": "2 minutes" },
-      "explore": { "title": "Explore companies", "desc": "Value any stock with DCF, Graham, Monte Carlo, scenarios and NAV.", "tag": "6 models" },
-      "forecast": { "title": "ETF simulator", "desc": "Project your portfolio decades ahead with uncertainty bands.", "tag": "Monte Carlo" },
-      "research": { "title": "Research", "desc": "Investment theses with the models applied: Netflix, EXOR and more.", "tag": "Research" }
+      "dashboard": {
+        "title": "My portfolio",
+        "desc": "Live positions, P&L, weights and performance vs the S&P 500.",
+        "tag": "Real time"
+      },
+      "build": {
+        "title": "Build portfolio",
+        "desc": "Upload your broker's Excel or add positions by searching a ticker.",
+        "tag": "2 minutes"
+      },
+      "explore": {
+        "title": "Explore companies",
+        "desc": "Value any stock with DCF, Graham, Monte Carlo, scenarios and NAV.",
+        "tag": "6 models"
+      },
+      "forecast": {
+        "title": "ETF simulator",
+        "desc": "Project your portfolio decades ahead with uncertainty bands.",
+        "tag": "Monte Carlo"
+      },
+      "research": {
+        "title": "Research",
+        "desc": "Investment theses with the models applied: Netflix, EXOR and more.",
+        "tag": "Research"
+      }
     },
     "steps": {
       "title": "How it works, in 3 steps",
@@ -100,7 +120,10 @@
     "loading": "Loading financial statements…",
     "noData": "No financial statements available for this company.",
     "depthNote": "Source: Yahoo Finance. Quarterly history grows automatically over time as new quarters are published.",
-    "toggle": { "quarterly": "Quarterly", "annual": "Annual" },
+    "toggle": {
+      "quarterly": "Quarterly",
+      "annual": "Annual"
+    },
     "panels": {
       "valuation": "Valuation",
       "cashflow": "Cash flow",
@@ -184,7 +207,9 @@
     "exploreTickerNameTitle": "{{name}} ({{ticker}}): analysis, financials & DCF valuation — free | TrimmTrack",
     "exploreTickerDesc": "Full {{name}} ({{ticker}}) breakdown: quarterly revenue, earnings and margins, free cash flow, dividends and buybacks with up to 15 years of history, 6 valuation models (DCF, Graham, Monte Carlo) and a qualitative analysis. Free, no sign-up.",
     "researchTitle": "Equity research: Meta, Netflix, EXOR and more | TrimmTrack Research",
-    "researchDesc": "Investment theses with applied valuation models: Meta (capex & AI), Netflix (DCA strategy), EXOR (discount to NAV) and more. Free fundamental analysis, no sign-up."
+    "researchDesc": "Investment theses with applied valuation models: Meta (capex & AI), Netflix (DCA strategy), EXOR (discount to NAV) and more. Free fundamental analysis, no sign-up.",
+    "disclaimerTitle": "Legal disclaimer and limitation of liability | TrimmTrack",
+    "disclaimerDesc": "TrimmTrack terms of use: data and valuations are indicative only and do not constitute financial or tax advice."
   },
   "fifoPage": {
     "seoTitle": "FIFO capital gains calculator: stocks & crypto | TrimmTrack",

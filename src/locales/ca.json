@@ -31,11 +31,31 @@
     "tools": {
       "title": "Tot el que pots fer amb TrimmTrack",
       "intro": "Cinc eines, un objectiu: entendre les teves inversions. Recerca profunda, visuals potents.",
-      "dashboard": { "title": "La meva cartera", "desc": "Posicions en viu, P&L, pesos i evolució davant l'S&P 500.", "tag": "En temps real" },
-      "build": { "title": "Construir portfolio", "desc": "Puja l'Excel del teu broker o afegeix posicions cercant pel ticker.", "tag": "2 minuts" },
-      "explore": { "title": "Explorar empreses", "desc": "Valora qualsevol acció amb DCF, Graham, Monte Carlo, escenaris i NAV.", "tag": "6 models" },
-      "forecast": { "title": "Simulador d'ETFs", "desc": "Projecta la teva cartera a dècades vista amb bandes d'incertesa.", "tag": "Monte Carlo" },
-      "research": { "title": "Anàlisis", "desc": "Tesis d'inversió amb els models aplicats: Netflix, EXOR i més.", "tag": "Research" }
+      "dashboard": {
+        "title": "La meva cartera",
+        "desc": "Posicions en viu, P&L, pesos i evolució davant l'S&P 500.",
+        "tag": "En temps real"
+      },
+      "build": {
+        "title": "Construir portfolio",
+        "desc": "Puja l'Excel del teu broker o afegeix posicions cercant pel ticker.",
+        "tag": "2 minuts"
+      },
+      "explore": {
+        "title": "Explorar empreses",
+        "desc": "Valora qualsevol acció amb DCF, Graham, Monte Carlo, escenaris i NAV.",
+        "tag": "6 models"
+      },
+      "forecast": {
+        "title": "Simulador d'ETFs",
+        "desc": "Projecta la teva cartera a dècades vista amb bandes d'incertesa.",
+        "tag": "Monte Carlo"
+      },
+      "research": {
+        "title": "Anàlisis",
+        "desc": "Tesis d'inversió amb els models aplicats: Netflix, EXOR i més.",
+        "tag": "Research"
+      }
     },
     "steps": {
       "title": "Com funciona, en 3 passos",
@@ -100,7 +120,10 @@
     "loading": "Carregant estats financers…",
     "noData": "No hi ha estats financers disponibles per a aquesta empresa.",
     "depthNote": "Font: Yahoo Finance. L'històric trimestral s'amplia automàticament amb el temps a mesura que es publiquen nous trimestres.",
-    "toggle": { "quarterly": "Trimestral", "annual": "Anual" },
+    "toggle": {
+      "quarterly": "Trimestral",
+      "annual": "Anual"
+    },
     "panels": {
       "valuation": "Valoració",
       "cashflow": "Flux de caixa",
@@ -184,7 +207,9 @@
     "exploreTickerNameTitle": "{{name}} ({{ticker}}): anàlisi, finances i valoració DCF — gratis | TrimmTrack",
     "exploreTickerDesc": "Fitxa completa de {{name}} ({{ticker}}): ingressos, beneficis i marges trimestrals, flux de caixa lliure, dividends i recompres amb fins a 15 anys d'històric, 6 models de valoració (DCF, Graham, Monte Carlo) i anàlisi qualitativa. Gratis i sense registre.",
     "researchTitle": "Anàlisis d'inversió: Meta, Netflix, EXOR i més | TrimmTrack Research",
-    "researchDesc": "Tesis d'inversió amb models de valoració aplicats: Meta (capex i IA), Netflix (estratègia DCA), EXOR (descompte sobre NAV) i més. Anàlisi fonamental gratuïta, sense registre."
+    "researchDesc": "Tesis d'inversió amb models de valoració aplicats: Meta (capex i IA), Netflix (estratègia DCA), EXOR (descompte sobre NAV) i més. Anàlisi fonamental gratuïta, sense registre.",
+    "disclaimerTitle": "Avís legal i limitació de responsabilitat | TrimmTrack",
+    "disclaimerDesc": "Condicions d'ús de TrimmTrack: les dades i valoracions són orientatives i no constitueixen assessorament financer ni fiscal."
   },
   "fifoPage": {
     "seoTitle": "Calculadora FIFO de plusvàlues: accions i criptomonedes | TrimmTrack",
