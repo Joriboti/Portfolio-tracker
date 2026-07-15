@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { companyName, pairSlug, pairsFor } from "@/lib/compare";
+import { localeFromPath, withLocale } from "@/lib/locale";
 import {
   searchTickers,
   getLiveCompany,
@@ -363,8 +365,37 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
         </section>
       )}
 
+      {routeTicker && <ComparisonLinks ticker={routeTicker} />}
       <PopularCompanies exclude={routeTicker} />
     </div>
+  );
+}
+
+// Links from a company to its head-to-head pages. Without these the comparison
+// pages would only be reachable from the sitemap and from each other — this is
+// the crawl path in, and the natural next click for someone weighing two rivals.
+function ComparisonLinks({ ticker }: { ticker: string }) {
+  const { t } = useTranslation();
+  const locale = localeFromPath(useLocation().pathname);
+  const pairs = pairsFor(ticker);
+  if (pairs.length === 0) return null;
+  return (
+    <section className="border-t border-slate-200 pt-6">
+      <h2 className="text-sm font-semibold text-slate-700">
+        {t("compare.othersTitle")}
+      </h2>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {pairs.map((p) => (
+          <Link
+            key={pairSlug(p)}
+            to={withLocale(`/explore/compare/${pairSlug(p)}`, locale)}
+            className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 transition-colors hover:border-brand-300 hover:bg-brand-50"
+          >
+            {companyName(p.a)} vs {companyName(p.b)}
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

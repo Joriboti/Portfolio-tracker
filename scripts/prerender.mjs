@@ -58,9 +58,16 @@ const EN_TOOLS = [
 // Programmatic /explore/:ticker pages — the same source sitemap-tickers.xml is
 // generated from. Only the bare (Catalan) URL is in that sitemap's <loc>, so the
 // /es|/en variants it advertises via hreflang ride the SPA shell fallback.
-const TICKERS = JSON.parse(
-  readFileSync(path.join(ROOT, "src/data/tickers.json"), "utf8"),
-).map(({ symbol }) => `/explore/${symbol.toLowerCase()}`);
+const readData = (f) => JSON.parse(readFileSync(path.join(ROOT, f), "utf8"));
+const TICKERS = readData("src/data/tickers.json").map(
+  ({ symbol }) => `/explore/${symbol.toLowerCase()}`,
+);
+// Head-to-head pages. Curated direction only — the reverse slug redirects to it,
+// so snapshotting both would bake a redirect into a page Google would then treat
+// as a duplicate.
+const COMPARISONS = readData("src/data/compare-pairs.json").map(
+  ({ a, b }) => `/explore/compare/${a.toLowerCase()}-vs-${b.toLowerCase()}`,
+);
 
 function withPrefix(route, lng) {
   if (lng === "ca") return route;
@@ -72,9 +79,11 @@ const ALL_ROUTES = [
     [...NEUTRAL, ...ARTICLES].map((r) => ({ url: withPrefix(r, lng), lng })),
   ),
   ...EN_TOOLS.map((url) => ({ url, lng: "en" })),
-  // Ticker pages are the reason the API proxy exists: their content is entirely
-  // API-driven, so they wait for the charts grid to paint before snapshotting.
+  // Ticker and comparison pages are the reason the API proxy exists: their
+  // content is entirely API-driven, so they wait for the charts to paint before
+  // snapshotting.
   ...TICKERS.map((url) => ({ url, lng: "ca", awaitCharts: true })),
+  ...COMPARISONS.map((url) => ({ url, lng: "ca", awaitCharts: true })),
 ];
 
 // Debug aid: PRERENDER_ONLY=/explore/aapl,/en narrows a 114-route run down to

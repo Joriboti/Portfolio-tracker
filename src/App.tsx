@@ -15,6 +15,7 @@ const DashboardPage = lazy(() => import("@/pages/dashboard").then((m) => ({ defa
 const DebugPage = lazy(() => import("@/pages/debug").then((m) => ({ default: m.DebugPage })));
 const UploadPage = lazy(() => import("@/pages/upload").then((m) => ({ default: m.UploadPage })));
 const ExplorePage = lazy(() => import("@/pages/explore").then((m) => ({ default: m.ExplorePage })));
+const ComparePage = lazy(() => import("@/pages/compare").then((m) => ({ default: m.ComparePage })));
 const ForecastPage = lazy(() => import("@/pages/forecast").then((m) => ({ default: m.ForecastPage })));
 const FifoCalculatorPage = lazy(() => import("@/pages/calculadora-fifo").then((m) => ({ default: m.FifoCalculatorPage })));
 const DisclaimerPage = lazy(() => import("@/pages/disclaimer").then((m) => ({ default: m.DisclaimerPage })));
@@ -49,6 +50,8 @@ function publicRoutes(prefix: "" | "/es" | "/en") {
     <Route key={`${prefix}:article`} path={at("/research/:slug")} element={<ResearchArticlePage />} />,
     <Route key={`${prefix}:disclaimer`} path={at("/disclaimer")} element={<DisclaimerPage />} />,
     <Route key={`${prefix}:explore`} path={at("/explore")} element={<ExplorePage />} />,
+    // Three segments deep, so it never competes with /explore/:ticker.
+    <Route key={`${prefix}:compare`} path={at("/explore/compare/:pair")} element={<ComparePage />} />,
     <Route key={`${prefix}:exploreTicker`} path={at("/explore/:ticker")} element={<ExplorePage />} />,
     <Route key={`${prefix}:forecast`} path={at("/forecast")} element={<ForecastPage />} />,
     <Route key={`${prefix}:fifo`} path={at("/calculadora-fifo")} element={<FifoCalculatorPage />} />,

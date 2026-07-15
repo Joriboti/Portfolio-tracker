@@ -42,6 +42,11 @@ export type PanelExtras = {
   nextYearEps: number | null;
   /** Ascending by periodEnd. Absent on older cached responses. */
   estimates?: QuarterEstimate[];
+  /**
+   * Currency the statements are filed in — not always the quote currency (TSM
+   * quotes in USD but reports in TWD). Absent on older cached responses.
+   */
+  financialCurrency?: string | null;
 };
 
 export type PricePoint = { date: string; close: number };

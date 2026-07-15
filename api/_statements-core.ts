@@ -211,6 +211,12 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
       dividendDate: isoDate(ce.dividendDate) ?? isoDate(sd.exDividendDate),
       nextYearEps,
       estimates,
+      // The currency the statements below are actually filed in. Usually the
+      // quote currency, but NOT for ADRs: TSM quotes in USD and reports in TWD,
+      // TM in JPY, NVO in DKK. Anything comparing or converting these figures
+      // has to read this rather than assume the quote currency.
+      financialCurrency:
+        typeof fd.financialCurrency === "string" ? fd.financialCurrency : null,
     };
   } catch {
     return null;

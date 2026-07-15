@@ -174,6 +174,21 @@
       "source": "Análisis de TrimmTrack"
     }
   },
+  "compare": {
+    "heading": "{{a}} vs {{b}}: comparativa financiera",
+    "subtitle": "Compara {{a}} y {{b}} lado a lado: valoración, márgenes, crecimiento, caja y dividendos, con el histórico trimestral de ambas. Datos de Yahoo Finance, gratis y sin registro.",
+    "tableTitle": "{{a}} vs {{b}}: métricas clave",
+    "chartsTitle": "Evolución comparada",
+    "othersTitle": "Otras comparativas",
+    "viewCompany": "Ver la ficha de {{name}} →",
+    "tableNote": "Cada columna muestra las cifras en la moneda de reporting de la empresa (indicada en la cabecera); no se han convertido. Los ratios y porcentajes no dependen de la moneda.",
+    "fxNote": "Las cifras de {{name}} se han convertido de {{from}} a {{to}} al cambio actual ({{rate}}) para poder representarlas en el mismo eje.",
+    "fxUnavailable": "No se ha podido obtener el cambio {{from}}/{{to}}, así que los gráficos de cifras absolutas se han ocultado: compararlas en monedas distintas sería engañoso.",
+    "rows": {
+      "pe": "PER (TTM)",
+      "forwardPe": "PER previsto"
+    }
+  },
   "dividends": {
     "title": "Dividendos",
     "ttm": "Ingresos últimos 12 meses",
@@ -210,7 +225,9 @@
     "researchTitle": "Análisis de inversión: Meta, Netflix, EXOR y más | TrimmTrack Research",
     "researchDesc": "Tesis de inversión con modelos de valoración aplicados: Meta (capex e IA), Netflix (estrategia DCA), EXOR (descuento sobre NAV) y más. Análisis fundamental gratuito, sin registro.",
     "disclaimerTitle": "Aviso legal y limitación de responsabilidad | TrimmTrack",
-    "disclaimerDesc": "Condiciones de uso de TrimmTrack: los datos y valoraciones son orientativos y no constituyen asesoramiento financiero ni fiscal."
+    "disclaimerDesc": "Condiciones de uso de TrimmTrack: los datos y valoraciones son orientativos y no constituyen asesoramiento financiero ni fiscal.",
+    "compareTitle": "{{a}} vs {{b}}: comparativa financiera y de valoración | TrimmTrack",
+    "compareDesc": "¿{{a}} o {{b}}? Compara las dos empresas lado a lado: PER, EV/EBITDA, márgenes, crecimiento de ingresos y beneficios, flujo de caja libre, deuda y dividendos, con gráficos trimestrales. Gratis y sin registro."
   },
   "fifoPage": {
     "seoTitle": "Calculadora FIFO de plusvalías: acciones y criptomonedas | TrimmTrack",
