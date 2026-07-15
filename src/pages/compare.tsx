@@ -28,7 +28,7 @@ import {
 import { QuarterlyBars } from "@/components/QuarterlyBars";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { useSeo } from "@/lib/seo";
-import { withLocale, localeFromPath } from "@/lib/locale";
+import { withLocale, localeFromPath, SITE_ORIGIN } from "@/lib/locale";
 
 // Programmatic head-to-head pages (/explore/compare/aapl-vs-msft). Every figure
 // reuses the company dashboard's data path — ?quote= for live fundamentals and
@@ -72,6 +72,7 @@ function CompareInner({ pair }: { pair: Pair }) {
   useSeo({
     title: t("seo.compareTitle", { a: nameA, b: nameB }),
     description: t("seo.compareDesc", { a: nameA, b: nameB }),
+    image: `${SITE_ORIGIN}/og/compare-${pairSlug(pair)}.png`,
   });
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { companyName, pairSlug, pairsFor } from "@/lib/compare";
-import { localeFromPath, withLocale } from "@/lib/locale";
+import { localeFromPath, withLocale, SITE_ORIGIN } from "@/lib/locale";
 import {
   searchTickers,
   getLiveCompany,
@@ -86,6 +86,11 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
             name: displayName,
             ticker: routeTicker,
           }),
+          // Only curated tickers get a build-time card; a searched-for ticker
+          // outside the list falls back to the generic og.png.
+          image: staticName
+            ? `${SITE_ORIGIN}/og/${routeTicker.toLowerCase()}.png`
+            : undefined,
         }
       : {
           title: company

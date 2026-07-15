@@ -15,6 +15,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
+import { generateOgImages } from "./og-images.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -59,15 +60,37 @@ const EN_TOOLS = [
 // generated from. Only the bare (Catalan) URL is in that sitemap's <loc>, so the
 // /es|/en variants it advertises via hreflang ride the SPA shell fallback.
 const readData = (f) => JSON.parse(readFileSync(path.join(ROOT, f), "utf8"));
-const TICKERS = readData("src/data/tickers.json").map(
+const TICKER_DATA = readData("src/data/tickers.json");
+const PAIR_DATA = readData("src/data/compare-pairs.json");
+const NAME_OF = Object.fromEntries(
+  TICKER_DATA.map(({ symbol, name }) => [symbol.toUpperCase(), name]),
+);
+const TICKERS = TICKER_DATA.map(
   ({ symbol }) => `/explore/${symbol.toLowerCase()}`,
 );
 // Head-to-head pages. Curated direction only — the reverse slug redirects to it,
 // so snapshotting both would bake a redirect into a page Google would then treat
 // as a duplicate.
-const COMPARISONS = readData("src/data/compare-pairs.json").map(
+const COMPARISONS = PAIR_DATA.map(
   ({ a, b }) => `/explore/compare/${a.toLowerCase()}-vs-${b.toLowerCase()}`,
 );
+
+// Open Graph cards, one per programmatic page. Names must match the og:image
+// URLs useSeo emits (see explore.tsx / compare.tsx).
+const OG_SPECS = [
+  ...TICKER_DATA.map(({ symbol, name }) => ({
+    name: symbol.toLowerCase(),
+    chip: symbol.toUpperCase(),
+    title: name,
+    subtitle: "Financials · Valuation · 15y history",
+  })),
+  ...PAIR_DATA.map(({ a, b }) => ({
+    name: `compare-${a.toLowerCase()}-vs-${b.toLowerCase()}`,
+    chip: `${a.toUpperCase()} vs ${b.toUpperCase()}`,
+    title: `${NAME_OF[a.toUpperCase()] ?? a} vs ${NAME_OF[b.toUpperCase()] ?? b}`,
+    subtitle: "Side-by-side financial comparison",
+  })),
+];
 
 function withPrefix(route, lng) {
   if (lng === "ca") return route;
@@ -272,6 +295,17 @@ async function run() {
       } catch (err) {
         failed.push(route);
         console.warn(`[prerender] ! ${route}: ${err?.message || err}`);
+      }
+    }
+    // Share cards, on the browser we already have open. Isolated like the
+    // routes: a failure here costs the per-page cards, not the snapshots — the
+    // pages just keep falling back to the generic og.png from index.html.
+    if (!ONLY.length || process.env.PRERENDER_OG === "1") {
+      try {
+        if (!browser.connected) browser = await puppeteer.launch(launchOptions);
+        await generateOgImages(browser, DIST, OG_SPECS);
+      } catch (err) {
+        console.warn(`[og] skipped: ${err?.message || err}`);
       }
     }
   } finally {
