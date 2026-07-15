@@ -119,17 +119,48 @@ toggle (auto-picks annual while the quarterly cache is young). 1y price chart
 with change badge. Tabs Resum | Valoració on /explore/:ticker (share links
 open on Valoració). Live-verified: 13 SVGs, 65 bars, real AAPL figures.
 
-**Phase 3 — later, pick as needed**
-- SEC EDGAR backfill: deep quarterly history + revenue segments (US-only).
-- Insights via Notion CMS fields (a), later optionally Claude-generated (b).
-- Expand-chart modal, estimates overlay (earningsTrend next-quarter markers).
-- Show the "Resum" tab for portfolio holdings on the dashboard expandable rows
-  (component is reusable by design).
+**Phase 3 — ✅ DONE.**
+- *Insights via the Notion CMS* (commit `32d2b7f`): `Pros`/`Risks`/`Thesis`
+  columns on the existing research DB, `?research=insights&ticker=` mode,
+  `CompanyInsights.tsx`. Reused the already-shared DB, so zero new manual setup.
+- *Expand-chart modal + reuse on dashboard holdings* (commit `ce1faa1`).
+- *SEC EDGAR deep-history backfill* (commits `29096dd`, `a46cce2`, `e600f78`):
+  `?statements=T&backfill=edgar`, 15–20yr of quarters for US filers (AAPL 6→137).
+  Ran across all 80 tickers. **Revenue segments were NOT delivered** — see below.
+- *Estimates overlay* (commit `f118f2e`): consensus ghost bar on the Revenue and
+  EPS charts, matched to the axis by period end rather than Yahoo's `0q`/`+1q`
+  label (right after a filing, `0q` names a quarter we already have actuals for).
 
-## Open decisions (answer before Phase 1)
-1. **Placement OK?** Tabs "Resum | Valoració" on `/explore/:ticker` (my
-   recommendation), or a separate page?
-2. **Insights source:** Notion-authored (a) first, or skip Insights entirely in v1?
-3. **Priority:** build this next, or start the weekly research-article cadence
-   first (GROWTH_PLAN phase 2) and do this after? They compete for the same
-   sessions.
+**Phase 4 — SEO/traffic build-out on top of the dashboard — ✅ DONE.**
+- *Prerender against the live API* (commit `f118f2e`): the 80 ticker snapshots
+  shipped an empty dashboard because the prerender server 404'd `/api/*`. It now
+  proxies to production (self-configuring on Vercel via
+  `VERCEL_PROJECT_PRODUCTION_URL`), so the financials, charts and insights land
+  in the static HTML. ~3.2s/ticker. `vite dev` proxies the same way, so the app
+  finally renders real data locally.
+- *Comparison pages* (commit `9046e1a`): 36 curated `/explore/compare/:pair`.
+  Currency is the trap — filing currency ≠ quote currency for ADRs (TSM reports
+  in TWD, TM in JPY, NVO in DKK), so `?statements=` now returns
+  `financialCurrency` and the page FX-converts before sharing an axis.
+- *Per-page OG cards* (commit `c61f345`): 116 cards, screenshotted with the
+  prerender's own browser (no rasteriser dep).
+- *Claude-drafted insights → Notion* (commit `b12127e`): `scripts/draft-insights.mjs`
+  grounds Claude on the cached figures and writes Drafts for human review. Not a
+  publish path by design.
+
+## Still not built (deliberate)
+- **Revenue by segment.** Not reachable from the EDGAR path we use: the
+  `companyfacts` API excludes dimensional facts, and segments are exactly that
+  (`BusinessSegments` / `ProductOrService` XBRL axes). Getting them means parsing
+  per-filing XBRL or the multi-GB Financial Statement Data Sets — disproportionate
+  here. If wanted, the cheap route is a `Segments` column in Notion authored from
+  the 10-K, reusing the Insights pattern.
+- **Debt and EBITDA on the EDGAR path**, omitted so backfilled history can't show
+  a visible discontinuity against the Yahoo rows.
+- **Weekly research-article cadence** (GROWTH_PLAN phase 2) — user skipped it.
+
+## Open decisions — all resolved
+1. **Placement:** tabs "Resum | Valoració" on `/explore/:ticker`. ✅
+2. **Insights source:** Notion-authored. Claude now drafts *into* Notion; a human
+   still publishes. ✅
+3. **Priority:** this first; the article cadence was skipped. ✅
