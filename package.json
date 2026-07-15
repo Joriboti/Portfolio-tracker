@@ -25,6 +25,7 @@
     "yahoo-finance2": "^3.14.0"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.111.0",
     "@sparticuz/chromium": "^149.0.0",
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
