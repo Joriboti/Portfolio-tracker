@@ -27,10 +27,14 @@ const PORT = 4317;
 // the SPA shell (see SHELL_FILE below) and depend on Google executing JS to get
 // its canonical — so this list and the sitemap generators must stay in sync.
 //
-// Live API data is NOT needed here: useSeo() derives the canonical from the URL
-// and the /explore/:ticker heading + tags come from the static tickers.json, so
-// a snapshot taken with the API unavailable still carries correct SEO metadata.
-// Prices and Notion article bodies fill in client-side on the real page.
+// The API is OPTIONAL here: useSeo() derives the canonical from the URL and the
+// /explore/:ticker heading + tags come from the static tickers.json, so a
+// snapshot taken with the backend unavailable still carries correct SEO
+// metadata, and prices/article bodies fill in client-side on the real page.
+// When PRERENDER_API_ORIGIN is set we go further and proxy /api/* to a deployed
+// origin (see the request handler), which bakes the company dashboard's actual
+// figures and the Notion article bodies into the static HTML — the difference
+// between Google seeing a heading and Google seeing the whole page.
 const LANGS = ["ca", "es", "en"];
 const NEUTRAL = [
   "/",
@@ -63,19 +67,87 @@ function withPrefix(route, lng) {
   return route === "/" ? `/${lng}` : `/${lng}${route}`;
 }
 
-const ROUTES = [
+const ALL_ROUTES = [
   ...LANGS.flatMap((lng) =>
     [...NEUTRAL, ...ARTICLES].map((r) => ({ url: withPrefix(r, lng), lng })),
   ),
   ...EN_TOOLS.map((url) => ({ url, lng: "en" })),
-  ...TICKERS.map((url) => ({ url, lng: "ca" })),
+  // Ticker pages are the reason the API proxy exists: their content is entirely
+  // API-driven, so they wait for the charts grid to paint before snapshotting.
+  ...TICKERS.map((url) => ({ url, lng: "ca", awaitCharts: true })),
 ];
+
+// Debug aid: PRERENDER_ONLY=/explore/aapl,/en narrows a 114-route run down to
+// what you are actually iterating on. Never set in a real build.
+const ONLY = (process.env.PRERENDER_ONLY || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const ROUTES = ONLY.length
+  ? ALL_ROUTES.filter((r) => ONLY.includes(r.url))
+  : ALL_ROUTES;
+
+// The company dashboard renders its stat panels immediately and its charts only
+// once /api/…?statements= resolves, so "React mounted" is not enough to know the
+// figures are in the DOM. Chart SVGs are the ones inside a .card — the header
+// and footer logos are role="img" too but never live in one.
+const CHARTS_PAINTED = () =>
+  document.querySelectorAll('.card svg[role="img"]').length >= 5;
 
 const ACCEPT_LANGUAGE = {
   ca: "ca-ES,ca;q=0.9",
   es: "es-ES,es;q=0.9",
   en: "en-US,en;q=0.9",
 };
+
+// Deployed origin to borrow a backend from while snapshotting. On Vercel this
+// resolves itself: VERCEL_PROJECT_PRODUCTION_URL is the *currently live*
+// production domain, so a build in progress reads from the previous deployment.
+// (VERCEL_URL would be wrong — that is this build's own URL, which is not
+// serving yet.) Locally it stays off unless you opt in, since `vite build`
+// should not depend on the network. Unset → the old metadata-only behaviour.
+const API_ORIGIN = (
+  process.env.PRERENDER_API_ORIGIN ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "")
+).replace(/\/$/, "");
+const API_TIMEOUT_MS = 12000;
+
+// Snapshots repeat calls across languages (the homepage's article list is the
+// same three times over), so responses are memoised for the run. Failures are
+// cached as null too: if the backend is down, we want one quick 404 per URL, not
+// 114 timeouts serialised into the build.
+const apiCache = new Map();
+
+async function proxyApi(reqUrl) {
+  if (apiCache.has(reqUrl)) return apiCache.get(reqUrl);
+  let result = null;
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), API_TIMEOUT_MS);
+    try {
+      const r = await fetch(`${API_ORIGIN}${reqUrl}`, {
+        signal: ctl.signal,
+        headers: { accept: "application/json" },
+      });
+      result = {
+        status: r.status,
+        contentType: r.headers.get("content-type") || "application/json",
+        body: Buffer.from(await r.arrayBuffer()),
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (err) {
+    // Unreachable/slow backend must never fail the build — fall through to the
+    // 404 the app already knows how to degrade from.
+    console.warn(`[prerender] api ${reqUrl}: ${err?.message || err}`);
+    result = null;
+  }
+  apiCache.set(reqUrl, result);
+  return result;
+}
 
 const MIME = {
   ".html": "text/html",
@@ -112,11 +184,22 @@ async function run() {
       // /explore/air.pa or /explore/bbva.mc otherwise look like files and get a
       // 404 snapshotted into them instead of the real page.
       const ext = MIME[path.extname(urlPath)] ? path.extname(urlPath) : "";
-      // No backend during prerender. Answering /api/* with the SPA shell would
-      // make the app's jsonFetch choke on HTML and bake a parse-error string
-      // into the snapshot; a clean JSON 404 hits the same "degrade to empty"
-      // path the app already takes when an endpoint is unavailable.
+      // /api/* has no local implementation. With an origin configured we proxy
+      // to the deployed backend so real data lands in the snapshot; without one
+      // we answer a clean JSON 404, which hits the same "degrade to empty" path
+      // the app already takes when an endpoint is unavailable. (Serving the SPA
+      // shell instead would make jsonFetch choke on HTML and bake a parse-error
+      // string into the page.)
       if (urlPath.startsWith("/api/")) {
+        if (API_ORIGIN) {
+          const proxied = await proxyApi(req.url);
+          if (proxied) {
+            res.statusCode = proxied.status;
+            res.setHeader("Content-Type", proxied.contentType);
+            res.end(proxied.body);
+            return;
+          }
+        }
         res.statusCode = 404;
         res.setHeader("Content-Type", "application/json");
         res.end(JSON.stringify({ error: "prerender: no backend" }));
@@ -165,7 +248,7 @@ async function run() {
   let ok = 0;
   const failed = [];
   try {
-    for (const { url: route, lng } of ROUTES) {
+    for (const { url: route, lng, ...opts } of ROUTES) {
       // Each route is isolated: with ~114 of them, one flaky navigation (or a
       // Chrome that died mid-run and took its temp profile with it) must not
       // cost us every remaining snapshot. A route that fails here just falls
@@ -175,7 +258,7 @@ async function run() {
           console.warn("[prerender] browser died — relaunching");
           browser = await puppeteer.launch(launchOptions);
         }
-        await snapshot(browser, route, lng);
+        await snapshot(browser, route, lng, opts);
         ok++;
       } catch (err) {
         failed.push(route);
@@ -187,13 +270,17 @@ async function run() {
     server.close();
   }
 
+  const apiHits = [...apiCache.values()].filter(Boolean).length;
   console.log(
     `[prerender] ${ok}/${ROUTES.length} routes snapshotted` +
+      (API_ORIGIN
+        ? ` — api ${apiHits}/${apiCache.size} ok via ${API_ORIGIN}`
+        : " — no api origin (metadata only)") +
       (failed.length ? ` — ${failed.length} fell back to CSR: ${failed.join(", ")}` : ""),
   );
 }
 
-async function snapshot(browser, route, lng) {
+async function snapshot(browser, route, lng, opts = {}) {
   const page = await browser.newPage();
   try {
     // Seed the language both ways: localStorage (i18next cache) and
@@ -223,6 +310,15 @@ async function snapshot(browser, route, lng) {
         { timeout: 15000 },
       )
       .catch(() => {});
+    // API-driven pages additionally wait for their data to paint. Best-effort:
+    // a timeout (no API origin, backend down, a ticker with no statements) just
+    // snapshots what rendered, which is the metadata-only page we shipped
+    // before — degraded, never broken.
+    if (opts.awaitCharts && API_ORIGIN) {
+      await page.waitForFunction(CHARTS_PAINTED, { timeout: 20000 }).catch(() => {
+        console.warn(`[prerender] ${route}: charts did not paint — metadata only`);
+      });
+    }
     await new Promise((r) => setTimeout(r, 300));
 
     const html = await page.evaluate(

@@ -24,6 +24,8 @@ export function QuarterlyBars({
   format,
   negativeColor = "#e11d48",
   onExpand,
+  estimate,
+  estimateLabel,
 }: {
   title: string;
   labels: string[];
@@ -34,15 +36,31 @@ export function QuarterlyBars({
   negativeColor?: string;
   /** When set, a ⤢ button appears and clicking the card enlarges it. */
   onExpand?: () => void;
+  /**
+   * Optional analyst consensus for the period after the last bar, drawn as an
+   * outlined "ghost" bar so it never reads as reported data. Single-series
+   * charts only.
+   */
+  estimate?: { label: string; value: number } | null;
+  /** Word marking the ghost bar as a forecast, e.g. "est." */
+  estimateLabel?: string;
 }) {
-  const n = labels.length;
-  const hasData = n > 0 && series.some((s) => s.values.some((v) => v != null));
+  const est = series.length === 1 ? (estimate ?? null) : null;
+  // The ghost bar occupies a real slot on the x axis, so it widens the grid and
+  // participates in the extent — otherwise a consensus above the current high
+  // would overflow the plot.
+  const n = labels.length + (est ? 1 : 0);
+  const hasData = labels.length > 0 && series.some((s) => s.values.some((v) => v != null));
   if (!hasData) return null;
 
   // Extent across bars (stacked sums positives/negatives separately).
   let min = 0;
   let max = 0;
-  for (let i = 0; i < n; i++) {
+  if (est) {
+    max = Math.max(max, est.value);
+    min = Math.min(min, est.value);
+  }
+  for (let i = 0; i < labels.length; i++) {
     if (stacked) {
       let up = 0;
       let down = 0;
@@ -74,9 +92,13 @@ export function QuarterlyBars({
   const groupW = slot - groupGap;
   const perBarW = stacked || series.length === 1 ? groupW : groupW / series.length;
 
-  // Sparse x labels: aim for ~6, always include first and last.
+  // Sparse x labels: aim for ~6, always include first and last. The ghost bar
+  // owns the last slot and always labels itself, so real bars only compete for
+  // the slots before it.
+  const lastReal = labels.length - 1;
   const step = Math.max(1, Math.ceil(n / 6));
-  const showLabel = (i: number) => i === n - 1 || (i % step === 0 && i < n - 1 - step / 2);
+  const showLabel = (i: number) =>
+    i === lastReal || (i % step === 0 && i < lastReal - step / 2);
 
   const singleSeries = series.length === 1;
 
@@ -98,6 +120,15 @@ export function QuarterlyBars({
                 {s.name}
               </span>
             ))}
+          {est && estimateLabel && (
+            <span className="flex items-center gap-1">
+              <span
+                className="inline-block h-2 w-2 rounded-[2px] border border-dashed"
+                style={{ borderColor: series[0].color }}
+              />
+              {estimateLabel}
+            </span>
+          )}
           {onExpand && (
             <button
               type="button"
@@ -179,6 +210,41 @@ export function QuarterlyBars({
             </g>
           );
         })}
+        {/* consensus ghost bar: outlined, never filled — reads as "not reported" */}
+        {est &&
+          (() => {
+            const x0 = PAD_X + labels.length * slot + groupGap / 2;
+            const by = est.value >= 0 ? y(est.value) : zeroY;
+            const bh = Math.abs(y(est.value) - zeroY);
+            const color = series[0].color;
+            return (
+              <g>
+                <rect
+                  x={x0}
+                  y={by}
+                  width={Math.max(1, groupW - 1)}
+                  height={Math.max(0.5, bh)}
+                  rx={1.5}
+                  fill={color}
+                  fillOpacity={0.12}
+                  stroke={color}
+                  strokeWidth={1}
+                  strokeDasharray="2 1.5"
+                >
+                  <title>{`${est.label} · ${estimateLabel ?? "est."}: ${format(est.value)}`}</title>
+                </rect>
+                <text
+                  x={x0 + groupW / 2}
+                  y={H - 5}
+                  textAnchor="middle"
+                  fontSize={8.5}
+                  fill="#94a3b8"
+                >
+                  {est.label}
+                </text>
+              </g>
+            );
+          })()}
         {/* max marker */}
         <text x={PAD_X} y={9} fontSize={8.5} fill="#94a3b8">
           {format(max)}

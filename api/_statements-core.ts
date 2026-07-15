@@ -184,6 +184,24 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
     const nextYearEps = num(
       (nextYear?.earningsEstimate as Record<string, unknown> | undefined)?.avg,
     );
+    // Consensus for the upcoming quarters, feeding the dashed "estimate" bars on
+    // the Revenue/EPS charts. Both forward rows are returned: whether "0q" is
+    // still unreported or already filed depends on where in the earnings cycle
+    // the company is, so the display layer picks by period end rather than
+    // trusting either label. endDate is required — a row we cannot place on the
+    // quarterly axis is useless to us.
+    const estimates = trend
+      .filter((t) => t.period === "0q" || t.period === "+1q")
+      .map((t) => ({
+        periodEnd: isoDate(t.endDate),
+        eps: num((t.earningsEstimate as Record<string, unknown> | undefined)?.avg),
+        revenue: num((t.revenueEstimate as Record<string, unknown> | undefined)?.avg),
+      }))
+      .filter(
+        (e): e is { periodEnd: string; eps: number | null; revenue: number | null } =>
+          e.periodEnd != null && (e.eps != null || e.revenue != null),
+      )
+      .sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
     return {
       priceToSales: num(sd.priceToSalesTrailing12Months),
       evToEbitda: num(ks.enterpriseToEbitda),
@@ -192,6 +210,7 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
       payoutRatio: num(sd.payoutRatio),
       dividendDate: isoDate(ce.dividendDate) ?? isoDate(sd.exDividendDate),
       nextYearEps,
+      estimates,
     };
   } catch {
     return null;

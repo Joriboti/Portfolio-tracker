@@ -164,7 +164,8 @@
       "buybacks": "Buybacks",
       "shares": "Shares outstanding",
       "sbc": "Stock-based compensation",
-      "expenses": "Operating expenses"
+      "expenses": "Operating expenses",
+      "estimate": "estimate"
     },
     "insights": {
       "title": "Qualitative analysis",

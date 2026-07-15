@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   annualLabel,
   cashFlowPanel,
+  estimateBar,
   quarterLabel,
   series,
   ttm,
   yoyLatest,
+  type QuarterEstimate,
   type StatementMetrics,
   type StatementRow,
 } from "./statements";
@@ -147,5 +149,61 @@ describe("cashFlowPanel", () => {
       adjFcfYield: null,
       sbcImpact: null,
     });
+  });
+});
+
+describe("estimateBar", () => {
+  const actuals = [
+    row("2025-09-30", { revenue: 90, eps: 1.4 }),
+    row("2025-12-31", { revenue: 120, eps: 2.1 }),
+  ];
+  const est = (periodEnd: string, patch: Partial<QuarterEstimate> = {}): QuarterEstimate => ({
+    periodEnd,
+    eps: null,
+    revenue: null,
+    ...patch,
+  });
+
+  it("places the consensus one quarter after the last actual", () => {
+    const bar = estimateBar(actuals, [est("2026-03-31", { revenue: 130 })], "revenue");
+    expect(bar).toEqual({ label: "Q1 26", value: 130 });
+  });
+
+  it("skips a period we already have actuals for and uses the next one", () => {
+    // Right after a company files, Yahoo's "0q" row covers a quarter that is
+    // already reported — the ghost bar must move on to the following quarter
+    // instead of duplicating the last real bar.
+    const bar = estimateBar(
+      actuals,
+      [est("2025-12-31", { revenue: 121 }), est("2026-03-31", { revenue: 130 })],
+      "revenue",
+    );
+    expect(bar).toEqual({ label: "Q1 26", value: 130 });
+  });
+
+  it("rejects an estimate too far out to be the next quarter", () => {
+    expect(estimateBar(actuals, [est("2026-12-31", { revenue: 200 })], "revenue")).toBeNull();
+  });
+
+  it("matches each metric independently", () => {
+    const rows = [est("2026-03-31", { eps: 2.4 })];
+    expect(estimateBar(actuals, rows, "eps")).toEqual({ label: "Q1 26", value: 2.4 });
+    expect(estimateBar(actuals, rows, "revenue")).toBeNull();
+  });
+
+  it("anchors on the last quarter reporting THAT metric, not the newest row", () => {
+    // A freshly-filed quarter can carry revenue before EPS lands; the EPS ghost
+    // bar must still sit one quarter after the last quarter with an EPS.
+    const mixed = [...actuals, row("2026-03-31", { revenue: 130 })];
+    expect(estimateBar(mixed, [est("2026-03-31", { eps: 2.4 })], "eps")).toEqual({
+      label: "Q1 26",
+      value: 2.4,
+    });
+  });
+
+  it("returns null without estimates or without actuals", () => {
+    expect(estimateBar(actuals, undefined, "revenue")).toBeNull();
+    expect(estimateBar(actuals, [], "revenue")).toBeNull();
+    expect(estimateBar([], [est("2026-03-31", { revenue: 130 })], "revenue")).toBeNull();
   });
 });

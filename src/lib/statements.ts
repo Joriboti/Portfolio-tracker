@@ -25,6 +25,13 @@ export type StatementMetrics = {
 
 export type StatementRow = { periodEnd: string; metrics: StatementMetrics };
 
+/** Analyst consensus for one upcoming quarter (earningsTrend "0q"/"+1q"). */
+export type QuarterEstimate = {
+  periodEnd: string;
+  eps: number | null;
+  revenue: number | null;
+};
+
 export type PanelExtras = {
   priceToSales: number | null;
   evToEbitda: number | null;
@@ -33,6 +40,8 @@ export type PanelExtras = {
   payoutRatio: number | null;
   dividendDate: string | null;
   nextYearEps: number | null;
+  /** Ascending by periodEnd. Absent on older cached responses. */
+  estimates?: QuarterEstimate[];
 };
 
 export type PricePoint = { date: string; close: number };
@@ -77,6 +86,47 @@ export function series(
     out.push({ label: label(r.periodEnd), value: opts?.transform ? opts.transform(v) : v });
   }
   return out;
+}
+
+const DAY = 24 * 3600 * 1000;
+
+/**
+ * The consensus bar to append after the last reported quarter, or null.
+ *
+ * Yahoo's "0q" row is the quarter *in progress*, but right after a company
+ * files, "0q" is a period we already have actuals for — so estimates are
+ * matched by period end, not by label: take the first one that lands roughly
+ * one quarter (45–135 days) after the newest quarter reporting this metric.
+ * A wider gap means the trend rows are stale or fiscally mismatched, and a
+ * narrower one means we already have the real figure — neither is worth
+ * drawing next to actuals.
+ */
+export function estimateBar(
+  quarters: StatementRow[],
+  estimates: QuarterEstimate[] | undefined,
+  key: "revenue" | "eps",
+): SeriesPoint | null {
+  if (!estimates?.length) return null;
+  let last: StatementRow | undefined;
+  for (let i = quarters.length - 1; i >= 0; i--) {
+    if (quarters[i].metrics[key] != null) {
+      last = quarters[i];
+      break;
+    }
+  }
+  if (!last) return null;
+  const lastT = Date.parse(last.periodEnd);
+  if (!Number.isFinite(lastT)) return null;
+  for (const e of estimates) {
+    const v = e[key];
+    if (v == null) continue;
+    const gap = Date.parse(e.periodEnd) - lastT;
+    if (!Number.isFinite(gap)) continue;
+    if (gap > 45 * DAY && gap <= 135 * DAY) {
+      return { label: quarterLabel(e.periodEnd), value: v };
+    }
+  }
+  return null;
 }
 
 /** Sum of the metric over the last 4 quarters; null unless all 4 report it. */

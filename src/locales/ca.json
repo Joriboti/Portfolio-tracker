@@ -164,7 +164,8 @@
       "buybacks": "Recompres",
       "shares": "Accions en circulació",
       "sbc": "Compensació en accions",
-      "expenses": "Despeses operatives"
+      "expenses": "Despeses operatives",
+      "estimate": "estimació"
     },
     "insights": {
       "title": "Anàlisi qualitativa",

@@ -4,12 +4,14 @@ import { getStatements, type LiveCompany } from "@/lib/api";
 import {
   annualLabel,
   cashFlowPanel,
+  estimateBar,
   formatCompact,
   formatSignedPct,
   quarterLabel,
   ttm,
   yoyLatest,
   type CompanyStatements,
+  type SeriesPoint,
   type StatementMetrics,
 } from "@/lib/statements";
 import { QuarterlyBars, type BarSeries } from "@/components/QuarterlyBars";
@@ -236,12 +238,18 @@ function ChartsGrid({
   const plain = (v: number) => formatCompact(v);
   const perShare = (v: number) => v.toFixed(2);
 
+  // Analyst consensus for the quarter in progress, drawn as a ghost bar after
+  // the last actual. Quarterly view only — the annual axis has no counterpart.
+  const estimateFor = (key: "revenue" | "eps"): SeriesPoint | null =>
+    period === "q" ? estimateBar(data.quarters, data.panel?.estimates, key) : null;
+
   const single = (
     titleKey: string,
     key: keyof StatementMetrics,
     color: string,
     format: (v: number) => string = money,
     flip = false,
+    estimate: SeriesPoint | null = null,
   ): ChartCfg => {
     const c = chart([key], flip);
     return {
@@ -249,6 +257,8 @@ function ChartsGrid({
       labels: c.labels,
       series: [{ name: t(titleKey), color, values: c.values[0] }],
       format,
+      estimate,
+      estimateLabel: estimate ? t("company.charts.estimate") : undefined,
     };
   };
 
@@ -274,11 +284,18 @@ function ChartsGrid({
   });
 
   const charts: ChartCfg[] = [
-    single("company.charts.revenue", "revenue", PALETTE.revenue),
+    single(
+      "company.charts.revenue",
+      "revenue",
+      PALETTE.revenue,
+      money,
+      false,
+      estimateFor("revenue"),
+    ),
     single("company.charts.ebitda", "ebitda", PALETTE.ebitda),
     single("company.charts.netIncome", "netIncome", PALETTE.netIncome),
     single("company.charts.fcf", "fcf", PALETTE.fcf),
-    single("company.charts.eps", "eps", PALETTE.eps, perShare),
+    single("company.charts.eps", "eps", PALETTE.eps, perShare, false, estimateFor("eps")),
     duo(
       "company.charts.cashDebt",
       cashDebt,
@@ -344,6 +361,8 @@ type ChartCfg = {
   series: BarSeries[];
   stacked?: boolean;
   format: (v: number) => string;
+  estimate?: SeriesPoint | null;
+  estimateLabel?: string;
 };
 
 function ChartModal({ cfg, onClose }: { cfg: ChartCfg; onClose: () => void }) {

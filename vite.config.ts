@@ -12,6 +12,18 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // There is no local backend: /api/* are Vercel functions, so `vite dev`
+    // used to answer them with the SPA shell and every fetch died on "Unexpected
+    // token '<'". Proxy them to a deployed origin instead so the dashboard,
+    // /explore and the company overview render real data while developing.
+    // Point VITE_API_ORIGIN at a preview deployment to test unreleased API work.
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_ORIGIN || "https://www.trimmtrack.com",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   test: {
     environment: "node",
