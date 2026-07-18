@@ -68,6 +68,7 @@ export function Layout() {
             <NavItem to="/upload" label={t("nav.upload")} dark={dark} />
             <NavItem to="/explore" label={t("nav.explore")} dark={dark} />
             <NavItem to="/forecast" label={t("nav.forecast")} dark={dark} />
+            <NavItem to="/taxes" label={t("nav.taxes")} dark={dark} />
             <NavItem to="/research" label={t("nav.research")} dark={dark} />
           </nav>
           <div className="ml-auto flex items-center gap-3">
@@ -128,6 +129,12 @@ export function Layout() {
               className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
             >
               {t("fifoPage.short")}
+            </Link>
+            <Link
+              to="/taxes"
+              className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
+            >
+              {t("taxes.short")}
             </Link>
             <Link to="/disclaimer" className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}>
               Disclaimer

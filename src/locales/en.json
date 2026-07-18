@@ -13,7 +13,8 @@
     "howTo": "How to prepare",
     "account": "Account",
     "signIn": "Sign in",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "taxes": "Taxes"
   },
   "home": {
     "heroTitle": "Your portfolio, always up to date",
@@ -55,6 +56,11 @@
         "title": "Research",
         "desc": "Investment theses with the models applied: Netflix, EXOR and more.",
         "tag": "Research"
+      },
+      "taxes": {
+        "title": "Taxes",
+        "desc": "Prepare your return from your trades: boxes, FIFO and warnings.",
+        "tag": "Prepare your return"
       }
     },
     "steps": {
@@ -227,7 +233,9 @@
     "disclaimerTitle": "Legal disclaimer and limitation of liability | TrimmTrack",
     "disclaimerDesc": "TrimmTrack terms of use: data and valuations are indicative only and do not constitute financial or tax advice.",
     "compareTitle": "{{a}} vs {{b}}: stock comparison and valuation | TrimmTrack",
-    "compareDesc": "{{a}} or {{b}}? Compare both companies side by side: P/E, EV/EBITDA, margins, revenue and earnings growth, free cash flow, debt and dividends, with quarterly charts. Free, no sign-up."
+    "compareDesc": "{{a}} or {{b}}? Compare both companies side by side: P/E, EV/EBITDA, margins, revenue and earnings growth, free cash flow, debt and dividends, with quarterly charts. Free, no sign-up.",
+    "taxesTitle": "Investor tax assistant: capital gains, dividends and Spanish IRPF | TrimmTrack",
+    "taxesDesc": "Free tax helper for investors: FIFO capital gains, dividends, foreign withholding and loss offsetting, mapped to the exact boxes of the Spanish tax return. No sign-up needed."
   },
   "fifoPage": {
     "seoTitle": "FIFO capital gains calculator: stocks & crypto | TrimmTrack",
@@ -688,5 +696,182 @@
     "error": "Something went wrong",
     "yes": "Yes",
     "no": "No"
+  },
+  "taxes": {
+    "h1": "Investor tax assistant",
+    "lead": "Turns your trades into a clear \"put X € in box Y\" report for the Spanish tax return: FIFO gains and losses, dividends, loss offsetting and warnings for the cases people miss.",
+    "steps": {
+      "country": "Country",
+      "year": "Tax year",
+      "source": "Data",
+      "review": "Review",
+      "questions": "Questions",
+      "report": "Report"
+    },
+    "next": "Continue",
+    "back": "Back",
+    "seeReport": "See the report",
+    "country": {
+      "title": "Where do you file?",
+      "es": "Spain (IRPF)",
+      "us": "United States (federal)",
+      "soon": "Coming soon",
+      "moreSoon": "More countries are on the way. The engine is multi-country from day one."
+    },
+    "year": {
+      "title": "Which tax year are you preparing?",
+      "label": "Tax year {{year}}",
+      "hint": "The {{year}} return is filed in spring {{next}}."
+    },
+    "source": {
+      "title": "Where does the data come from?",
+      "formatHint": "We use the same Excel format as the rest of TrimmTrack.",
+      "formatLink": "How to prepare the Excel",
+      "portfolioError": "We couldn't load your portfolio. Please try again.",
+      "portfolio": {
+        "title": "My portfolio",
+        "desc": "Use the transactions, dividends and interest you already track in TrimmTrack.",
+        "use": "Use my portfolio",
+        "signIn": "Sign in to use it"
+      },
+      "excel": {
+        "title": "Upload an Excel",
+        "desc": "Upload the Excel with your trades. Nothing is stored: everything is computed in your browser.",
+        "button": "Choose a file",
+        "error": "We couldn't read this file. Check that it follows the TrimmTrack format.",
+        "empty": "We found no trades or dividends in this file."
+      },
+      "trial": {
+        "title": "Trial data",
+        "desc": "Continue with the trial portfolio you built in this session.",
+        "use": "Use the trial"
+      }
+    },
+    "review": {
+      "title": "Here's what we found for {{year}}",
+      "hint": "Untick any sale you don't want to include. You can fix the data in the Excel and upload it again.",
+      "salesTitle": "Sales in the tax year ({{count}})",
+      "noSales": "No dated sales in this tax year.",
+      "hTicker": "Ticker",
+      "hDate": "Date",
+      "hProceeds": "Proceeds",
+      "hCost": "Cost",
+      "hGain": "Result",
+      "dividends": "Dividends in the tax year ({{count}})",
+      "interests": "Interest in the tax year ({{count}})"
+    },
+    "questions": {
+      "title": "Four quick questions",
+      "hint": "All optional: if unsure, leave it at zero and the report stays correct with what we have.",
+      "usePrefill": "Use the automatic estimate",
+      "carryGains": {
+        "label": "Prior-year losses still pending offset (capital gains)",
+        "help": "Negative balances from disposals in the previous 4 tax years you haven't offset yet."
+      },
+      "carryRcm": {
+        "label": "Pending negative balance of investment income",
+        "help": "Rare: only if previous years left you negative investment income to carry forward."
+      },
+      "foreignGross": {
+        "label": "Gross dividends from foreign securities",
+        "help": "Automatic estimate for non-Spanish tickers: {{prefill}}. Adjust if needed."
+      },
+      "foreignWithholding": {
+        "label": "Foreign withholding on those dividends",
+        "help": "What the source country withheld (e.g. the US 15% with a W-8BEN in place)."
+      },
+      "spanishWithholding": {
+        "label": "Spanish withholding already paid",
+        "help": "The 19% your Spanish broker already paid on account, if any."
+      },
+      "abroad": {
+        "label": "I hold accounts or securities at foreign institutions worth more than €50,000"
+      },
+      "cryptoAbroad": {
+        "label": "I hold crypto on foreign platforms worth more than €50,000"
+      }
+    },
+    "report": {
+      "title": "Your report for the {{year}} return",
+      "boxLabel": "Box {{box}}",
+      "orientative": "Box numbers are orientative and can shift between tax years: always double-check them in Renta Web before filing.",
+      "lines": {
+        "interests": "Interest from accounts and deposits",
+        "dividends": "Dividends and other equity income",
+        "salesListed": "Gains and losses from selling listed shares (net balance)",
+        "foreignDeduction": "International double-taxation credit"
+      },
+      "gp": {
+        "title": "Capital gains and losses",
+        "gains": "Gains",
+        "losses": "Losses",
+        "net": "Net balance"
+      },
+      "rcm": {
+        "title": "Investment income",
+        "dividends": "Dividends",
+        "interests": "Interest",
+        "total": "Total"
+      },
+      "comp": {
+        "title": "Loss offsetting",
+        "carryApplied": "Prior-year negative balances applied",
+        "crossUsed": "Offset between components (limit {{cap}})",
+        "carriedForward": "Losses carried forward to future years"
+      },
+      "quota": {
+        "title": "Estimated savings-base tax",
+        "base": "Savings base",
+        "bracket": "{{rate}}% bracket on {{amount}}",
+        "estimated": "Estimated tax",
+        "deduction": "Double-taxation credit",
+        "withheld": "Withholding already paid",
+        "balance": "Orientative balance",
+        "balanceNote": "Orientative: covers only the savings base (not the general base, allowances or other credits). The real result is computed by Renta Web."
+      },
+      "warningsTitle": "Warnings you should know about",
+      "print": "Print the report",
+      "restart": "Start over"
+    },
+    "warnings": {
+      "two-month-rule": "Two-month rule: you repurchased {{detail}} shortly before or after selling at a loss. Those losses can't be deducted yet (they surface when you sell the repurchased shares).",
+      "model-720": "With more than €50,000 at foreign institutions you probably need to file Modelo 720 (informative declaration of foreign assets). It has its own deadlines and penalties.",
+      "model-721": "With more than €50,000 of crypto on foreign platforms you probably need to file Modelo 721.",
+      "crypto-regime": "You sold crypto ({{detail}}): it's taxed the same way as capital gains (FIFO), but review its specific regime.",
+      "withholding-over-treaty": "You were withheld €{{detail}} beyond the 15% the treaty allows: that excess isn't creditable in the return — it's reclaimed from the source country.",
+      "no-w8ben-hint": "For US securities, file a W-8BEN with your broker so the withholding drops from 30% to 15%.",
+      "undated-events": "{{detail}} undated operations couldn't be assigned to any tax year and were left out. Add the dates to the Excel to include them."
+    },
+    "disclaimer": "TrimmTrack is not a tax advisor and this report is orientative and educational only: it is not tax or legal advice. Always verify amounts and boxes in Renta Web or with a professional.",
+    "whatTitle": "What does this assistant do?",
+    "whatBody": "It takes your trades (from your TrimmTrack portfolio or an Excel) and computes what the return needs: the net balance of FIFO gains and losses on disposals, investment income (dividends and interest), cross-offsetting with the 25% cap, the international double-taxation credit and an estimated tax over the savings brackets. It also automatically flags cases people miss, like the two-month rule or the Modelo 720 thresholds.",
+    "howTitle": "How does it work?",
+    "howBody": "Pick country and tax year, load your data, review the detected operations, answer four optional questions and get the report with every amount and its orientative Renta Web box. Everything is computed in your browser: upload an Excel without an account and nothing is stored anywhere.",
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "casella": {
+        "q": "Which boxes of the Spanish return do shares and dividends go in?",
+        "a": "Orientatively: dividends go under investment income (box 0029), interest in 0027, sales of listed shares under capital gains (boxes 0328 onwards) and the international double-taxation credit in 0588. Numbers can shift between years — always confirm in Renta Web."
+      },
+      "fifo": {
+        "q": "How is the gain on a share sale computed?",
+        "a": "With the FIFO rule: the shares you bought first are deemed sold first. The gain is the sale value minus the acquisition cost of those specific shares. The assistant computes it automatically for every sale."
+      },
+      "foreign": {
+        "q": "What about foreign dividends and double withholding?",
+        "a": "The source country withholds a part (usually up to 15% by treaty) and Spain also taxes the dividend. In the return you can credit the foreign withholding up to the treaty cap. If more was withheld (e.g. the US 30% without a W-8BEN), the excess is reclaimed from the source country, not in the return."
+      },
+      "advice": {
+        "q": "Is this tax advice?",
+        "a": "No. It's an informative, educational tool that helps you prepare the data. The final result is computed by Renta Web, and complex situations call for a professional tax advisor."
+      }
+    },
+    "cta": {
+      "title": "Keep the data always ready",
+      "body": "Build your portfolio in TrimmTrack and next year's tax report writes itself: no hunting for Excels or redoing numbers.",
+      "primary": "Build your portfolio",
+      "secondary": "FIFO calculator"
+    },
+    "short": "Tax assistant"
   }
 }

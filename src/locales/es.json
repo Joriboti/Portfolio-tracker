@@ -13,7 +13,8 @@
     "howTo": "Cómo prepararlo",
     "account": "Cuenta",
     "signIn": "Iniciar sesión",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "taxes": "Impuestos"
   },
   "home": {
     "heroTitle": "Tu cartera, siempre actualizada",
@@ -55,6 +56,11 @@
         "title": "Análisis",
         "desc": "Tesis de inversión con los modelos aplicados: Netflix, EXOR y más.",
         "tag": "Research"
+      },
+      "taxes": {
+        "title": "Impuestos",
+        "desc": "Prepara la Renta con tus operaciones: casillas, FIFO y avisos.",
+        "tag": "Prepara la Renta"
       }
     },
     "steps": {
@@ -227,7 +233,9 @@
     "disclaimerTitle": "Aviso legal y limitación de responsabilidad | TrimmTrack",
     "disclaimerDesc": "Condiciones de uso de TrimmTrack: los datos y valoraciones son orientativos y no constituyen asesoramiento financiero ni fiscal.",
     "compareTitle": "{{a}} vs {{b}}: comparativa financiera y de valoración | TrimmTrack",
-    "compareDesc": "¿{{a}} o {{b}}? Compara las dos empresas lado a lado: PER, EV/EBITDA, márgenes, crecimiento de ingresos y beneficios, flujo de caja libre, deuda y dividendos, con gráficos trimestrales. Gratis y sin registro."
+    "compareDesc": "¿{{a}} o {{b}}? Compara las dos empresas lado a lado: PER, EV/EBITDA, márgenes, crecimiento de ingresos y beneficios, flujo de caja libre, deuda y dividendos, con gráficos trimestrales. Gratis y sin registro.",
+    "taxesTitle": "Asistente de impuestos para inversores: IRPF, ganancias y dividendos | TrimmTrack",
+    "taxesDesc": "Calcula gratis qué poner en cada casilla de la Renta por tus acciones: ganancias y pérdidas FIFO, dividendos, retenciones extranjeras y compensaciones. España (IRPF), sin registrarte."
   },
   "fifoPage": {
     "seoTitle": "Calculadora FIFO de plusvalías: acciones y criptomonedas | TrimmTrack",
@@ -688,5 +696,182 @@
     "error": "Ha habido un error",
     "yes": "Sí",
     "no": "No"
+  },
+  "taxes": {
+    "h1": "Asistente de impuestos para inversores",
+    "lead": "Convierte tus operaciones en un informe claro de \"pon X € en la casilla Y\" de la Renta: ganancias y pérdidas FIFO, dividendos, compensaciones y avisos de los casos que la gente pasa por alto.",
+    "steps": {
+      "country": "País",
+      "year": "Ejercicio",
+      "source": "Datos",
+      "review": "Revisión",
+      "questions": "Preguntas",
+      "report": "Informe"
+    },
+    "next": "Continuar",
+    "back": "Atrás",
+    "seeReport": "Ver el informe",
+    "country": {
+      "title": "¿Dónde declaras?",
+      "es": "España (IRPF)",
+      "us": "Estados Unidos (federal)",
+      "soon": "Próximamente",
+      "moreSoon": "Iremos añadiendo más países. El motor es multi-país desde el primer día."
+    },
+    "year": {
+      "title": "¿Qué ejercicio quieres preparar?",
+      "label": "Renta {{year}}",
+      "hint": "La Renta {{year}} se presenta en primavera de {{next}}."
+    },
+    "source": {
+      "title": "¿De dónde salen los datos?",
+      "formatHint": "Usamos el mismo formato de Excel que el resto de TrimmTrack.",
+      "formatLink": "Cómo preparar el Excel",
+      "portfolioError": "No hemos podido cargar tu cartera. Inténtalo de nuevo.",
+      "portfolio": {
+        "title": "Mi cartera",
+        "desc": "Usa las transacciones, dividendos e intereses que ya tienes en TrimmTrack.",
+        "use": "Usar mi cartera",
+        "signIn": "Inicia sesión para usarla"
+      },
+      "excel": {
+        "title": "Subir un Excel",
+        "desc": "Sube el Excel con tus operaciones. No se guarda en ningún sitio: todo se calcula en tu navegador.",
+        "button": "Elegir archivo",
+        "error": "No hemos podido leer este archivo. Comprueba que siga el formato de TrimmTrack.",
+        "empty": "No hemos encontrado operaciones ni dividendos en este archivo."
+      },
+      "trial": {
+        "title": "Datos de prueba",
+        "desc": "Continúa con la cartera de prueba que has creado en esta sesión.",
+        "use": "Usar la prueba"
+      }
+    },
+    "review": {
+      "title": "Esto es lo que hemos encontrado de {{year}}",
+      "hint": "Desmarca cualquier venta que no quieras incluir. Puedes corregir los datos en el Excel y volver a subirlo.",
+      "salesTitle": "Ventas del ejercicio ({{count}})",
+      "noSales": "Ninguna venta fechada en este ejercicio.",
+      "hTicker": "Ticker",
+      "hDate": "Fecha",
+      "hProceeds": "Venta",
+      "hCost": "Coste",
+      "hGain": "Resultado",
+      "dividends": "Dividendos del ejercicio ({{count}})",
+      "interests": "Intereses del ejercicio ({{count}})"
+    },
+    "questions": {
+      "title": "Cuatro preguntas rápidas",
+      "hint": "Todas son opcionales: si no estás seguro, déjalo a cero y el informe seguirá siendo correcto con lo que tenemos.",
+      "usePrefill": "Usar el cálculo automático",
+      "carryGains": {
+        "label": "Pérdidas de ejercicios anteriores pendientes de compensar (ganancias y pérdidas)",
+        "help": "Saldos negativos de transmisiones de los 4 ejercicios anteriores que aún no hayas compensado."
+      },
+      "carryRcm": {
+        "label": "Saldo negativo pendiente de rendimientos del capital mobiliario",
+        "help": "Poco habitual: solo si en ejercicios anteriores tuviste rendimientos negativos pendientes."
+      },
+      "foreignGross": {
+        "label": "Dividendos brutos de valores extranjeros",
+        "help": "Estimación automática para los tickers no españoles: {{prefill}}. Ajústala si hace falta."
+      },
+      "foreignWithholding": {
+        "label": "Retenciones practicadas en el extranjero sobre esos dividendos",
+        "help": "Lo que te ha retenido el país de origen (p. ej. el 15% de EE. UU. con W-8BEN)."
+      },
+      "spanishWithholding": {
+        "label": "Retenciones españolas ya practicadas",
+        "help": "El 19% que tu bróker español ya ha ingresado a cuenta, si procede."
+      },
+      "abroad": {
+        "label": "Tengo cuentas o valores en entidades extranjeras por valor superior a 50.000 €"
+      },
+      "cryptoAbroad": {
+        "label": "Tengo criptomonedas en plataformas extranjeras por valor superior a 50.000 €"
+      }
+    },
+    "report": {
+      "title": "Tu informe para la Renta {{year}}",
+      "boxLabel": "Casilla {{box}}",
+      "orientative": "Los números de casilla son orientativos y pueden variar según el ejercicio: compruébalos siempre en Renta Web antes de confirmar.",
+      "lines": {
+        "interests": "Intereses de cuentas y depósitos",
+        "dividends": "Dividendos y otros rendimientos por participación en fondos propios",
+        "salesListed": "Ganancias y pérdidas por transmisión de acciones cotizadas (saldo neto)",
+        "foreignDeduction": "Deducción por doble imposición internacional"
+      },
+      "gp": {
+        "title": "Ganancias y pérdidas patrimoniales",
+        "gains": "Ganancias",
+        "losses": "Pérdidas",
+        "net": "Saldo neto"
+      },
+      "rcm": {
+        "title": "Rendimientos del capital mobiliario",
+        "dividends": "Dividendos",
+        "interests": "Intereses",
+        "total": "Total"
+      },
+      "comp": {
+        "title": "Compensaciones",
+        "carryApplied": "Saldos negativos de ejercicios anteriores aplicados",
+        "crossUsed": "Compensación entre componentes (límite {{cap}})",
+        "carriedForward": "Pérdidas que quedan pendientes para ejercicios futuros"
+      },
+      "quota": {
+        "title": "Estimación de la cuota del ahorro",
+        "base": "Base del ahorro",
+        "bracket": "Tramo {{rate}}% sobre {{amount}}",
+        "estimated": "Cuota estimada",
+        "deduction": "Deducción por doble imposición",
+        "withheld": "Retenciones ya practicadas",
+        "balance": "Resultado orientativo",
+        "balanceNote": "Orientativo: solo considera el ahorro (no la base general, mínimos ni otras deducciones). El resultado real lo calcula Renta Web."
+      },
+      "warningsTitle": "Avisos que debes conocer",
+      "print": "Imprimir el informe",
+      "restart": "Volver a empezar"
+    },
+    "warnings": {
+      "two-month-rule": "Regla de los 2 meses: has recomprado {{detail}} poco antes o después de vender con pérdidas. Esas pérdidas no se pueden computar todavía (se imputan cuando vendas las acciones recompradas).",
+      "model-720": "Con más de 50.000 € en entidades extranjeras, probablemente debas presentar el Modelo 720 (declaración informativa de bienes en el extranjero). Tiene plazos y sanciones propios.",
+      "model-721": "Con más de 50.000 € en cripto en plataformas extranjeras, probablemente debas presentar el Modelo 721.",
+      "crypto-regime": "Has vendido criptomonedas ({{detail}}): tributan igualmente como ganancias y pérdidas patrimoniales (FIFO), pero revisa su régimen específico.",
+      "withholding-over-treaty": "Te han retenido {{detail}} € más del 15% que permite el convenio: ese exceso no se deduce en la Renta, se reclama al país de origen.",
+      "no-w8ben-hint": "Si son valores de EE. UU., presenta el formulario W-8BEN a tu bróker para que la retención baje del 30% al 15%.",
+      "undated-events": "{{detail}} operaciones sin fecha no se han podido asignar a ningún ejercicio y han quedado fuera. Añade las fechas al Excel para incluirlas."
+    },
+    "disclaimer": "TrimmTrack no es un asesor fiscal y este informe es solo orientativo y educativo: no constituye asesoramiento fiscal ni jurídico. Verifica siempre los importes y las casillas en Renta Web o con un profesional.",
+    "whatTitle": "¿Qué hace este asistente?",
+    "whatBody": "Toma tus operaciones (de tu cartera de TrimmTrack o de un Excel) y calcula lo que necesitas para la declaración: el saldo de ganancias y pérdidas por transmisiones con criterio FIFO, los rendimientos del capital mobiliario (dividendos e intereses), las compensaciones entre componentes con el límite del 25%, la deducción por doble imposición internacional y una estimación de la cuota por tramos del ahorro. Además, detecta automáticamente casos que suelen pasar desapercibidos, como la regla de los 2 meses o los umbrales del Modelo 720.",
+    "howTitle": "¿Cómo se usa?",
+    "howBody": "Elige país y ejercicio, carga los datos, revisa las operaciones detectadas, responde cuatro preguntas opcionales y obtén el informe con cada importe y su casilla orientativa de Renta Web. Todo el cálculo ocurre en tu navegador: si subes un Excel sin registrarte, no se guarda nada en ningún sitio.",
+    "faqTitle": "Preguntas frecuentes",
+    "faq": {
+      "casella": {
+        "q": "¿En qué casillas de la Renta van las acciones y los dividendos?",
+        "a": "Orientativamente: los dividendos van en los rendimientos del capital mobiliario (casilla 0029), los intereses en la 0027, las ventas de acciones cotizadas en el apartado de ganancias y pérdidas patrimoniales (casillas 0328 y siguientes) y la deducción por doble imposición internacional en la 0588. Los números pueden variar según el ejercicio: compruébalo siempre en Renta Web."
+      },
+      "fifo": {
+        "q": "¿Cómo se calcula la ganancia de una venta de acciones?",
+        "a": "Con el criterio FIFO: se considera que vendes primero las acciones compradas primero. La ganancia es el valor de venta menos el coste de adquisición de esas acciones concretas. El asistente lo calcula automáticamente para cada venta."
+      },
+      "foreign": {
+        "q": "¿Qué pasa con los dividendos extranjeros y la doble retención?",
+        "a": "El país de origen retiene una parte (habitualmente hasta el 15% por convenio) y España también grava el dividendo. En la Renta puedes deducir la retención extranjera hasta el límite del convenio. Si te han retenido más (p. ej. el 30% en EE. UU. sin W-8BEN), el exceso se reclama al país de origen, no en la Renta."
+      },
+      "advice": {
+        "q": "¿Esto es asesoramiento fiscal?",
+        "a": "No. Es una herramienta informativa y educativa que te ayuda a preparar los datos. El resultado definitivo lo calcula Renta Web, y para situaciones complejas conviene un asesor fiscal profesional."
+      }
+    },
+    "cta": {
+      "title": "Ten los datos siempre listos",
+      "body": "Si construyes tu cartera en TrimmTrack, el año que viene el informe de impuestos sale solo: sin buscar Excels ni rehacer números.",
+      "primary": "Construye tu cartera",
+      "secondary": "Calculadora FIFO"
+    },
+    "short": "Asistente de impuestos"
   }
 }

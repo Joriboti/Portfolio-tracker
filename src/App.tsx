@@ -18,6 +18,7 @@ const ExplorePage = lazy(() => import("@/pages/explore").then((m) => ({ default:
 const ComparePage = lazy(() => import("@/pages/compare").then((m) => ({ default: m.ComparePage })));
 const ForecastPage = lazy(() => import("@/pages/forecast").then((m) => ({ default: m.ForecastPage })));
 const FifoCalculatorPage = lazy(() => import("@/pages/calculadora-fifo").then((m) => ({ default: m.FifoCalculatorPage })));
+const TaxesPage = lazy(() => import("@/pages/taxes").then((m) => ({ default: m.TaxesPage })));
 const DisclaimerPage = lazy(() => import("@/pages/disclaimer").then((m) => ({ default: m.DisclaimerPage })));
 const ResearchPage = lazy(() => import("@/pages/research").then((m) => ({ default: m.ResearchPage })));
 const ResearchArticlePage = lazy(() => import("@/pages/research-article").then((m) => ({ default: m.ResearchArticlePage })));
@@ -55,6 +56,7 @@ function publicRoutes(prefix: "" | "/es" | "/en") {
     <Route key={`${prefix}:exploreTicker`} path={at("/explore/:ticker")} element={<ExplorePage />} />,
     <Route key={`${prefix}:forecast`} path={at("/forecast")} element={<ForecastPage />} />,
     <Route key={`${prefix}:fifo`} path={at("/calculadora-fifo")} element={<FifoCalculatorPage />} />,
+    <Route key={`${prefix}:taxes`} path={at("/taxes")} element={<TaxesPage />} />,
   ];
 }
 

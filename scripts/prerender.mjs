@@ -42,6 +42,7 @@ const NEUTRAL = [
   "/explore",
   "/research",
   "/calculadora-fifo",
+  "/taxes",
   "/forecast",
   "/disclaimer",
 ];

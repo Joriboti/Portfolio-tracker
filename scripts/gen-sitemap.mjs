@@ -23,6 +23,7 @@ const MULTILANG = [
   ["/explore", "0.9", "weekly"],
   ["/research", "0.8", "weekly"],
   ["/calculadora-fifo", "0.8", "monthly"],
+  ["/taxes", "0.9", "monthly"],
   ["/forecast", "0.8", "monthly"],
   ["/disclaimer", "0.4", "yearly"],
 ];

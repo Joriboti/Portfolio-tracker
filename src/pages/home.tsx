@@ -277,6 +277,7 @@ const TOOLS = [
   { key: "build", to: "/upload", icon: <ToolIconUpload /> },
   { key: "explore", to: "/explore", icon: <ToolIconSearch /> },
   { key: "forecast", to: "/forecast", icon: <ToolIconFan /> },
+  { key: "taxes", to: "/taxes", icon: <ToolIconTax /> },
   { key: "research", to: "/research", icon: <ToolIconBook /> },
 ] as const;
 
@@ -389,6 +390,18 @@ function ToolIconFan() {
       <path d="M4 19c5 .5 10-.5 14-4" />
       <path d="M4 19c3-3 5-8 5-13" />
       <circle cx="4" cy="19" r="1.4" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function ToolIconTax() {
+  return (
+    <svg {...toolIconProps}>
+      <path d="M6 3h9l4 4v14H6Z" />
+      <path d="M15 3v4h4" />
+      <circle cx="9.6" cy="11.6" r="1.3" />
+      <circle cx="14.4" cy="16.4" r="1.3" />
+      <path d="m9 17.5 6-7" />
     </svg>
   );
 }

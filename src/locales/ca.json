@@ -13,7 +13,8 @@
     "howTo": "Com preparar-ho",
     "account": "Compte",
     "signIn": "Inicia sessió",
-    "signOut": "Tanca sessió"
+    "signOut": "Tanca sessió",
+    "taxes": "Impostos"
   },
   "home": {
     "heroTitle": "El teu portfolio, sempre actualitzat",
@@ -55,6 +56,11 @@
         "title": "Anàlisis",
         "desc": "Tesis d'inversió amb els models aplicats: Netflix, EXOR i més.",
         "tag": "Research"
+      },
+      "taxes": {
+        "title": "Impostos",
+        "desc": "Prepara la Renda amb les teves operacions: caselles, FIFO i avisos.",
+        "tag": "Prepara la Renda"
       }
     },
     "steps": {
@@ -227,7 +233,9 @@
     "disclaimerTitle": "Avís legal i limitació de responsabilitat | TrimmTrack",
     "disclaimerDesc": "Condicions d'ús de TrimmTrack: les dades i valoracions són orientatives i no constitueixen assessorament financer ni fiscal.",
     "compareTitle": "{{a}} vs {{b}}: comparativa financera i de valoració | TrimmTrack",
-    "compareDesc": "{{a}} o {{b}}? Compara les dues empreses costat a costat: PER, EV/EBITDA, marges, creixement d'ingressos i beneficis, flux de caixa lliure, deute i dividends, amb gràfics trimestrals. Gratis i sense registre."
+    "compareDesc": "{{a}} o {{b}}? Compara les dues empreses costat a costat: PER, EV/EBITDA, marges, creixement d'ingressos i beneficis, flux de caixa lliure, deute i dividends, amb gràfics trimestrals. Gratis i sense registre.",
+    "taxesTitle": "Assistent d'impostos per a inversors: IRPF, guanys i dividends | TrimmTrack",
+    "taxesDesc": "Calcula gratis què has de posar a cada casella de la Renda per les teves accions: guanys i pèrdues FIFO, dividends, retencions estrangeres i compensacions. Espanya (IRPF), sense registrar-te."
   },
   "fifoPage": {
     "seoTitle": "Calculadora FIFO de plusvàlues: accions i criptomonedes | TrimmTrack",
@@ -688,5 +696,182 @@
     "error": "Hi ha hagut un error",
     "yes": "Sí",
     "no": "No"
+  },
+  "taxes": {
+    "h1": "Assistent d'impostos per a inversors",
+    "lead": "Converteix les teves operacions en un informe clar de \"posa X € a la casella Y\" de la Renda: guanys i pèrdues FIFO, dividends, compensacions i avisos dels casos que la gent passa per alt.",
+    "steps": {
+      "country": "País",
+      "year": "Exercici",
+      "source": "Dades",
+      "review": "Revisió",
+      "questions": "Preguntes",
+      "report": "Informe"
+    },
+    "next": "Continua",
+    "back": "Enrere",
+    "seeReport": "Veure l'informe",
+    "country": {
+      "title": "On declares?",
+      "es": "Espanya (IRPF)",
+      "us": "Estats Units (federal)",
+      "soon": "Properament",
+      "moreSoon": "Anirem afegint més països. El motor és multi-país des del primer dia."
+    },
+    "year": {
+      "title": "Quin exercici vols preparar?",
+      "label": "Renda {{year}}",
+      "hint": "La Renda {{year}} es presenta la primavera de {{next}}."
+    },
+    "source": {
+      "title": "D'on surten les dades?",
+      "formatHint": "Fem servir el mateix format d'Excel que la resta de TrimmTrack.",
+      "formatLink": "Com preparar l'Excel",
+      "portfolioError": "No hem pogut carregar el teu portfolio. Torna-ho a provar.",
+      "portfolio": {
+        "title": "El meu portfolio",
+        "desc": "Fes servir les transaccions, dividends i interessos que ja tens a TrimmTrack.",
+        "use": "Utilitza el meu portfolio",
+        "signIn": "Inicia sessió per fer-lo servir"
+      },
+      "excel": {
+        "title": "Pujar un Excel",
+        "desc": "Puja l'Excel amb les teves operacions. No es desa enlloc: tot es calcula al teu navegador.",
+        "button": "Tria un fitxer",
+        "error": "No hem pogut llegir aquest fitxer. Comprova que segueixi el format de TrimmTrack.",
+        "empty": "No hem trobat operacions ni dividends en aquest fitxer."
+      },
+      "trial": {
+        "title": "Dades de prova",
+        "desc": "Continua amb el portfolio de prova que has creat en aquesta sessió.",
+        "use": "Utilitza la prova"
+      }
+    },
+    "review": {
+      "title": "Això és el que hem trobat del {{year}}",
+      "hint": "Desmarca qualsevol venda que no vulguis incloure. Pots corregir les dades a l'Excel i tornar-lo a pujar.",
+      "salesTitle": "Vendes de l'exercici ({{count}})",
+      "noSales": "Cap venda datada en aquest exercici.",
+      "hTicker": "Ticker",
+      "hDate": "Data",
+      "hProceeds": "Venda",
+      "hCost": "Cost",
+      "hGain": "Resultat",
+      "dividends": "Dividends de l'exercici ({{count}})",
+      "interests": "Interessos de l'exercici ({{count}})"
+    },
+    "questions": {
+      "title": "Quatre preguntes ràpides",
+      "hint": "Totes són opcionals: si no n'estàs segur, deixa-ho a zero i l'informe seguirà sent correcte amb el que tenim.",
+      "usePrefill": "Utilitza el càlcul automàtic",
+      "carryGains": {
+        "label": "Pèrdues d'exercicis anteriors pendents de compensar (guanys i pèrdues)",
+        "help": "Saldos negatius de transmissions dels 4 exercicis anteriors que encara no hagis compensat."
+      },
+      "carryRcm": {
+        "label": "Saldo negatiu pendent de rendiments del capital mobiliari",
+        "help": "Poc habitual: només si en exercicis anteriors vas tenir rendiments negatius pendents."
+      },
+      "foreignGross": {
+        "label": "Dividends bruts de valors estrangers",
+        "help": "Estimació automàtica pels tickers no espanyols: {{prefill}}. Ajusta-la si cal."
+      },
+      "foreignWithholding": {
+        "label": "Retencions practicades a l'estranger sobre aquests dividends",
+        "help": "El que t'ha retingut el país d'origen (p. ex. el 15% dels EUA amb W-8BEN)."
+      },
+      "spanishWithholding": {
+        "label": "Retencions espanyoles ja practicades",
+        "help": "El 19% que el teu broker espanyol ja ha ingressat a compte, si escau."
+      },
+      "abroad": {
+        "label": "Tinc comptes o valors en entitats estrangeres per valor superior a 50.000 €"
+      },
+      "cryptoAbroad": {
+        "label": "Tinc criptomonedes en plataformes estrangeres per valor superior a 50.000 €"
+      }
+    },
+    "report": {
+      "title": "El teu informe per a la Renda {{year}}",
+      "boxLabel": "Casella {{box}}",
+      "orientative": "Els números de casella són orientatius i poden variar segons l'exercici: comprova'ls sempre a Renta Web abans de confirmar.",
+      "lines": {
+        "interests": "Interessos de comptes i dipòsits",
+        "dividends": "Dividends i altres rendiments per participació en fons propis",
+        "salesListed": "Guanys i pèrdues per transmissió d'accions cotitzades (saldo net)",
+        "foreignDeduction": "Deducció per doble imposició internacional"
+      },
+      "gp": {
+        "title": "Guanys i pèrdues patrimonials",
+        "gains": "Guanys",
+        "losses": "Pèrdues",
+        "net": "Saldo net"
+      },
+      "rcm": {
+        "title": "Rendiments del capital mobiliari",
+        "dividends": "Dividends",
+        "interests": "Interessos",
+        "total": "Total"
+      },
+      "comp": {
+        "title": "Compensacions",
+        "carryApplied": "Saldos negatius d'exercicis anteriors aplicats",
+        "crossUsed": "Compensació entre components (límit {{cap}})",
+        "carriedForward": "Pèrdues que queden pendents per a exercicis futurs"
+      },
+      "quota": {
+        "title": "Estimació de la quota de l'estalvi",
+        "base": "Base de l'estalvi",
+        "bracket": "Tram {{rate}}% sobre {{amount}}",
+        "estimated": "Quota estimada",
+        "deduction": "Deducció per doble imposició",
+        "withheld": "Retencions ja practicades",
+        "balance": "Resultat orientatiu",
+        "balanceNote": "Orientatiu: només considera l'estalvi (no la base general, mínims ni altres deduccions). El resultat real el calcula Renta Web."
+      },
+      "warningsTitle": "Avisos que has de conèixer",
+      "print": "Imprimeix l'informe",
+      "restart": "Torna a començar"
+    },
+    "warnings": {
+      "two-month-rule": "Regla dels 2 mesos: has recomprat {{detail}} poc abans o després de vendre amb pèrdues. Aquestes pèrdues no es poden computar encara (s'imputen quan venguis les accions recomprades).",
+      "model-720": "Amb més de 50.000 € en entitats estrangeres, probablement has de presentar el Model 720 (declaració informativa de béns a l'estranger). Té terminis i sancions propis.",
+      "model-721": "Amb més de 50.000 € en cripto a plataformes estrangeres, probablement has de presentar el Model 721.",
+      "crypto-regime": "Has venut criptomonedes ({{detail}}): tributen igualment com a guanys i pèrdues patrimonials (FIFO), però revisa el seu règim específic.",
+      "withholding-over-treaty": "T'han retingut {{detail}} € més del 15% que permet el conveni: aquest excés no es dedueix a la Renda, es reclama al país d'origen.",
+      "no-w8ben-hint": "Si són valors dels EUA, presenta el formulari W-8BEN al teu broker perquè la retenció baixi del 30% al 15%.",
+      "undated-events": "{{detail}} operacions sense data no s'han pogut assignar a cap exercici i han quedat fora. Afegeix les dates a l'Excel per incloure-les."
+    },
+    "disclaimer": "TrimmTrack no és un assessor fiscal i aquest informe és només orientatiu i educatiu: no constitueix assessorament fiscal ni jurídic. Verifica sempre els imports i les caselles a Renta Web o amb un professional.",
+    "whatTitle": "Què fa aquest assistent?",
+    "whatBody": "Agafa les teves operacions (del teu portfolio de TrimmTrack o d'un Excel) i calcula el que necessites per a la declaració: el saldo de guanys i pèrdues per transmissions amb criteri FIFO, els rendiments del capital mobiliari (dividends i interessos), les compensacions entre components amb el límit del 25%, la deducció per doble imposició internacional i una estimació de la quota per trams de l'estalvi. A més, detecta automàticament casos que sovint passen desapercebuts, com la regla dels 2 mesos o els llindars del Model 720.",
+    "howTitle": "Com es fa servir?",
+    "howBody": "Tria país i exercici, carrega les dades, revisa les operacions detectades, respon quatre preguntes opcionals i obtén l'informe amb cada import i la seva casella orientativa de Renta Web. Tot el càlcul passa al teu navegador: si puges un Excel sense registrar-te, no es desa res enlloc.",
+    "faqTitle": "Preguntes freqüents",
+    "faq": {
+      "casella": {
+        "q": "A quines caselles de la Renda van les accions i els dividends?",
+        "a": "Orientativament: els dividends van als rendiments del capital mobiliari (casella 0029), els interessos a la 0027, les vendes d'accions cotitzades a l'apartat de guanys i pèrdues patrimonials (caselles 0328 i següents) i la deducció per doble imposició internacional a la 0588. Els números poden variar segons l'exercici: comprova-ho sempre a Renta Web."
+      },
+      "fifo": {
+        "q": "Com es calcula el guany d'una venda d'accions?",
+        "a": "Amb el criteri FIFO: es considera que vens primer les accions comprades primer. El guany és el valor de venda menys el cost d'adquisició d'aquelles accions concretes. L'assistent ho calcula automàticament per cada venda."
+      },
+      "foreign": {
+        "q": "Què passa amb els dividends estrangers i la doble retenció?",
+        "a": "El país d'origen reté una part (habitualment fins al 15% per conveni) i Espanya també grava el dividend. A la Renda pots deduir la retenció estrangera fins al límit del conveni. Si t'han retingut més (p. ex. el 30% als EUA sense W-8BEN), l'excés es reclama al país d'origen, no a la Renda."
+      },
+      "advice": {
+        "q": "Això és assessorament fiscal?",
+        "a": "No. És una eina informativa i educativa que t'ajuda a preparar les dades. El resultat definitiu el calcula Renta Web, i per a situacions complexes cal un assessor fiscal professional."
+      }
+    },
+    "cta": {
+      "title": "Tingues les dades sempre a punt",
+      "body": "Si construeixes el teu portfolio a TrimmTrack, l'any que ve l'informe d'impostos surt sol: sense buscar Excels ni refer números.",
+      "primary": "Construeix el teu portfolio",
+      "secondary": "Calculadora FIFO"
+    },
+    "short": "Assistent d'impostos"
   }
 }
