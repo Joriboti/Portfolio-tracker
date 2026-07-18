@@ -30,6 +30,11 @@ import {
 // review → guided questions → "box → amount" report for Renta Web. All math is
 // client-side (12-function API cap untouched); the page is public so the trial
 // path works without an account and the copy below the wizard is indexable.
+//
+// Visual language: deliberately NOT card-in-card. One open column, hairline
+// dividers (#ece0cb, the warm border token), display-font headings, text-link
+// actions with arrows, and a receipt-style report with dotted leaders. The only
+// boxed moments are the amber warning callout (left rule) and the dark CTA band.
 
 type TaxData = {
   transactions: Transaction[];
@@ -41,6 +46,9 @@ type Step = "country" | "year" | "source" | "review" | "questions" | "report";
 const STEPS: Step[] = ["country", "year", "source", "review", "questions", "report"];
 
 const FAQ_KEYS = ["casella", "fifo", "foreign", "advice"] as const;
+// Warm hairline for both border-* and divide-* contexts (divide children take
+// the color from divide-[…], not border-[…]).
+const HAIR = "border-[#ece0cb] divide-[#ece0cb]";
 
 function localeOf(lang: string): string {
   return lang.startsWith("es") ? "es-ES" : lang.startsWith("en") ? "en-US" : "ca-ES";
@@ -194,37 +202,58 @@ export function TaxesPage() {
   const stepIndex = STEPS.indexOf(step);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 space-y-8">
-      <header>
-        <h1 className="text-3xl font-semibold text-slate-900">{t("taxes.h1")}</h1>
-        <p className="mt-2 text-slate-600">{t("taxes.lead")}</p>
+    <div className="mx-auto max-w-3xl px-4 py-12">
+      <header className="max-w-2xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">
+          {t("nav.taxes")}
+        </p>
+        <h1 className="mt-2 font-display text-4xl text-slate-900">{t("taxes.h1")}</h1>
+        <p className="mt-3 leading-relaxed text-slate-600">{t("taxes.lead")}</p>
       </header>
 
-      {/* Stepper */}
-      <ol className="flex flex-wrap gap-2 text-xs">
+      {/* Progress line: numbered dots joined by a rule that fills as you go. */}
+      <ol className="mt-10 flex items-center print:hidden" aria-label="progress">
         {STEPS.map((s, i) => (
-          <li
-            key={s}
-            className={`rounded-full px-3 py-1 ring-1 ${
-              i === stepIndex
-                ? "bg-brand-600 text-white ring-brand-600"
-                : i < stepIndex
-                  ? "bg-brand-50 text-brand-700 ring-brand-200"
-                  : "bg-white text-slate-400 ring-slate-200"
-            }`}
-          >
-            {i + 1}. {t(`taxes.steps.${s}`)}
+          <li key={s} className={`flex items-center ${i > 0 ? "flex-1" : ""}`}>
+            {i > 0 && (
+              <span
+                aria-hidden
+                className={`mx-1.5 h-px flex-1 ${
+                  i <= stepIndex ? "bg-brand-500" : "bg-[#e5dbc8]"
+                }`}
+              />
+            )}
+            <span className="flex flex-col items-center gap-1.5">
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+                  i < stepIndex
+                    ? "bg-brand-500 text-white"
+                    : i === stepIndex
+                      ? "bg-slate-900 text-white"
+                      : "border border-[#e5dbc8] text-slate-400"
+                }`}
+              >
+                {i < stepIndex ? "✓" : i + 1}
+              </span>
+              <span
+                className={`hidden text-[11px] sm:block ${
+                  i === stepIndex ? "font-medium text-slate-900" : "text-slate-400"
+                }`}
+              >
+                {t(`taxes.steps.${s}`)}
+              </span>
+            </span>
           </li>
         ))}
       </ol>
 
-      <div className="card p-6 space-y-6">
+      <div className={`mt-8 border-t ${HAIR} pt-8`}>
         {step === "country" && (
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">
+          <section>
+            <h2 className="font-display text-2xl text-slate-900">
               {t("taxes.country.title")}
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={`mt-6 divide-y ${HAIR} border-y ${HAIR}`}>
               {TAX_COUNTRIES.map((c) => (
                 <button
                   key={c.code}
@@ -233,34 +262,48 @@ export function TaxesPage() {
                     setCountry(c.code);
                     next();
                   }}
-                  className={`rounded-xl border p-4 text-left transition ${
-                    c.available
-                      ? country === c.code
-                        ? "border-brand-500 bg-brand-50"
-                        : "border-slate-200 bg-white hover:border-brand-300"
-                      : "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
+                  className={`group flex w-full items-center gap-4 py-5 text-left ${
+                    c.available ? "cursor-pointer" : "cursor-not-allowed opacity-50"
                   }`}
                 >
-                  <span className="text-2xl">{c.flag}</span>
-                  <p className="mt-1 font-medium text-slate-900">
-                    {t(`taxes.country.${c.code}`)}
-                  </p>
-                  {!c.available && (
-                    <p className="text-xs text-slate-500">{t("taxes.country.soon")}</p>
+                  <span className="text-3xl" aria-hidden>
+                    {c.flag}
+                  </span>
+                  <span className="flex-1">
+                    <span
+                      className={`font-display text-lg group-hover:text-brand-700 ${
+                        country === c.code && c.available ? "text-brand-700" : "text-slate-900"
+                      }`}
+                    >
+                      {t(`taxes.country.${c.code}`)}
+                    </span>
+                    {!c.available && (
+                      <span className="ml-3 text-xs uppercase tracking-wide text-slate-400">
+                        {t("taxes.country.soon")}
+                      </span>
+                    )}
+                  </span>
+                  {c.available && (
+                    <span
+                      aria-hidden
+                      className="text-brand-600 transition-transform group-hover:translate-x-1"
+                    >
+                      →
+                    </span>
                   )}
                 </button>
               ))}
             </div>
-            <p className="text-xs text-slate-500">{t("taxes.country.moreSoon")}</p>
+            <p className="mt-4 text-xs text-slate-500">{t("taxes.country.moreSoon")}</p>
           </section>
         )}
 
         {step === "year" && (
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">
+          <section>
+            <h2 className="font-display text-2xl text-slate-900">
               {t("taxes.year.title")}
             </h2>
-            <div className="flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap items-baseline gap-x-10 gap-y-4">
               {ES_AVAILABLE_YEARS.map((y) => (
                 <button
                   key={y}
@@ -268,57 +311,73 @@ export function TaxesPage() {
                     setYear(y);
                     next();
                   }}
-                  className={`rounded-xl border px-5 py-3 font-medium ${
+                  className={`group font-display text-3xl transition-colors ${
                     year === y
-                      ? "border-brand-500 bg-brand-50 text-brand-700"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-brand-300"
+                      ? "text-brand-600"
+                      : "text-slate-400 hover:text-slate-900"
                   }`}
                 >
-                  {t("taxes.year.label", { year: y })}
+                  {y}
+                  <span
+                    className={`mt-1 block h-0.5 rounded transition-all ${
+                      year === y
+                        ? "bg-brand-500"
+                        : "scale-x-0 bg-slate-300 group-hover:scale-x-100"
+                    }`}
+                    aria-hidden
+                  />
                 </button>
               ))}
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="mt-5 text-xs text-slate-500">
               {t("taxes.year.hint", { year, next: year + 1 })}
             </p>
           </section>
         )}
 
         {step === "source" && (
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">
+          <section>
+            <h2 className="font-display text-2xl text-slate-900">
               {t("taxes.source.title")}
             </h2>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col">
-                <p className="font-medium text-slate-900">
+            <div
+              className={`mt-6 grid gap-8 sm:grid-cols-3 sm:gap-0 sm:divide-x ${HAIR}`}
+            >
+              <div className="sm:pr-6">
+                <p className="font-display text-lg text-slate-900">
                   {t("taxes.source.portfolio.title")}
                 </p>
-                <p className="mt-1 flex-1 text-xs text-slate-500">
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
                   {t("taxes.source.portfolio.desc")}
                 </p>
                 {user ? (
                   <button
                     onClick={() => void loadPortfolio()}
                     disabled={loadingPortfolio}
-                    className="btn-primary mt-3 text-sm px-3 py-1.5"
+                    className="group mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-600"
                   >
                     {loadingPortfolio ? "…" : t("taxes.source.portfolio.use")}
+                    <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+                      →
+                    </span>
                   </button>
                 ) : (
                   <Link
                     to="/auth/sign-in?next=/taxes"
-                    className="btn-ghost mt-3 text-center text-sm px-3 py-1.5"
+                    className="group mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-600"
                   >
                     {t("taxes.source.portfolio.signIn")}
+                    <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+                      →
+                    </span>
                   </Link>
                 )}
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col">
-                <p className="font-medium text-slate-900">
+              <div className="sm:px-6">
+                <p className="font-display text-lg text-slate-900">
                   {t("taxes.source.excel.title")}
                 </p>
-                <p className="mt-1 flex-1 text-xs text-slate-500">
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
                   {t("taxes.source.excel.desc")}
                 </p>
                 <input
@@ -334,33 +393,39 @@ export function TaxesPage() {
                 />
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="btn-primary mt-3 text-sm px-3 py-1.5"
+                  className="group mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-600"
                 >
                   {t("taxes.source.excel.button")}
+                  <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+                    →
+                  </span>
                 </button>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col">
-                <p className="font-medium text-slate-900">
+              <div className="sm:pl-6">
+                <p className="font-display text-lg text-slate-900">
                   {t("taxes.source.trial.title")}
                 </p>
-                <p className="mt-1 flex-1 text-xs text-slate-500">
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
                   {t("taxes.source.trial.desc")}
                 </p>
                 <button
                   onClick={loadTrial}
                   disabled={!hasTrial()}
-                  className="btn-ghost mt-3 text-sm px-3 py-1.5 disabled:opacity-50"
+                  className="group mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-600 disabled:cursor-not-allowed disabled:text-slate-300"
                 >
                   {t("taxes.source.trial.use")}
+                  <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+                    →
+                  </span>
                 </button>
               </div>
             </div>
             {sourceError && (
-              <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              <p className="mt-5 border-l-2 border-rose-400 pl-3 text-sm text-rose-700">
                 {sourceError}
               </p>
             )}
-            <p className="text-xs text-slate-500">
+            <p className={`mt-6 border-t ${HAIR} pt-4 text-xs text-slate-500`}>
               {t("taxes.source.formatHint")}{" "}
               <Link to="/upload" className="text-brand-700 underline">
                 {t("taxes.source.formatLink")}
@@ -370,263 +435,297 @@ export function TaxesPage() {
         )}
 
         {step === "review" && data && (
-          <section className="space-y-5">
-            <h2 className="text-lg font-semibold text-slate-900">
+          <section>
+            <h2 className="font-display text-2xl text-slate-900">
               {t("taxes.review.title", { year })}
             </h2>
-            <p className="text-sm text-slate-600">{t("taxes.review.hint")}</p>
+            <p className="mt-2 text-sm text-slate-600">{t("taxes.review.hint")}</p>
 
-            <div>
-              <h3 className="font-medium text-slate-900">
-                {t("taxes.review.salesTitle", { count: yearSales.length })}
-              </h3>
-              {yearSales.length === 0 ? (
-                <p className="mt-1 text-sm text-slate-500">{t("taxes.review.noSales")}</p>
-              ) : (
-                <div className="mt-2 overflow-x-auto">
-                  <table className="table-base w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-slate-500">
-                        <th className="py-1.5 pr-2"></th>
-                        <th className="py-1.5 pr-3">{t("taxes.review.hTicker")}</th>
-                        <th className="py-1.5 pr-3">{t("taxes.review.hDate")}</th>
-                        <th className="py-1.5 pr-3 text-right">{t("taxes.review.hProceeds")}</th>
-                        <th className="py-1.5 pr-3 text-right">{t("taxes.review.hCost")}</th>
-                        <th className="py-1.5 text-right">{t("taxes.review.hGain")}</th>
+            <h3 className="mt-8 text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
+              {t("taxes.review.salesTitle", { count: yearSales.length })}
+            </h3>
+            {yearSales.length === 0 ? (
+              <p className="mt-2 text-sm text-slate-500">{t("taxes.review.noSales")}</p>
+            ) : (
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className={`border-b ${HAIR} text-left text-xs text-slate-400`}>
+                      <th className="py-2 pr-2 font-normal"></th>
+                      <th className="py-2 pr-3 font-normal">{t("taxes.review.hTicker")}</th>
+                      <th className="py-2 pr-3 font-normal">{t("taxes.review.hDate")}</th>
+                      <th className="py-2 pr-3 text-right font-normal">
+                        {t("taxes.review.hProceeds")}
+                      </th>
+                      <th className="py-2 pr-3 text-right font-normal">
+                        {t("taxes.review.hCost")}
+                      </th>
+                      <th className="py-2 text-right font-normal">{t("taxes.review.hGain")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {yearSales.map((s, i) => (
+                      <tr
+                        key={i}
+                        className={`border-b ${HAIR} ${excluded.has(i) ? "opacity-40" : ""}`}
+                      >
+                        <td className="py-2 pr-2">
+                          <input
+                            type="checkbox"
+                            checked={!excluded.has(i)}
+                            onChange={(e) => {
+                              setExcluded((prev) => {
+                                const nxt = new Set(prev);
+                                if (e.target.checked) nxt.delete(i);
+                                else nxt.add(i);
+                                return nxt;
+                              });
+                            }}
+                          />
+                        </td>
+                        <td className="py-2 pr-3 font-medium text-slate-900">{s.ticker}</td>
+                        <td className="py-2 pr-3 text-slate-500">{s.sellDate}</td>
+                        <td className="py-2 pr-3 text-right tabular-nums">{eur(s.proceeds)}</td>
+                        <td className="py-2 pr-3 text-right tabular-nums">{eur(s.cost)}</td>
+                        <td
+                          className={`py-2 text-right font-medium tabular-nums ${
+                            s.gain >= 0 ? "text-emerald-600" : "text-rose-600"
+                          }`}
+                        >
+                          {eur(s.gain)}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {yearSales.map((s, i) => (
-                        <tr key={i} className="border-t border-slate-100">
-                          <td className="py-1.5 pr-2">
-                            <input
-                              type="checkbox"
-                              checked={!excluded.has(i)}
-                              onChange={(e) => {
-                                setExcluded((prev) => {
-                                  const nxt = new Set(prev);
-                                  if (e.target.checked) nxt.delete(i);
-                                  else nxt.add(i);
-                                  return nxt;
-                                });
-                              }}
-                            />
-                          </td>
-                          <td className="py-1.5 pr-3 font-medium text-slate-900">{s.ticker}</td>
-                          <td className="py-1.5 pr-3 text-slate-600">{s.sellDate}</td>
-                          <td className="py-1.5 pr-3 text-right">{eur(s.proceeds)}</td>
-                          <td className="py-1.5 pr-3 text-right">{eur(s.cost)}</td>
-                          <td
-                            className={`py-1.5 text-right font-medium ${
-                              s.gain >= 0 ? "text-emerald-600" : "text-rose-600"
-                            }`}
-                          >
-                            {eur(s.gain)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg bg-slate-50 p-3 text-sm">
-                <p className="text-slate-500">
-                  {t("taxes.review.dividends", { count: yearDividends.length })}
-                </p>
-                <p className="font-medium text-slate-900">
-                  {eur(yearDividends.reduce((s, d) => s + d.amount, 0))}
-                </p>
-              </div>
-              <div className="rounded-lg bg-slate-50 p-3 text-sm">
-                <p className="text-slate-500">
-                  {t("taxes.review.interests", { count: yearInterests.length })}
-                </p>
-                <p className="font-medium text-slate-900">
-                  {eur(yearInterests.reduce((s, d) => s + d.amount, 0))}
-                </p>
-              </div>
-            </div>
+            <dl className="mt-6 space-y-2 text-sm">
+              <DottedRow
+                label={t("taxes.review.dividends", { count: yearDividends.length })}
+                value={eur(yearDividends.reduce((s, d) => s + d.amount, 0))}
+              />
+              <DottedRow
+                label={t("taxes.review.interests", { count: yearInterests.length })}
+                value={eur(yearInterests.reduce((s, d) => s + d.amount, 0))}
+              />
+            </dl>
           </section>
         )}
 
         {step === "questions" && (
-          <section className="space-y-5">
-            <h2 className="text-lg font-semibold text-slate-900">
+          <section>
+            <h2 className="font-display text-2xl text-slate-900">
               {t("taxes.questions.title")}
             </h2>
-            <p className="text-sm text-slate-600">{t("taxes.questions.hint")}</p>
+            <p className="mt-2 text-sm text-slate-600">{t("taxes.questions.hint")}</p>
 
-            <NumberField
-              label={t("taxes.questions.carryGains.label")}
-              help={t("taxes.questions.carryGains.help")}
-              value={answers.carryLossesGains}
-              onChange={(v) => setAnswers((a) => ({ ...a, carryLossesGains: v }))}
-            />
-            <NumberField
-              label={t("taxes.questions.carryRcm.label")}
-              help={t("taxes.questions.carryRcm.help")}
-              value={answers.carryLossesRcm}
-              onChange={(v) => setAnswers((a) => ({ ...a, carryLossesRcm: v }))}
-            />
-            <NumberField
-              label={t("taxes.questions.foreignGross.label")}
-              help={t("taxes.questions.foreignGross.help", {
-                prefill: eur(foreignPrefill),
-              })}
-              value={answers.foreignDividendGross}
-              onChange={(v) => setAnswers((a) => ({ ...a, foreignDividendGross: v }))}
-              prefill={foreignPrefill}
-              prefillLabel={t("taxes.questions.usePrefill")}
-            />
-            <NumberField
-              label={t("taxes.questions.foreignWithholding.label")}
-              help={t("taxes.questions.foreignWithholding.help")}
-              value={answers.foreignWithholding}
-              onChange={(v) => setAnswers((a) => ({ ...a, foreignWithholding: v }))}
-            />
-            <NumberField
-              label={t("taxes.questions.spanishWithholding.label")}
-              help={t("taxes.questions.spanishWithholding.help")}
-              value={answers.spanishWithholding}
-              onChange={(v) => setAnswers((a) => ({ ...a, spanishWithholding: v }))}
-            />
-            <CheckField
-              label={t("taxes.questions.abroad.label")}
-              checked={answers.assetsAbroadOver50k}
-              onChange={(v) => setAnswers((a) => ({ ...a, assetsAbroadOver50k: v }))}
-            />
-            <CheckField
-              label={t("taxes.questions.cryptoAbroad.label")}
-              checked={answers.cryptoAbroadOver50k}
-              onChange={(v) => setAnswers((a) => ({ ...a, cryptoAbroadOver50k: v }))}
-            />
+            <div className={`mt-6 divide-y ${HAIR}`}>
+              <NumberField
+                label={t("taxes.questions.carryGains.label")}
+                help={t("taxes.questions.carryGains.help")}
+                value={answers.carryLossesGains}
+                onChange={(v) => setAnswers((a) => ({ ...a, carryLossesGains: v }))}
+              />
+              <NumberField
+                label={t("taxes.questions.carryRcm.label")}
+                help={t("taxes.questions.carryRcm.help")}
+                value={answers.carryLossesRcm}
+                onChange={(v) => setAnswers((a) => ({ ...a, carryLossesRcm: v }))}
+              />
+              <NumberField
+                label={t("taxes.questions.foreignGross.label")}
+                help={t("taxes.questions.foreignGross.help", {
+                  prefill: eur(foreignPrefill),
+                })}
+                value={answers.foreignDividendGross}
+                onChange={(v) => setAnswers((a) => ({ ...a, foreignDividendGross: v }))}
+                prefill={foreignPrefill}
+                prefillLabel={t("taxes.questions.usePrefill")}
+              />
+              <NumberField
+                label={t("taxes.questions.foreignWithholding.label")}
+                help={t("taxes.questions.foreignWithholding.help")}
+                value={answers.foreignWithholding}
+                onChange={(v) => setAnswers((a) => ({ ...a, foreignWithholding: v }))}
+              />
+              <NumberField
+                label={t("taxes.questions.spanishWithholding.label")}
+                help={t("taxes.questions.spanishWithholding.help")}
+                value={answers.spanishWithholding}
+                onChange={(v) => setAnswers((a) => ({ ...a, spanishWithholding: v }))}
+              />
+              <CheckField
+                label={t("taxes.questions.abroad.label")}
+                checked={answers.assetsAbroadOver50k}
+                onChange={(v) => setAnswers((a) => ({ ...a, assetsAbroadOver50k: v }))}
+              />
+              <CheckField
+                label={t("taxes.questions.cryptoAbroad.label")}
+                checked={answers.cryptoAbroadOver50k}
+                onChange={(v) => setAnswers((a) => ({ ...a, cryptoAbroadOver50k: v }))}
+              />
+            </div>
           </section>
         )}
 
         {step === "report" && report && (
-          <section className="space-y-6">
-            <h2 className="text-lg font-semibold text-slate-900">
+          <section>
+            <h2 className="font-display text-2xl text-slate-900">
               {t("taxes.report.title", { year })}
             </h2>
 
-            {/* Box → amount cards */}
-            <div className="grid gap-3 sm:grid-cols-2">
+            {/* Receipt: box → dotted leader → amount. */}
+            <dl className={`mt-6 divide-y ${HAIR} border-y ${HAIR}`}>
               {report.lines.map((l) => (
-                <div
-                  key={l.key}
-                  className="rounded-xl border border-brand-200 bg-brand-50/60 p-4"
-                >
-                  <p className="text-xs font-medium uppercase tracking-wide text-brand-700">
-                    {t("taxes.report.boxLabel", { box: l.box })}
-                  </p>
-                  <p className="mt-0.5 text-sm text-slate-600">
-                    {t(`taxes.report.lines.${l.key}`)}
-                  </p>
-                  <p className="mt-1 text-xl font-semibold text-slate-900">
-                    {eur(l.amount)}
-                  </p>
+                <div key={l.key} className="py-3.5">
+                  <div className="flex items-baseline gap-2">
+                    <dt className="shrink-0">
+                      <span className="font-display text-sm font-semibold text-brand-700">
+                        {t("taxes.report.boxLabel", { box: l.box })}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-slate-500">
+                        {t(`taxes.report.lines.${l.key}`)}
+                      </span>
+                    </dt>
+                    <span
+                      aria-hidden
+                      className="mx-1 flex-1 self-end border-b border-dotted border-slate-300 mb-1"
+                    />
+                    <dd className="shrink-0 font-display text-xl text-slate-900 tabular-nums">
+                      {eur(l.amount)}
+                    </dd>
+                  </div>
                 </div>
               ))}
-            </div>
-            <p className="text-xs text-slate-500">{t("taxes.report.orientative")}</p>
+            </dl>
+            <p className="mt-3 text-xs italic text-slate-500">
+              {t("taxes.report.orientative")}
+            </p>
 
-            {/* Detail blocks */}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg bg-slate-50 p-4 text-sm space-y-1">
-                <p className="font-medium text-slate-900">{t("taxes.report.gp.title")}</p>
-                <Row k={t("taxes.report.gp.gains")} v={eur(report.gainsPositive)} />
-                <Row k={t("taxes.report.gp.losses")} v={eur(report.lossesNegative)} />
-                <Row k={t("taxes.report.gp.net")} v={eur(report.netSales)} strong />
+            <div className="mt-8 grid gap-10 sm:grid-cols-2">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
+                  {t("taxes.report.gp.title")}
+                </h3>
+                <dl className="mt-3 space-y-2 text-sm">
+                  <DottedRow label={t("taxes.report.gp.gains")} value={eur(report.gainsPositive)} />
+                  <DottedRow label={t("taxes.report.gp.losses")} value={eur(report.lossesNegative)} />
+                  <DottedRow label={t("taxes.report.gp.net")} value={eur(report.netSales)} strong />
+                </dl>
               </div>
-              <div className="rounded-lg bg-slate-50 p-4 text-sm space-y-1">
-                <p className="font-medium text-slate-900">{t("taxes.report.rcm.title")}</p>
-                <Row k={t("taxes.report.rcm.dividends")} v={eur(report.dividendsTotal)} />
-                <Row k={t("taxes.report.rcm.interests")} v={eur(report.interestsTotal)} />
-                <Row k={t("taxes.report.rcm.total")} v={eur(report.rcmTotal)} strong />
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
+                  {t("taxes.report.rcm.title")}
+                </h3>
+                <dl className="mt-3 space-y-2 text-sm">
+                  <DottedRow label={t("taxes.report.rcm.dividends")} value={eur(report.dividendsTotal)} />
+                  <DottedRow label={t("taxes.report.rcm.interests")} value={eur(report.interestsTotal)} />
+                  <DottedRow label={t("taxes.report.rcm.total")} value={eur(report.rcmTotal)} strong />
+                </dl>
               </div>
             </div>
 
             {(report.carryLossesApplied > 0 ||
               report.crossCompensationUsed > 0 ||
               report.lossesCarriedForward > 0) && (
-              <div className="rounded-lg bg-slate-50 p-4 text-sm space-y-1">
-                <p className="font-medium text-slate-900">{t("taxes.report.comp.title")}</p>
-                {report.carryLossesApplied > 0 && (
-                  <Row
-                    k={t("taxes.report.comp.carryApplied")}
-                    v={eur(report.carryLossesApplied)}
-                  />
-                )}
-                {report.crossCompensationUsed > 0 && (
-                  <Row
-                    k={t("taxes.report.comp.crossUsed", {
-                      cap: eur(report.crossCompensationCap),
-                    })}
-                    v={eur(report.crossCompensationUsed)}
-                  />
-                )}
-                {report.lossesCarriedForward > 0 && (
-                  <Row
-                    k={t("taxes.report.comp.carriedForward")}
-                    v={eur(report.lossesCarriedForward)}
-                    strong
-                  />
-                )}
+              <div className="mt-8">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
+                  {t("taxes.report.comp.title")}
+                </h3>
+                <dl className="mt-3 space-y-2 text-sm">
+                  {report.carryLossesApplied > 0 && (
+                    <DottedRow
+                      label={t("taxes.report.comp.carryApplied")}
+                      value={eur(report.carryLossesApplied)}
+                    />
+                  )}
+                  {report.crossCompensationUsed > 0 && (
+                    <DottedRow
+                      label={t("taxes.report.comp.crossUsed", {
+                        cap: eur(report.crossCompensationCap),
+                      })}
+                      value={eur(report.crossCompensationUsed)}
+                    />
+                  )}
+                  {report.lossesCarriedForward > 0 && (
+                    <DottedRow
+                      label={t("taxes.report.comp.carriedForward")}
+                      value={eur(report.lossesCarriedForward)}
+                      strong
+                    />
+                  )}
+                </dl>
               </div>
             )}
 
-            <div className="rounded-lg bg-slate-50 p-4 text-sm space-y-1">
-              <p className="font-medium text-slate-900">{t("taxes.report.quota.title")}</p>
-              <Row k={t("taxes.report.quota.base")} v={eur(report.savingsBase)} strong />
-              {report.bracketSteps.map((b, i) => (
-                <Row
-                  key={i}
-                  k={t("taxes.report.quota.bracket", {
-                    rate: (b.rate * 100).toFixed(0),
-                    amount: eur(b.amount),
-                  })}
-                  v={eur(b.tax)}
+            <div className="mt-8">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
+                {t("taxes.report.quota.title")}
+              </h3>
+              <dl className="mt-3 space-y-2 text-sm">
+                <DottedRow label={t("taxes.report.quota.base")} value={eur(report.savingsBase)} strong />
+                {report.bracketSteps.map((b, i) => (
+                  <DottedRow
+                    key={i}
+                    label={t("taxes.report.quota.bracket", {
+                      rate: (b.rate * 100).toFixed(0),
+                      amount: eur(b.amount),
+                    })}
+                    value={eur(b.tax)}
+                    muted
+                  />
+                ))}
+                <DottedRow
+                  label={t("taxes.report.quota.estimated")}
+                  value={eur(report.estimatedQuota)}
+                  strong
                 />
-              ))}
-              <Row k={t("taxes.report.quota.estimated")} v={eur(report.estimatedQuota)} strong />
-              {report.foreignDeduction > 0 && (
-                <Row
-                  k={t("taxes.report.quota.deduction")}
-                  v={`−${eur(report.foreignDeduction)}`}
-                />
-              )}
-              {report.spanishWithholding > 0 && (
-                <Row
-                  k={t("taxes.report.quota.withheld")}
-                  v={`−${eur(report.spanishWithholding)}`}
-                />
-              )}
-              <Row
-                k={t("taxes.report.quota.balance")}
-                v={eur(report.estimatedBalance)}
-                strong
-              />
-              <p className="pt-1 text-xs text-slate-500">{t("taxes.report.quota.balanceNote")}</p>
+                {report.foreignDeduction > 0 && (
+                  <DottedRow
+                    label={t("taxes.report.quota.deduction")}
+                    value={`−${eur(report.foreignDeduction)}`}
+                  />
+                )}
+                {report.spanishWithholding > 0 && (
+                  <DottedRow
+                    label={t("taxes.report.quota.withheld")}
+                    value={`−${eur(report.spanishWithholding)}`}
+                  />
+                )}
+              </dl>
+              <div className={`mt-4 border-t-2 border-slate-900 pt-3`}>
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="font-display text-lg text-slate-900">
+                    {t("taxes.report.quota.balance")}
+                  </span>
+                  <span className="font-display text-2xl text-slate-900 tabular-nums">
+                    {eur(report.estimatedBalance)}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  {t("taxes.report.quota.balanceNote")}
+                </p>
+              </div>
             </div>
 
             {report.warnings.length > 0 && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-                <p className="font-medium text-amber-900">{t("taxes.report.warningsTitle")}</p>
-                <ul className="mt-2 space-y-2 text-amber-800">
+              <div className="mt-8 border-l-2 border-amber-400 pl-4">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-amber-700">
+                  {t("taxes.report.warningsTitle")}
+                </h3>
+                <ul className="mt-3 space-y-3 text-sm text-slate-700">
                   {report.warnings.map((w, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span aria-hidden>⚠</span>
-                      <span>{t(`taxes.warnings.${w.code}`, { detail: w.detail ?? "" })}</span>
+                    <li key={i}>
+                      {t(`taxes.warnings.${w.code}`, { detail: w.detail ?? "" })}
                     </li>
                   ))}
                 </ul>
               </div>
             )}
 
-            <div className="flex flex-wrap gap-3 print:hidden">
+            <div className="mt-8 flex flex-wrap items-center gap-5 print:hidden">
               <button onClick={() => window.print()} className="btn-primary text-sm px-4 py-2">
                 {t("taxes.report.print")}
               </button>
@@ -637,7 +736,7 @@ export function TaxesPage() {
                   setExcluded(new Set());
                   goTo("country");
                 }}
-                className="btn-ghost text-sm px-4 py-2"
+                className="text-sm text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
               >
                 {t("taxes.report.restart")}
               </button>
@@ -645,27 +744,33 @@ export function TaxesPage() {
           </section>
         )}
 
-        {/* Nav buttons (steps with explicit selection advance on click instead) */}
+        {/* Nav (steps with explicit selection advance on click instead) */}
         {(step === "review" || step === "questions") && (
-          <div className="flex justify-between border-t border-slate-100 pt-4 print:hidden">
-            <button onClick={back} className="btn-ghost text-sm px-4 py-2">
-              {t("taxes.back")}
+          <div className={`mt-10 flex items-center justify-between border-t ${HAIR} pt-5 print:hidden`}>
+            <button
+              onClick={back}
+              className="text-sm text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
+            >
+              ← {t("taxes.back")}
             </button>
-            <button onClick={next} className="btn-primary text-sm px-4 py-2">
-              {step === "questions" ? t("taxes.seeReport") : t("taxes.next")}
+            <button onClick={next} className="btn-primary text-sm px-5 py-2">
+              {step === "questions" ? t("taxes.seeReport") : t("taxes.next")} →
             </button>
           </div>
         )}
         {(step === "year" || step === "source") && (
-          <div className="border-t border-slate-100 pt-4 print:hidden">
-            <button onClick={back} className="btn-ghost text-sm px-4 py-2">
-              {t("taxes.back")}
+          <div className="mt-10 print:hidden">
+            <button
+              onClick={back}
+              className="text-sm text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
+            >
+              ← {t("taxes.back")}
             </button>
           </div>
         )}
       </div>
 
-      <p className="rounded-lg bg-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-600">
+      <p className="mt-12 text-xs italic leading-relaxed text-slate-500">
         {t("taxes.disclaimer")}{" "}
         <Link to="/disclaimer" className="underline">
           Disclaimer
@@ -673,49 +778,99 @@ export function TaxesPage() {
       </p>
 
       {/* Indexable copy + FAQ (the prerendered snapshot carries this). */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-slate-900">{t("taxes.whatTitle")}</h2>
-        <p className="text-sm leading-relaxed text-slate-600">{t("taxes.whatBody")}</p>
-      </section>
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-slate-900">{t("taxes.howTitle")}</h2>
-        <p className="text-sm leading-relaxed text-slate-600">{t("taxes.howBody")}</p>
-      </section>
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-slate-900">{t("taxes.faqTitle")}</h2>
-        <dl className="space-y-4">
-          {FAQ_KEYS.map((k) => (
-            <div key={k}>
-              <dt className="font-medium text-slate-900">{t(`taxes.faq.${k}.q`)}</dt>
-              <dd className="mt-1 text-sm leading-relaxed text-slate-600">
-                {t(`taxes.faq.${k}.a`)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-      <section className="rounded-2xl bg-gradient-to-br from-brand-50 to-brand-100/60 p-6 ring-1 ring-brand-200">
-        <h2 className="text-lg font-semibold text-slate-900">{t("taxes.cta.title")}</h2>
-        <p className="mt-1 text-sm text-slate-600">{t("taxes.cta.body")}</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link to="/upload" className="btn-primary text-sm px-4 py-2">
-            {t("taxes.cta.primary")}
-          </Link>
-          <Link to="/calculadora-fifo" className="btn-ghost text-sm px-4 py-2">
-            {t("taxes.cta.secondary")}
-          </Link>
-        </div>
-      </section>
+      <div className={`mt-12 space-y-12 border-t ${HAIR} pt-12`}>
+        <section className="grid gap-8 sm:grid-cols-[1fr_2fr]">
+          <h2 className="font-display text-xl text-slate-900">{t("taxes.whatTitle")}</h2>
+          <p className="text-sm leading-relaxed text-slate-600">{t("taxes.whatBody")}</p>
+        </section>
+        <section className="grid gap-8 sm:grid-cols-[1fr_2fr]">
+          <h2 className="font-display text-xl text-slate-900">{t("taxes.howTitle")}</h2>
+          <p className="text-sm leading-relaxed text-slate-600">{t("taxes.howBody")}</p>
+        </section>
+
+        <section>
+          <h2 className="font-display text-xl text-slate-900">{t("taxes.faqTitle")}</h2>
+          <div className={`mt-4 divide-y ${HAIR} border-y ${HAIR}`}>
+            {FAQ_KEYS.map((k) => (
+              <details key={k} className="group py-4">
+                <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
+                  {t(`taxes.faq.${k}.q`)}
+                  <span
+                    aria-hidden
+                    className="text-brand-600 transition-transform group-open:rotate-45"
+                  >
+                    +
+                  </span>
+                </summary>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+                  {t(`taxes.faq.${k}.a`)}
+                </p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        {/* Single boxed moment: the dark brand band, mirroring the landing. */}
+        <section
+          className="rounded-3xl px-8 py-10 text-center"
+          style={{ background: "linear-gradient(180deg, #26211d 0%, #100d0b 100%)" }}
+        >
+          <h2 className="font-display text-2xl text-[#f3ead9]">{t("taxes.cta.title")}</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-[#c9bda9]">{t("taxes.cta.body")}</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-4">
+            <Link to="/upload" className="btn-primary text-sm px-5 py-2">
+              {t("taxes.cta.primary")}
+            </Link>
+            <Link
+              to="/calculadora-fifo"
+              className="inline-flex items-center px-5 py-2 text-sm text-[#c9bda9] underline-offset-2 hover:text-[#f3ead9] hover:underline"
+            >
+              {t("taxes.cta.secondary")}
+            </Link>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
 
-function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
+/** label ……………… value — the receipt row used across review + report. */
+function DottedRow({
+  label,
+  value,
+  strong,
+  muted,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+  muted?: boolean;
+}) {
   return (
-    <p className="flex justify-between gap-4">
-      <span className={strong ? "font-medium text-slate-900" : "text-slate-600"}>{k}</span>
-      <span className={strong ? "font-semibold text-slate-900" : "text-slate-700"}>{v}</span>
-    </p>
+    <div className="flex items-baseline gap-2">
+      <dt
+        className={
+          strong
+            ? "shrink-0 font-medium text-slate-900"
+            : muted
+              ? "shrink-0 text-slate-400"
+              : "shrink-0 text-slate-600"
+        }
+      >
+        {label}
+      </dt>
+      <span
+        aria-hidden
+        className="mx-1 mb-1 flex-1 self-end border-b border-dotted border-slate-300"
+      />
+      <dd
+        className={`shrink-0 tabular-nums ${
+          strong ? "font-semibold text-slate-900" : muted ? "text-slate-400" : "text-slate-700"
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
   );
 }
 
@@ -735,10 +890,21 @@ function NumberField({
   prefillLabel?: string;
 }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-slate-900">{label}</label>
-      {help && <p className="mt-0.5 text-xs text-slate-500">{help}</p>}
-      <div className="mt-1.5 flex items-center gap-2">
+    <div className="grid gap-1 py-4 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-6">
+      <div>
+        <label className="block text-sm font-medium text-slate-900">{label}</label>
+        {help && <p className="mt-0.5 text-xs text-slate-500">{help}</p>}
+        {prefill != null && prefill > 0 && prefillLabel && (
+          <button
+            type="button"
+            onClick={() => onChange(Math.round(prefill * 100) / 100)}
+            className="mt-1 text-xs font-medium text-brand-700 underline underline-offset-2"
+          >
+            {prefillLabel}
+          </button>
+        )}
+      </div>
+      <div className="flex items-baseline gap-1.5">
         <input
           type="number"
           inputMode="decimal"
@@ -750,18 +916,9 @@ function NumberField({
             const n = parseFloat(e.target.value);
             onChange(Number.isFinite(n) && n >= 0 ? n : 0);
           }}
-          className="w-44 rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+          className="w-36 border-0 border-b border-slate-300 bg-transparent px-0 py-1 text-right text-base tabular-nums focus:border-brand-500 focus:outline-none focus:ring-0"
         />
         <span className="text-sm text-slate-500">€</span>
-        {prefill != null && prefill > 0 && prefillLabel && (
-          <button
-            type="button"
-            onClick={() => onChange(Math.round(prefill * 100) / 100)}
-            className="text-xs text-brand-700 underline"
-          >
-            {prefillLabel}
-          </button>
-        )}
       </div>
     </div>
   );
@@ -777,7 +934,7 @@ function CheckField({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-start gap-2 text-sm text-slate-700">
+    <label className="flex items-start gap-3 py-4 text-sm text-slate-700">
       <input
         type="checkbox"
         checked={checked}
