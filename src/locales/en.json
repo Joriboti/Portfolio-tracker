@@ -14,7 +14,9 @@
     "account": "Account",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "taxes": "Taxes"
+    "taxes": "Taxes",
+    "menu": "Menu",
+    "close": "Close"
   },
   "home": {
     "heroTitle": "Your portfolio, always up to date",
@@ -873,5 +875,139 @@
       "secondary": "FIFO calculator"
     },
     "short": "Tax assistant"
+  },
+  "xray": {
+    "seoTitle": "Free portfolio X-ray | Analyze your stock portfolio — TrimmTrack",
+    "seoDesc": "Drop your broker Excel or type your holdings and instantly get a diversification grade, concentration, geographic exposure and risk flags. Free, no sign-up.",
+    "eyebrow": "Free tool",
+    "h1": "Your portfolio X-ray",
+    "lead": "Drop your broker Excel (or type a few holdings) and in seconds get a diversification grade, your concentration, exposure by region and the hidden risks. No account. Nothing is stored.",
+    "short": "X-Ray",
+    "tabExcel": "From an Excel",
+    "tabManual": "Type them in",
+    "dropTitle": "Drop your Excel here",
+    "dropHint": "or click to choose it (.xlsx)",
+    "privacy": "Your Excel is processed in the browser. It is never uploaded or stored.",
+    "needFormat": "Don't have the format?",
+    "needFormatLink": "See how to prepare the Excel",
+    "manualTicker": "Ticker",
+    "manualShares": "Shares",
+    "manualAvg": "Avg price (€)",
+    "manualRemove": "Remove row",
+    "manualAdd": "+ Add a holding",
+    "manualHint": "Yahoo Finance ticker (e.g. AAPL, SAN.MC, ASML). Average price in euros.",
+    "generate": "Generate the X-ray",
+    "loading": "Analyzing {{done}}/{{total}} holdings…",
+    "tryAgain": "Try again",
+    "errors": {
+      "noPositions": "We found no open positions. Check the Excel or add holdings manually.",
+      "parse": "We couldn't read this file. Make sure it's the Excel in the expected format.",
+      "manual": "Enter at least one holding with a ticker, shares and average price."
+    },
+    "downloadImage": "Download the image",
+    "continue": "Continue to the full dashboard",
+    "another": "Analyze another",
+    "truncated": "Only the {{max}} largest holdings were analyzed.",
+    "metrics": {
+      "holdings": "Holdings",
+      "value": "Total value",
+      "topPos": "Top position",
+      "effN": "Effective holdings",
+      "return": "Total return",
+      "irr": "Annualized return (IRR)"
+    },
+    "geoTitle": "Exposure by region",
+    "regions": {
+      "US": "US",
+      "Europe": "Europe",
+      "UK": "UK",
+      "Asia": "Asia-Pacific",
+      "Crypto": "Crypto",
+      "Other": "Other"
+    },
+    "sectorTitle": "Exposure by sector",
+    "coverage": "Data coverage: {{pct}}",
+    "valuationTitle": "Valuation",
+    "weightedPe": "Weighted average P/E",
+    "flagsTitle": "Risk flags",
+    "noFlags": "No notable risks. Well-spread portfolio.",
+    "flags": {
+      "concentrated": {
+        "title": "Too concentrated",
+        "desc": "Your largest position is {{value}} of the portfolio."
+      },
+      "fewHoldings": {
+        "title": "Few holdings",
+        "desc": "You only hold {{value}} positions; hard to diversify with so few."
+      },
+      "regionBias": {
+        "title": "Geographic bias",
+        "desc": "{{value}} of the portfolio sits in a single region ({{label}})."
+      },
+      "sectorBias": {
+        "title": "Sector concentration",
+        "desc": "{{value}} is concentrated in a single sector ({{label}})."
+      },
+      "singleCurrency": {
+        "title": "Single currency",
+        "desc": "Every position trades in {{label}}; your FX risk is concentrated."
+      },
+      "manyTiny": {
+        "title": "Too many tiny positions",
+        "desc": "You hold {{value}} positions under 1%; they may scatter more than they diversify."
+      }
+    },
+    "convertTitle": "Want to track it live?",
+    "convertBody": "Bring these holdings into the full dashboard: real-time prices, returns, dividends and valuation models.",
+    "signUp": "Create an account to save it",
+    "ctaTitle": "Go deeper",
+    "ctaBody": "Analyze any company with our valuation models or project your portfolio's growth.",
+    "exploreCta": "Explore companies",
+    "forecastCta": "ETF simulator",
+    "steps": {
+      "one": {
+        "title": "Drop the Excel",
+        "body": "Or type your holdings by hand. Everything is processed in your browser."
+      },
+      "two": {
+        "title": "We analyze it",
+        "body": "Live prices, concentration, region, sector and risks, instantly."
+      },
+      "three": {
+        "title": "Share your grade",
+        "body": "Download a card with your diversification grade."
+      }
+    },
+    "whatTitle": "What does the X-ray look at?",
+    "whatBody": "The grade blends four signals: how many effective positions you hold (concentration), the breadth of the portfolio, geographic exposure and, when data is available, the sector mix. On top we add total return, IRR and a list of concrete risks like concentration in a single position, region or currency. It's a starting point to think, not a recommendation.",
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "what": {
+        "q": "What do I need to use it?",
+        "a": "The Excel exported from your broker in TrimmTrack's format, or simply the ticker, shares and average price of each holding typed by hand."
+      },
+      "privacy": {
+        "q": "Where does my data go?",
+        "a": "Nowhere. The Excel is read inside your browser and holdings are never stored on the server. We only look up public prices to value them."
+      },
+      "grade": {
+        "q": "How is the grade calculated?",
+        "a": "We combine concentration (effective holdings), the number of positions, exposure by region and the sector mix into a 0–100 score, mapped to a letter from A+ to F."
+      },
+      "free": {
+        "q": "Is it free?",
+        "a": "Yes, and no sign-up. If you want to track the portfolio live with prices, dividends and valuations, you can create a free account."
+      }
+    },
+    "disclaimer": "This X-ray is an educational tool, not financial advice. Prices are public and may be delayed.",
+    "card": {
+      "kicker": "Portfolio X-Ray",
+      "scoreOf": "{{score}} / 100",
+      "holdings": "Holdings",
+      "topPos": "Top position",
+      "effN": "Effective holdings",
+      "return": "Return",
+      "cta": "X-ray your portfolio free · trimmtrack.com"
+    }
   }
 }

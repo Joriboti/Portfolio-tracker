@@ -14,7 +14,9 @@
     "account": "Cuenta",
     "signIn": "Iniciar sesión",
     "signOut": "Cerrar sesión",
-    "taxes": "Impuestos"
+    "taxes": "Impuestos",
+    "menu": "Menú",
+    "close": "Cerrar"
   },
   "home": {
     "heroTitle": "Tu cartera, siempre actualizada",
@@ -873,5 +875,139 @@
       "secondary": "Calculadora FIFO"
     },
     "short": "Asistente de impuestos"
+  },
+  "xray": {
+    "seoTitle": "Radiografía de cartera gratuita | Analiza tu cartera de acciones — TrimmTrack",
+    "seoDesc": "Sube tu Excel o escribe tus posiciones y obtén al instante una nota de diversificación, concentración, exposición geográfica y riesgos. Gratis y sin registro.",
+    "eyebrow": "Herramienta gratuita",
+    "h1": "Radiografía de tu cartera",
+    "lead": "Suelta el Excel de tu bróker (o escribe unas pocas posiciones) y en segundos tendrás una nota de diversificación, tu concentración, la exposición por región y los riesgos ocultos. Sin cuenta. No se guarda nada.",
+    "short": "Radiografía",
+    "tabExcel": "Desde un Excel",
+    "tabManual": "Escríbelas a mano",
+    "dropTitle": "Arrastra tu Excel aquí",
+    "dropHint": "o haz clic para elegirlo (.xlsx)",
+    "privacy": "Tu Excel se procesa en el navegador. No se envía a ningún sitio ni se guarda.",
+    "needFormat": "¿No tienes el formato?",
+    "needFormatLink": "Mira cómo preparar el Excel",
+    "manualTicker": "Ticker",
+    "manualShares": "Acciones",
+    "manualAvg": "Precio medio (€)",
+    "manualRemove": "Quitar fila",
+    "manualAdd": "+ Añadir una posición",
+    "manualHint": "Ticker de Yahoo Finance (p. ej. AAPL, SAN.MC, ASML). El precio medio en euros.",
+    "generate": "Genera la radiografía",
+    "loading": "Analizando {{done}}/{{total}} posiciones…",
+    "tryAgain": "Vuelve a intentarlo",
+    "errors": {
+      "noPositions": "No hemos encontrado ninguna posición abierta. Revisa el Excel o añade posiciones a mano.",
+      "parse": "No hemos podido leer este archivo. Asegúrate de que es el Excel con el formato esperado.",
+      "manual": "Escribe al menos una posición con ticker, acciones y precio medio."
+    },
+    "downloadImage": "Descarga la imagen",
+    "continue": "Continúa al panel completo",
+    "another": "Analiza otra",
+    "truncated": "Solo se han analizado las {{max}} posiciones más grandes.",
+    "metrics": {
+      "holdings": "Posiciones",
+      "value": "Valor total",
+      "topPos": "Posición principal",
+      "effN": "Posiciones efectivas",
+      "return": "Rentabilidad total",
+      "irr": "Rentabilidad anual (TIR)"
+    },
+    "geoTitle": "Exposición por región",
+    "regions": {
+      "US": "EE. UU.",
+      "Europe": "Europa",
+      "UK": "Reino Unido",
+      "Asia": "Asia-Pacífico",
+      "Crypto": "Cripto",
+      "Other": "Otros"
+    },
+    "sectorTitle": "Exposición por sector",
+    "coverage": "Cobertura de datos: {{pct}}",
+    "valuationTitle": "Valoración",
+    "weightedPe": "PER medio ponderado",
+    "flagsTitle": "Riesgos detectados",
+    "noFlags": "Ningún riesgo destacado. Cartera bien repartida.",
+    "flags": {
+      "concentrated": {
+        "title": "Demasiado concentrada",
+        "desc": "Tu posición más grande pesa un {{value}} de la cartera."
+      },
+      "fewHoldings": {
+        "title": "Pocas posiciones",
+        "desc": "Solo tienes {{value}} posiciones; cuesta diversificar con tan pocas."
+      },
+      "regionBias": {
+        "title": "Sesgo geográfico",
+        "desc": "Un {{value}} de la cartera está en una sola región ({{label}})."
+      },
+      "sectorBias": {
+        "title": "Concentración sectorial",
+        "desc": "Un {{value}} está concentrado en un solo sector ({{label}})."
+      },
+      "singleCurrency": {
+        "title": "Una sola divisa",
+        "desc": "Todas las posiciones cotizan en {{label}}; tienes el riesgo de cambio concentrado."
+      },
+      "manyTiny": {
+        "title": "Demasiadas posiciones residuales",
+        "desc": "Tienes {{value}} posiciones por debajo del 1%; quizá dispersan más que diversifican."
+      }
+    },
+    "convertTitle": "¿Quieres seguirla en directo?",
+    "convertBody": "Lleva estas posiciones al panel completo: precios en tiempo real, rentabilidad, dividendos y modelos de valoración.",
+    "signUp": "Crea una cuenta para guardarla",
+    "ctaTitle": "Profundiza más",
+    "ctaBody": "Analiza cualquier empresa con nuestros modelos de valoración o proyecta el crecimiento de tu cartera.",
+    "exploreCta": "Explora empresas",
+    "forecastCta": "Simulador de ETFs",
+    "steps": {
+      "one": {
+        "title": "Suelta el Excel",
+        "body": "O escribe tus posiciones a mano. Todo se procesa en tu navegador."
+      },
+      "two": {
+        "title": "Analizamos la cartera",
+        "body": "Precios en directo, concentración, región, sector y riesgos, al instante."
+      },
+      "three": {
+        "title": "Comparte la nota",
+        "body": "Descarga una tarjeta con tu nota de diversificación."
+      }
+    },
+    "whatTitle": "¿Qué mira la radiografía?",
+    "whatBody": "La nota combina cuatro señales: cuántas posiciones efectivas tienes (concentración), la amplitud de la cartera, la exposición geográfica y, cuando hay datos, la mezcla sectorial. Encima añadimos la rentabilidad total, la TIR y una lista de riesgos concretos como la concentración en una sola posición, región o divisa. Es un punto de partida para pensar, no una recomendación.",
+    "faqTitle": "Preguntas frecuentes",
+    "faq": {
+      "what": {
+        "q": "¿Qué necesito para usarla?",
+        "a": "El Excel exportado de tu bróker con el formato de TrimmTrack, o simplemente el ticker, las acciones y el precio medio de cada posición escritos a mano."
+      },
+      "privacy": {
+        "q": "¿A dónde van mis datos?",
+        "a": "A ningún sitio. El Excel se lee dentro de tu navegador y las posiciones no se guardan en el servidor. Solo consultamos precios públicos para valorarlas."
+      },
+      "grade": {
+        "q": "¿Cómo se calcula la nota?",
+        "a": "Combinamos la concentración (posiciones efectivas), el número de posiciones, la exposición por región y la mezcla sectorial en una puntuación de 0 a 100 traducida a una letra de A+ a F."
+      },
+      "free": {
+        "q": "¿Es gratis?",
+        "a": "Sí, y sin registro. Si quieres seguir la cartera en directo con precios, dividendos y valoraciones, puedes crear una cuenta gratuita."
+      }
+    },
+    "disclaimer": "Esta radiografía es una herramienta educativa, no asesoramiento financiero. Los precios son públicos y pueden estar retrasados.",
+    "card": {
+      "kicker": "Radiografía de cartera",
+      "scoreOf": "{{score}} / 100",
+      "holdings": "Posiciones",
+      "topPos": "Posición principal",
+      "effN": "Posiciones efectivas",
+      "return": "Rentabilidad",
+      "cta": "Analiza tu cartera gratis · trimmtrack.com"
+    }
   }
 }

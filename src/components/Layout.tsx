@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -28,10 +28,31 @@ export function Layout() {
   const { t } = useTranslation();
   const { user } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   // The landing is a dark editorial page; header/footer follow it there so
   // the charcoal runs edge to edge. Every other route keeps the light chrome.
   // Match the home of every locale (/, /en, /es), not just the Catalan root.
-  const dark = stripLocale(useLocation().pathname) === "/";
+  const dark = stripLocale(location.pathname) === "/";
+
+  // Section navigation now lives in a left off-canvas drawer instead of an inline
+  // top nav, so the header stays minimal (and mobile finally gets a real menu).
+  const [menuOpen, setMenuOpen] = useState(false);
+  // Close the drawer whenever the route changes (a link inside it was followed).
+  useEffect(() => setMenuOpen(false), [location.pathname]);
+  // Escape closes it; lock body scroll while it's open.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
 
   async function signOut() {
     try {
@@ -55,32 +76,34 @@ export function Layout() {
             : "border-[#ece0cb] bg-[#f7f1e7]/85 supports-[backdrop-filter]:bg-[#f7f1e7]/70"
         }`}
       >
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-6">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
+        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label={t("nav.menu")}
+            aria-expanded={menuOpen}
+            className={`-ml-1 rounded-md p-2 transition-colors ${
+              dark ? "text-[#e9dcc4] hover:bg-white/10" : "text-slate-700 hover:bg-slate-100"
+            }`}
           >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
             <Logo className="h-8 w-8" />
             <Wordmark className="text-lg" light={dark} />
           </Link>
-          <nav className="hidden md:flex items-center gap-1 text-sm">
-            <NavItem to="/dashboard" label={t("nav.dashboard")} dark={dark} />
-            <NavItem to="/upload" label={t("nav.upload")} dark={dark} />
-            <NavItem to="/explore" label={t("nav.explore")} dark={dark} />
-            <NavItem to="/forecast" label={t("nav.forecast")} dark={dark} />
-            <NavItem to="/taxes" label={t("nav.taxes")} dark={dark} />
-            <NavItem to="/research" label={t("nav.research")} dark={dark} />
-          </nav>
           <div className="ml-auto flex items-center gap-3">
             <LanguageSwitcher />
             {user ? (
               <>
                 <NavLink
                   to="/account"
-                  className={`text-sm ${
-                    dark
-                      ? "text-[#c9bda9] hover:text-[#f3ead9]"
-                      : "text-slate-600 hover:text-slate-900"
+                  className={`hidden text-sm sm:inline ${
+                    dark ? "text-[#c9bda9] hover:text-[#f3ead9]" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   {user.email ?? t("nav.account")}
@@ -88,25 +111,23 @@ export function Layout() {
                 <button
                   onClick={() => void signOut()}
                   className={`text-sm ${
-                    dark
-                      ? "text-[#a99e8c] hover:text-[#f3ead9]"
-                      : "text-slate-500 hover:text-slate-900"
+                    dark ? "text-[#a99e8c] hover:text-[#f3ead9]" : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
                   {t("nav.signOut")}
                 </button>
               </>
             ) : (
-              <Link
-                to="/auth/sign-in"
-                className="btn-primary text-xs px-3 py-1.5"
-              >
+              <Link to="/auth/sign-in" className="btn-primary text-xs px-3 py-1.5">
                 {t("nav.signIn")}
               </Link>
             )}
           </div>
         </div>
       </header>
+
+      <NavDrawer open={menuOpen} onClose={() => setMenuOpen(false)} loggedIn={!!user} />
+
       <main className={`flex-1 ${dark ? "bg-[#1c130c]" : ""}`}>
         <Outlet />
       </main>
@@ -124,6 +145,12 @@ export function Layout() {
             <Logo className="h-4 w-4" />© {new Date().getFullYear()} TrimmTrack
           </span>
           <span className="flex items-center gap-3">
+            <Link
+              to="/radiografia"
+              className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
+            >
+              {t("xray.short")}
+            </Link>
             <Link
               to="/calculadora-fifo"
               className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
@@ -146,19 +173,85 @@ export function Layout() {
   );
 }
 
-function NavItem({ to, label, dark }: { to: string; label: string; dark?: boolean }) {
+// Left off-canvas navigation drawer. Its own light surface so it reads over both
+// the light chrome and the dark landing. Backdrop click / Escape / route change
+// all close it (the last two handled by the parent).
+function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => void; loggedIn: boolean }) {
+  const { t } = useTranslation();
+
+  const sections = [
+    { to: "/dashboard", label: t("nav.dashboard") },
+    { to: "/upload", label: t("nav.upload") },
+    { to: "/explore", label: t("nav.explore") },
+    { to: "/forecast", label: t("nav.forecast") },
+    { to: "/taxes", label: t("nav.taxes") },
+    { to: "/research", label: t("nav.research") },
+  ];
+  const tools = [
+    { to: "/radiografia", label: t("xray.short") },
+    { to: "/calculadora-fifo", label: t("fifoPage.short") },
+  ];
+
+  return (
+    <>
+      <div
+        onClick={onClose}
+        aria-hidden="true"
+        className={`fixed inset-0 z-50 bg-black/40 transition-opacity duration-200 ${
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("nav.menu")}
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col bg-[#f7f1e7] shadow-2xl transition-transform duration-200 ease-out ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-[#ece0cb] px-4 py-3">
+          <Link to="/" onClick={onClose} className="flex items-center gap-2.5">
+            <Logo className="h-7 w-7" />
+            <Wordmark className="text-base" />
+          </Link>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("nav.close")}
+            className="rounded-md px-2 text-2xl leading-none text-slate-400 hover:text-slate-700"
+          >
+            ×
+          </button>
+        </div>
+        <nav className="flex-1 overflow-y-auto p-2">
+          {sections.map((it) => (
+            <DrawerItem key={it.to} to={it.to} label={it.label} onClick={onClose} />
+          ))}
+          <div className="my-2 border-t border-[#ece0cb]" />
+          {tools.map((it) => (
+            <DrawerItem key={it.to} to={it.to} label={it.label} onClick={onClose} />
+          ))}
+          {loggedIn && (
+            <>
+              <div className="my-2 border-t border-[#ece0cb]" />
+              <DrawerItem to="/account" label={t("nav.account")} onClick={onClose} />
+            </>
+          )}
+        </nav>
+      </aside>
+    </>
+  );
+}
+
+function DrawerItem({ to, label, onClick }: { to: string; label: string; onClick: () => void }) {
   return (
     <NavLink
       to={to}
+      end={to === "/"}
+      onClick={onClick}
       className={({ isActive }) =>
-        `px-3 py-1.5 rounded-md ${
-          isActive
-            ? dark
-              ? "bg-white/10 text-brand-400"
-              : "bg-brand-50 text-brand-700"
-            : dark
-              ? "text-[#c9bda9] hover:bg-white/5 hover:text-[#f3ead9]"
-              : "text-slate-600 hover:bg-slate-100"
+        `block rounded-md px-3 py-2 text-sm transition-colors ${
+          isActive ? "bg-brand-50 font-medium text-brand-700" : "text-slate-700 hover:bg-slate-100"
         }`
       }
     >

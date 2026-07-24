@@ -41,6 +41,7 @@ const NEUTRAL = [
   "/",
   "/explore",
   "/research",
+  "/radiografia",
   "/calculadora-fifo",
   "/taxes",
   "/forecast",

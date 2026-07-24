@@ -14,7 +14,9 @@
     "account": "Compte",
     "signIn": "Inicia sessió",
     "signOut": "Tanca sessió",
-    "taxes": "Impostos"
+    "taxes": "Impostos",
+    "menu": "Menú",
+    "close": "Tanca"
   },
   "home": {
     "heroTitle": "El teu portfolio, sempre actualitzat",
@@ -873,5 +875,139 @@
       "secondary": "Calculadora FIFO"
     },
     "short": "Assistent d'impostos"
+  },
+  "xray": {
+    "seoTitle": "Radiografia de cartera gratuïta | Analitza la teva cartera d'accions — TrimmTrack",
+    "seoDesc": "Puja el teu Excel o escriu les teves posicions i obtén a l'instant una nota de diversificació, concentració, exposició geogràfica i riscos. Gratis i sense registre.",
+    "eyebrow": "Eina gratuïta",
+    "h1": "Radiografia de la teva cartera",
+    "lead": "Deixa anar el teu Excel del bròker (o escriu unes quantes posicions) i en segons tindràs una nota de diversificació, la teva concentració, l'exposició per regió i els riscos amagats. Sense compte. No es desa res.",
+    "short": "Radiografia",
+    "tabExcel": "Des d'un Excel",
+    "tabManual": "Escriu-les a mà",
+    "dropTitle": "Arrossega el teu Excel aquí",
+    "dropHint": "o fes clic per triar-lo (.xlsx)",
+    "privacy": "El teu Excel es processa al navegador. No s'envia enlloc ni es desa.",
+    "needFormat": "No tens el format?",
+    "needFormatLink": "Mira com preparar l'Excel",
+    "manualTicker": "Ticker",
+    "manualShares": "Accions",
+    "manualAvg": "Preu mitjà (€)",
+    "manualRemove": "Treu la fila",
+    "manualAdd": "+ Afegeix una posició",
+    "manualHint": "Ticker de Yahoo Finance (p. ex. AAPL, SAN.MC, ASML). El preu mitjà en euros.",
+    "generate": "Genera la radiografia",
+    "loading": "Analitzant {{done}}/{{total}} posicions…",
+    "tryAgain": "Torna-ho a provar",
+    "errors": {
+      "noPositions": "No hem trobat cap posició oberta. Comprova l'Excel o afegeix posicions a mà.",
+      "parse": "No hem pogut llegir aquest fitxer. Assegura't que és l'Excel amb el format esperat.",
+      "manual": "Escriu almenys una posició amb ticker, accions i preu mitjà."
+    },
+    "downloadImage": "Descarrega la imatge",
+    "continue": "Continua al panell complet",
+    "another": "Analitza'n una altra",
+    "truncated": "Només s'han analitzat les {{max}} posicions més grans.",
+    "metrics": {
+      "holdings": "Posicions",
+      "value": "Valor total",
+      "topPos": "Posició principal",
+      "effN": "Posicions efectives",
+      "return": "Rendiment total",
+      "irr": "Rendiment anual (TIR)"
+    },
+    "geoTitle": "Exposició per regió",
+    "regions": {
+      "US": "EUA",
+      "Europe": "Europa",
+      "UK": "Regne Unit",
+      "Asia": "Àsia-Pacífic",
+      "Crypto": "Cripto",
+      "Other": "Altres"
+    },
+    "sectorTitle": "Exposició per sector",
+    "coverage": "Cobertura de dades: {{pct}}",
+    "valuationTitle": "Valoració",
+    "weightedPe": "PER mitjà ponderat",
+    "flagsTitle": "Riscos detectats",
+    "noFlags": "Cap risc destacat. Cartera ben repartida.",
+    "flags": {
+      "concentrated": {
+        "title": "Massa concentrada",
+        "desc": "La teva posició més gran pesa un {{value}} de la cartera."
+      },
+      "fewHoldings": {
+        "title": "Poques posicions",
+        "desc": "Només tens {{value}} posicions; costa diversificar amb tan poques."
+      },
+      "regionBias": {
+        "title": "Biaix geogràfic",
+        "desc": "Un {{value}} de la cartera està en una sola regió ({{label}})."
+      },
+      "sectorBias": {
+        "title": "Concentració sectorial",
+        "desc": "Un {{value}} està concentrat en un sol sector ({{label}})."
+      },
+      "singleCurrency": {
+        "title": "Una sola divisa",
+        "desc": "Totes les posicions cotitzen en {{label}}; tens el risc de canvi concentrat."
+      },
+      "manyTiny": {
+        "title": "Massa posicions residuals",
+        "desc": "Tens {{value}} posicions per sota de l'1%; potser dispersen més que no diversifiquen."
+      }
+    },
+    "convertTitle": "Vols seguir-la en directe?",
+    "convertBody": "Porta aquestes posicions al panell complet: preus en temps real, rendiment, dividends i models de valoració.",
+    "signUp": "Crea un compte per desar-la",
+    "ctaTitle": "Aprofundeix més",
+    "ctaBody": "Analitza qualsevol empresa amb els nostres models de valoració o projecta el creixement de la teva cartera.",
+    "exploreCta": "Explora empreses",
+    "forecastCta": "Simulador d'ETFs",
+    "steps": {
+      "one": {
+        "title": "Deixa anar l'Excel",
+        "body": "O escriu les teves posicions a mà. Tot es processa al teu navegador."
+      },
+      "two": {
+        "title": "Analitzem la cartera",
+        "body": "Preus en directe, concentració, regió, sector i riscos, a l'instant."
+      },
+      "three": {
+        "title": "Comparteix la nota",
+        "body": "Descarrega una targeta amb la teva nota de diversificació."
+      }
+    },
+    "whatTitle": "Què mira la radiografia?",
+    "whatBody": "La nota combina quatre senyals: quantes posicions efectives tens (concentració), l'amplada de la cartera, l'exposició geogràfica i, quan hi ha dades, la barreja sectorial. A sobre hi afegim el rendiment total, la TIR i una llista de riscos concrets com la concentració en una sola posició, regió o divisa. És un punt de partida per pensar, no una recomanació.",
+    "faqTitle": "Preguntes freqüents",
+    "faq": {
+      "what": {
+        "q": "Què necessito per fer servir-la?",
+        "a": "L'Excel exportat del teu bròker amb el format de TrimmTrack, o simplement el ticker, les accions i el preu mitjà de cada posició escrits a mà."
+      },
+      "privacy": {
+        "q": "On van les meves dades?",
+        "a": "Enlloc. L'Excel es llegeix dins del teu navegador i les posicions no es desen al servidor. Només consultem preus públics per valorar-les."
+      },
+      "grade": {
+        "q": "Com es calcula la nota?",
+        "a": "Combinem la concentració (posicions efectives), el nombre de posicions, l'exposició per regió i la barreja sectorial en una puntuació de 0 a 100 traduïda a una lletra d'A+ a F."
+      },
+      "free": {
+        "q": "És gratis?",
+        "a": "Sí, i sense registre. Si vols seguir la cartera en directe amb preus, dividends i valoracions, pots crear un compte gratuït."
+      }
+    },
+    "disclaimer": "Aquesta radiografia és una eina educativa, no assessorament financer. Els preus són públics i poden estar endarrerits.",
+    "card": {
+      "kicker": "Radiografia de cartera",
+      "scoreOf": "{{score}} / 100",
+      "holdings": "Posicions",
+      "topPos": "Posició principal",
+      "effN": "Posicions efectives",
+      "return": "Rendiment",
+      "cta": "Analitza la teva cartera gratis · trimmtrack.com"
+    }
   }
 }
