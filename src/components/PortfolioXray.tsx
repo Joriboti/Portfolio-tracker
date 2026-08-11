@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -7,10 +7,12 @@ import {
   type Transaction,
   type Dividend,
   type Interest,
+  type Position,
 } from "@/lib/excel-parser";
-import { getLiveCompany, getSotpQuotes } from "@/lib/api";
+import { getLiveCompany, getPortfolio, getSotpQuotes } from "@/lib/api";
 import { formatMoney, formatPct } from "@/lib/currency";
-import { setTrialFromExcel } from "@/lib/trial";
+import { useUser } from "@/hooks/useUser";
+import { getTrialTxns, hasTrial, setTrialFromExcel } from "@/lib/trial";
 import {
   computeXray,
   type XrayReport,
@@ -79,23 +81,110 @@ function toEur(amount: number, ccy: string | null, rates: Record<string, number>
 }
 
 type Mode = "input" | "loading" | "result" | "error";
+type Tab = "saved" | "excel" | "manual";
 type ManualRow = { ticker: string; shares: string; avgCost: string };
+
+// The portfolio the visitor already has in the app — the Excel they imported
+// into the dashboard (account) or the anonymous trial portfolio in
+// sessionStorage. Loaded lazily, only when the "saved" tab is opened.
+type SavedPortfolio = {
+  txns: Transaction[];
+  dividends: Dividend[];
+  interests: Interest[];
+  from: "account" | "trial";
+};
+type SavedState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "empty" }
+  | { status: "error" }
+  | ({ status: "ready" } & SavedPortfolio);
 
 export function PortfolioXray() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useUser();
 
   const [mode, setMode] = useState<Mode>("input");
-  const [tab, setTab] = useState<"excel" | "manual">("excel");
+  const [tab, setTab] = useState<Tab>("excel");
   const [report, setReport] = useState<XrayReport | null>(null);
   const [txns, setTxns] = useState<Transaction[]>([]);
+  // Where the analysed transactions came from. "saved" ones already live in the
+  // dashboard, so the "continue" CTA must not re-import them.
+  const [source, setSource] = useState<Tab>("excel");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string>("");
   const [truncated, setTruncated] = useState(false);
   const [manual, setManual] = useState<ManualRow[]>([
     { ticker: "", shares: "", avgCost: "" },
   ]);
+  const [saved, setSaved] = useState<SavedState>({ status: "idle" });
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // A signed-in user, or an anonymous visitor mid-trial, already has a
+  // portfolio in the app; only then is the third tab worth showing.
+  const [trialAvailable] = useState(hasTrial);
+  const hasSavedSource = user != null || trialAvailable;
+
+  // Pre-select the saved portfolio the first time we know one exists (the
+  // session resolves a tick after mount), but never yank the tab from under
+  // someone who has already picked one.
+  const tabTouched = useRef(false);
+  useEffect(() => {
+    if (tabTouched.current || !hasSavedSource) return;
+    tabTouched.current = true;
+    setTab("saved");
+  }, [hasSavedSource]);
+
+  function selectTab(next: Tab) {
+    tabTouched.current = true;
+    setTab(next);
+  }
+
+  // Fetch the dashboard portfolio on first visit to the tab: the account's
+  // imported Excel when signed in, otherwise the anonymous trial.
+  useEffect(() => {
+    if (tab !== "saved" || saved.status !== "idle") return;
+    let cancelled = false;
+    setSaved({ status: "loading" });
+    void (async () => {
+      if (user) {
+        try {
+          const d = await getPortfolio(user.id);
+          if (cancelled) return;
+          if (d.transactions.length > 0) {
+            setSaved({
+              status: "ready",
+              txns: d.transactions,
+              dividends: d.dividends,
+              interests: d.interests,
+              from: "account",
+            });
+            return;
+          }
+        } catch {
+          if (!cancelled) setSaved({ status: "error" });
+          return;
+        }
+      }
+      const trial = getTrialTxns();
+      if (cancelled) return;
+      setSaved(
+        trial.length > 0
+          ? { status: "ready", txns: trial, dividends: [], interests: [], from: "trial" }
+          : { status: "empty" },
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, saved.status, user]);
+
+  // Preview of what the saved portfolio will analyse (open positions only).
+  const savedPositions = useMemo(
+    () => (saved.status === "ready" ? aggregatePositions(saved.txns).filter((p) => p.isOpen) : []),
+    [saved],
+  );
 
   async function generate(t0: Transaction[], divs: Dividend[], ints: Interest[]) {
     setError("");
@@ -173,11 +262,18 @@ export function PortfolioXray() {
         setMode("error");
         return;
       }
+      setSource("excel");
       await generate(parsed.transactions, parsed.dividends, parsed.interests);
     } catch {
       setError(t("xray.errors.parse"));
       setMode("error");
     }
+  }
+
+  function onSavedSubmit() {
+    if (saved.status !== "ready") return;
+    setSource("saved");
+    void generate(saved.txns, saved.dividends, saved.interests);
   }
 
   function onManualSubmit() {
@@ -206,6 +302,7 @@ export function PortfolioXray() {
       result: null,
       portfolio: "manual",
     }));
+    setSource("manual");
     void generate(built, [], []);
   }
 
@@ -218,7 +315,9 @@ export function PortfolioXray() {
   }
 
   function continueToDashboard() {
-    setTrialFromExcel(txns);
+    // A saved portfolio is already in the dashboard (account or trial);
+    // re-seeding the trial would duplicate it on the way in.
+    if (source !== "saved") setTrialFromExcel(txns);
     navigate("/dashboard");
   }
 
@@ -260,16 +359,28 @@ export function PortfolioXray() {
   // ----- input -----
   return (
     <div className="card">
-      <div className="mb-5 flex gap-2">
-        <TabBtn active={tab === "excel"} onClick={() => setTab("excel")}>
+      <div className="mb-5 flex flex-wrap gap-2">
+        {hasSavedSource && (
+          <TabBtn active={tab === "saved"} onClick={() => selectTab("saved")}>
+            {t("xray.tabSaved")}
+          </TabBtn>
+        )}
+        <TabBtn active={tab === "excel"} onClick={() => selectTab("excel")}>
           {t("xray.tabExcel")}
         </TabBtn>
-        <TabBtn active={tab === "manual"} onClick={() => setTab("manual")}>
+        <TabBtn active={tab === "manual"} onClick={() => selectTab("manual")}>
           {t("xray.tabManual")}
         </TabBtn>
       </div>
 
-      {tab === "excel" ? (
+      {tab === "saved" ? (
+        <SavedPanel
+          saved={saved}
+          positions={savedPositions}
+          onGenerate={onSavedSubmit}
+          onUseExcel={() => selectTab("excel")}
+        />
+      ) : tab === "excel" ? (
         <div>
           <label
             onDragOver={(e) => e.preventDefault()}
@@ -354,6 +465,100 @@ export function PortfolioXray() {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+// "Use the portfolio I already have" tab: analyses the Excel imported into the
+// dashboard (or the anonymous trial) without asking for the file again.
+function SavedPanel({
+  saved,
+  positions,
+  onGenerate,
+  onUseExcel,
+}: {
+  saved: SavedState;
+  positions: Position[];
+  onGenerate: () => void;
+  onUseExcel: () => void;
+}) {
+  const { t } = useTranslation();
+
+  if (saved.status === "loading" || saved.status === "idle") {
+    return (
+      <div className="flex items-center gap-3 py-8 text-sm text-slate-500">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-brand-500" />
+        {t("xray.saved.loading")}
+      </div>
+    );
+  }
+
+  if (saved.status === "error") {
+    return (
+      <div className="py-6">
+        <p className="text-sm text-rose-600">{t("xray.saved.error")}</p>
+        <button onClick={onUseExcel} className="mt-3 text-sm font-medium text-brand-700 hover:underline">
+          {t("xray.saved.useExcel")} →
+        </button>
+      </div>
+    );
+  }
+
+  if (saved.status === "empty" || positions.length === 0) {
+    return (
+      <div className="py-6">
+        <p className="text-sm text-slate-600">{t("xray.saved.empty")}</p>
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm font-medium text-brand-700">
+          <Link to="/upload" className="hover:underline">
+            {t("xray.saved.upload")} →
+          </Link>
+          <button onClick={onUseExcel} className="hover:underline">
+            {t("xray.saved.useExcel")} →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const totalCost = positions.reduce((s, p) => s + p.totalCost, 0);
+  const top = [...positions].sort((a, b) => b.totalCost - a.totalCost).slice(0, 5);
+  const rest = positions.length - top.length;
+
+  return (
+    <div>
+      <p className="text-sm text-slate-600">
+        {t(saved.from === "account" ? "xray.saved.fromAccount" : "xray.saved.fromTrial")}
+      </p>
+
+      <div className="mt-4 border-t border-slate-200">
+        {top.map((p) => (
+          <div
+            key={p.ticker}
+            className="flex items-baseline justify-between gap-4 border-b border-slate-100 py-2 text-sm"
+          >
+            <span className="font-medium text-slate-800">{p.ticker}</span>
+            <span className="tabular-nums text-slate-500">
+              {p.shares.toLocaleString("ca-ES", { maximumFractionDigits: 4 })} ·{" "}
+              {formatMoney(p.totalCost, "EUR")}
+            </span>
+          </div>
+        ))}
+        <div className="flex items-baseline justify-between gap-4 border-b border-slate-200 py-2 text-sm">
+          <span className="text-slate-500">
+            {rest > 0
+              ? t("xray.saved.more", { count: rest, all: positions.length })
+              : t("xray.saved.total", { count: positions.length })}
+          </span>
+          <span className="tabular-nums font-medium text-slate-700">
+            {formatMoney(totalCost, "EUR")}
+          </span>
+        </div>
+      </div>
+
+      <button onClick={onGenerate} className="btn-primary mt-4 w-full">
+        {t("xray.generate")}
+      </button>
+      <p className="mt-3 text-center text-xs text-slate-400">{t("xray.saved.hint")}</p>
     </div>
   );
 }
