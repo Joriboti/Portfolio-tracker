@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
+
 import { useTranslation } from "react-i18next";
 import {
   aggregatePositions,
@@ -327,9 +328,9 @@ function DashboardInner() {
       <div className="mx-auto max-w-3xl px-4 py-10">
         <div className="card text-center">
           <p className="text-slate-700">{t("dashboard.noPositions")}</p>
-          <Link to="/upload" className="btn-primary mt-4 inline-flex">
+          <LocaleLink to="/upload" className="btn-primary mt-4 inline-flex">
             {t("nav.upload")}
-          </Link>
+          </LocaleLink>
         </div>
       </div>
     );

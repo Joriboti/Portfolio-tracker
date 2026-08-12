@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { LocaleLink, LocaleNavLink } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo, Wordmark } from "./Logo";
@@ -92,22 +93,22 @@ export function Layout() {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
+          <LocaleLink to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
             <Logo className="h-8 w-8" />
             <Wordmark className="text-lg" light={dark} />
-          </Link>
+          </LocaleLink>
           <div className="ml-auto flex items-center gap-3">
             <LanguageSwitcher />
             {user ? (
               <>
-                <NavLink
+                <LocaleNavLink
                   to="/account"
                   className={`hidden text-sm sm:inline ${
                     dark ? "text-[#c9bda9] hover:text-[#f3ead9]" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   {user.email ?? t("nav.account")}
-                </NavLink>
+                </LocaleNavLink>
                 <button
                   onClick={() => void signOut()}
                   className={`text-sm ${
@@ -118,9 +119,9 @@ export function Layout() {
                 </button>
               </>
             ) : (
-              <Link to="/auth/sign-in" className="btn-primary text-xs px-3 py-1.5">
+              <LocaleLink to="/auth/sign-in" className="btn-primary text-xs px-3 py-1.5">
                 {t("nav.signIn")}
-              </Link>
+              </LocaleLink>
             )}
           </div>
         </div>
@@ -145,27 +146,27 @@ export function Layout() {
             <Logo className="h-4 w-4" />© {new Date().getFullYear()} TrimmTrack
           </span>
           <span className="flex items-center gap-3">
-            <Link
+            <LocaleLink
               to="/radiografia"
               className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
             >
               {t("xray.short")}
-            </Link>
-            <Link
+            </LocaleLink>
+            <LocaleLink
               to="/calculadora-fifo"
               className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
             >
               {t("fifoPage.short")}
-            </Link>
-            <Link
+            </LocaleLink>
+            <LocaleLink
               to="/taxes"
               className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
             >
               {t("taxes.short")}
-            </Link>
-            <Link to="/disclaimer" className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}>
+            </LocaleLink>
+            <LocaleLink to="/disclaimer" className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}>
               Disclaimer
-            </Link>
+            </LocaleLink>
           </span>
         </div>
       </footer>
@@ -187,9 +188,17 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
     { to: "/taxes", label: t("nav.taxes") },
     { to: "/research", label: t("nav.research") },
   ];
+  // Tool landings. The four valuation calculators are keyword pages that exist
+  // in all three languages, so they belong in the drawer — a page reachable only
+  // from a sitemap is a page Google treats as an orphan. LocaleNavLink turns each
+  // neutral slug into the current language's URL (/calculadora-dcf → /en/dcf-calculator).
   const tools = [
     { to: "/radiografia", label: t("xray.short") },
     { to: "/calculadora-fifo", label: t("fifoPage.short") },
+    { to: "/calculadora-dcf", label: t("tools.dcfShort") },
+    { to: "/dcf-invers", label: t("tools.reverseDcfShort") },
+    { to: "/numero-de-graham", label: t("tools.grahamShort") },
+    { to: "/simulador-monte-carlo", label: t("tools.monteCarloShort") },
   ];
 
   return (
@@ -210,10 +219,10 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
         }`}
       >
         <div className="flex items-center justify-between border-b border-[#ece0cb] px-4 py-3">
-          <Link to="/" onClick={onClose} className="flex items-center gap-2.5">
+          <LocaleLink to="/" onClick={onClose} className="flex items-center gap-2.5">
             <Logo className="h-7 w-7" />
             <Wordmark className="text-base" />
-          </Link>
+          </LocaleLink>
           <button
             type="button"
             onClick={onClose}
@@ -245,7 +254,7 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
 
 function DrawerItem({ to, label, onClick }: { to: string; label: string; onClick: () => void }) {
   return (
-    <NavLink
+    <LocaleNavLink
       to={to}
       end={to === "/"}
       onClick={onClick}
@@ -256,6 +265,6 @@ function DrawerItem({ to, label, onClick }: { to: string; label: string; onClick
       }
     >
       {label}
-    </NavLink>
+    </LocaleNavLink>
   );
 }

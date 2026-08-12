@@ -1,60 +1,43 @@
-// Generates public/sitemap-tickers.xml — every programmatic page, with ca/es/en
-// hreflang alternates: one /explore/:ticker per src/data/tickers.json entry, plus
-// one /explore/compare/:pair per src/data/compare-pairs.json entry. Runs at the
-// start of the build so the file is picked up into dist/. Referenced from
-// robots.txt as a second sitemap (kept separate from the curated sitemap.xml so
-// that one stays small and hand-editable).
+// Generates public/sitemap-tickers.xml — the programmatic pages: one
+// /explore/:ticker per src/data/tickers.json entry and one
+// /explore/compare/:pair per src/data/compare-pairs.json entry, EACH IN EVERY
+// LANGUAGE as its own <url>.
+//
+// It used to emit one <url> per base page whose <loc> was the Catalan URL, with
+// the /es and /en variants mentioned only as xhtml:link alternates. Google reads
+// <loc> as "the URL I am submitting" and an alternate as a hint about a page it
+// must discover some other way, so the 232 localized variants were never
+// submitted — and, because the prerenderer skipped them too, they answered with
+// the Catalan shell when Google did reach them. Both halves are fixed: the URL
+// inventory now comes from scripts/routes.mjs, which the prerenderer reads as
+// well.
+//
+// Runs at the start of the build so the file lands in dist/. Referenced from
+// robots.txt as a second sitemap, kept separate from the curated sitemap.xml so
+// that one stays small and reviewable.
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { PAIR_DATA, TICKER_DATA, programmaticUrls } from "./routes.mjs";
+import { renderSitemap } from "./sitemap-xml.mjs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(__dirname, "..");
-const BASE = "https://www.trimmtrack.com";
-// Path-based locale prefixes (were ?lng= querystrings). Catalan is the bare
-// path; x-default points at English (the prioritized market).
-const LANGS = [
-  ["ca", ""],
-  ["es", "/es"],
-  ["en", "/en"],
-  ["x-default", "/en"],
-];
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const read = (f) => JSON.parse(readFileSync(path.join(root, f), "utf8"));
-const tickers = read("src/data/tickers.json");
-const pairs = read("src/data/compare-pairs.json");
-
-// Build date as <lastmod>: the pages carry live financials + accumulating EDGAR
-// history that refresh with each weekly deploy, so a fresh lastmod on every
-// build tells Google to recrawl the updated content.
+// Build date as <lastmod>: these pages carry live financials plus accumulating
+// EDGAR history that genuinely change with each weekly deploy, so a fresh
+// lastmod is a truthful recrawl signal here (unlike the static copy pages).
 const today = new Date().toISOString().slice(0, 10);
 
-function entry(slug, priority) {
-  const alts = LANGS.map(
-    ([l, prefix]) =>
-      `    <xhtml:link rel="alternate" hreflang="${l}" href="${BASE}${prefix}${slug}"/>`,
-  ).join("\n");
-  return `  <url>\n    <loc>${BASE}${slug}</loc>\n${alts}\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
-}
+const urls = programmaticUrls({ lastmod: today });
+writeFileSync(
+  path.join(root, "public/sitemap-tickers.xml"),
+  renderSitemap(urls),
+  "utf8",
+);
 
-// Only the curated direction of each pair is listed; the reverse slug redirects
-// to it, so advertising both would be asking to index a duplicate.
-const urls = [
-  ...tickers.map(({ symbol }) => entry(`/explore/${symbol.toLowerCase()}`, "0.7")),
-  ...pairs.map(({ a, b }) =>
-    entry(`/explore/compare/${a.toLowerCase()}-vs-${b.toLowerCase()}`, "0.6"),
-  ),
-].join("\n");
-
-const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${urls}
-</urlset>
-`;
-
-writeFileSync(path.join(root, "public/sitemap-tickers.xml"), xml, "utf8");
+const base = TICKER_DATA.length + PAIR_DATA.length;
 console.log(
-  `[sitemap] wrote ${tickers.length} ticker + ${pairs.length} comparison URLs to public/sitemap-tickers.xml`,
+  `[sitemap] wrote ${urls.length} URLs to public/sitemap-tickers.xml ` +
+    `(${TICKER_DATA.length} tickers + ${PAIR_DATA.length} comparisons = ${base} pages × 3 languages)`,
 );

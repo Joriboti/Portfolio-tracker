@@ -32,14 +32,21 @@ void i18n
     supportedLngs: ["ca", "en", "es"],
     interpolation: { escapeValue: false },
     detection: {
-      // path first (the crawlable per-language URLs), then the legacy ?lng=
-      // querystring and the cached choice. `navigator` is intentionally omitted:
-      // it made the bare root non-deterministic (a crawler reporting en would
-      // render English under a ca canonical). English is discovered via the /en
-      // URLs + hreflang instead, so the unprefixed root is always the ca default
-      // (a returning visitor's cached choice still wins via localStorage).
-      order: ["path", "querystring", "localStorage"],
-      lookupQuerystring: "lng",
+      // The URL path prefix, then the cached choice. Two detectors are
+      // deliberately absent:
+      //   • `navigator` — it made the bare root non-deterministic (a crawler
+      //     reporting en would render English under a ca canonical). English is
+      //     discovered via the /en URLs + hreflang instead, so the unprefixed
+      //     root is always the ca default; a returning visitor's cached choice
+      //     still wins via localStorage.
+      //   • `querystring` (?lng=) — the legacy language switch. Honouring it
+      //     meant /research?lng=es rendered Spanish at a URL whose canonical
+      //     says Catalan: a JS-only language switch Google cannot follow and a
+      //     contradiction where it can. Those URLs now 301 to /es/research at
+      //     the edge (see vercel.json), so the parameter needs no client
+      //     behaviour at all — and if one slips through, the page renders the
+      //     language its path declares.
+      order: ["path", "localStorage"],
       caches: ["localStorage"],
     },
   });

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import {
   parseWorkbook,
@@ -407,9 +408,9 @@ export function PortfolioXray() {
           <p className="mt-3 text-center text-xs text-slate-400">{t("xray.privacy")}</p>
           <p className="mt-4 text-center text-sm text-slate-500">
             {t("xray.needFormat")}{" "}
-            <Link to="/upload" className="text-brand-700 hover:underline">
+            <LocaleLink to="/upload" className="text-brand-700 hover:underline">
               {t("xray.needFormatLink")}
-            </Link>
+            </LocaleLink>
           </p>
         </div>
       ) : (
@@ -509,9 +510,9 @@ function SavedPanel({
       <div className="py-6">
         <p className="text-sm text-slate-600">{t("xray.saved.empty")}</p>
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm font-medium text-brand-700">
-          <Link to="/upload" className="hover:underline">
+          <LocaleLink to="/upload" className="hover:underline">
             {t("xray.saved.upload")} →
-          </Link>
+          </LocaleLink>
           <button onClick={onUseExcel} className="hover:underline">
             {t("xray.saved.useExcel")} →
           </button>
@@ -750,9 +751,9 @@ function XrayResult({
           <button onClick={onContinue} className="btn-primary text-sm px-4 py-2">
             {t("xray.continue")}
           </button>
-          <Link to="/auth/sign-in?next=/dashboard" className="btn-ghost text-sm px-4 py-2">
+          <LocaleLink to="/auth/sign-in?next=/dashboard" className="btn-ghost text-sm px-4 py-2">
             {t("xray.signUp")}
-          </Link>
+          </LocaleLink>
         </div>
       </div>
 

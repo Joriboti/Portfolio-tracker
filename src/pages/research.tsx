@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useLocale } from "@/components/LocaleLink";
+import { withLocale } from "@/lib/locale";
+import { resolveArticleLocale } from "@/lib/research-locales";
+
 import { useTranslation } from "react-i18next";
 import { getResearchList, type ResearchCard } from "@/lib/research";
 import { ResearchWordmark } from "@/components/Logo";
@@ -46,6 +50,7 @@ export function TagPill({ tag }: { tag: string }) {
 
 export function ResearchPage() {
   const { t, i18n } = useTranslation();
+  const locale = useLocale();
   const [articles, setArticles] = useState<ResearchCard[] | null>(null);
 
   useSeo({
@@ -82,9 +87,16 @@ export function ResearchPage() {
       ) : (
         <div className="grid gap-5 sm:grid-cols-2">
           {articles.map((a) => (
+            // Link straight to the language the article is actually written in.
+            // Linking to the current locale's path would send every reader (and
+            // every crawler) of the ca/es listing through a 301, because most
+            // articles exist in English only.
             <Link
               key={a.slug}
-              to={`/research/${a.slug}`}
+              to={withLocale(
+                `/research/${a.slug}`,
+                resolveArticleLocale(a.slug, locale) ?? locale,
+              )}
               className="card group flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover"
             >
               {a.coverImage && (

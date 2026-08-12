@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { useSeo } from "@/lib/seo";
 
@@ -36,12 +37,12 @@ export function DisclaimerPage() {
           <p>{t("disclaimer.p1")}</p>
           <p>
             {t("disclaimer.p2")}{" "}
-            <Link
+            <LocaleLink
               to="/upload"
               className="underline font-medium hover:text-amber-700"
             >
               {t("nav.howTo")} →
-            </Link>
+            </LocaleLink>
           </p>
           <p>{t("disclaimer.p3")}</p>
         </div>
@@ -49,9 +50,9 @@ export function DisclaimerPage() {
           <button onClick={accept} className="btn-primary">
             {t("disclaimer.ack")}
           </button>
-          <Link to="/" className="btn-ghost">
+          <LocaleLink to="/" className="btn-ghost">
             {t("nav.home")}
-          </Link>
+          </LocaleLink>
         </div>
       </div>
     </div>

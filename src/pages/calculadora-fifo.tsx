@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
+
 import { useTranslation } from "react-i18next";
 import { FifoCalculator } from "@/components/FifoCalculator";
 import { useSeo } from "@/lib/seo";
@@ -86,12 +87,12 @@ export function FifoCalculatorPage() {
         <h2 className="text-lg font-semibold text-slate-900">{t("fifoPage.ctaTitle")}</h2>
         <p className="mt-1 text-sm text-slate-600">{t("fifoPage.ctaBody")}</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link to="/upload" className="btn-primary text-sm px-4 py-2">
+          <LocaleLink to="/upload" className="btn-primary text-sm px-4 py-2">
             {t("fifoPage.ctaPrimary")}
-          </Link>
-          <Link to="/explore" className="btn-ghost text-sm px-4 py-2">
+          </LocaleLink>
+          <LocaleLink to="/explore" className="btn-ghost text-sm px-4 py-2">
             {t("fifoPage.ctaSecondary")}
-          </Link>
+          </LocaleLink>
         </div>
       </section>
 

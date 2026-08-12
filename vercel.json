@@ -8,8 +8,76 @@
       "maxDuration": 60
     }
   },
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "lng", "value": "es" }],
+      "destination": "/es",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "lng", "value": "en" }],
+      "destination": "/en",
+      "permanent": true
+    },
+    {
+      "source": "/:path((?!es/|en/|es$|en$).*)",
+      "has": [{ "type": "query", "key": "lng", "value": "es" }],
+      "destination": "/es/:path",
+      "permanent": true
+    },
+    {
+      "source": "/:path((?!es/|en/|es$|en$).*)",
+      "has": [{ "type": "query", "key": "lng", "value": "en" }],
+      "destination": "/en/:path",
+      "permanent": true
+    },
+
+    {
+      "source": "/en/calculadora-fifo",
+      "destination": "/en/fifo-capital-gains-calculator",
+      "permanent": true
+    },
+
+    { "source": "/research/applovin", "destination": "/en/research/applovin", "permanent": true },
+    { "source": "/es/research/applovin", "destination": "/en/research/applovin", "permanent": true },
+    { "source": "/research/netflix", "destination": "/en/research/netflix", "permanent": true },
+    { "source": "/es/research/netflix", "destination": "/en/research/netflix", "permanent": true },
+    { "source": "/research/exor", "destination": "/en/research/exor", "permanent": true },
+    { "source": "/es/research/exor", "destination": "/en/research/exor", "permanent": true },
+    { "source": "/research/meta", "destination": "/en/research/meta", "permanent": true },
+    { "source": "/es/research/meta", "destination": "/en/research/meta", "permanent": true }
+  ],
   "rewrites": [
-    { "source": "/((?!api).*)", "destination": "/app.html" }
+    { "source": "/", "destination": "/app.html" },
+    { "source": "/:locale(es|en)", "destination": "/app.html" },
+
+    {
+      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo)",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo)/:rest*",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/:locale(es|en)/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-inverso|numero-de-graham|simulador-monte-carlo|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|fifo-capital-gains-calculator|etf-growth-calculator|portfolio-tracker)",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/:locale(es|en)/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-inverso|numero-de-graham|simulador-monte-carlo|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|fifo-capital-gains-calculator|etf-growth-calculator|portfolio-tracker)/:rest*",
+      "destination": "/app.html"
+    },
+
+    {
+      "source": "/:seg(dashboard|upload|account|auth|debug|verify|how-to-prepare)",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/:seg(dashboard|upload|account|auth|debug|verify|how-to-prepare)/:rest*",
+      "destination": "/app.html"
+    }
   ],
   "crons": [
     {

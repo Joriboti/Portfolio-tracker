@@ -1112,5 +1112,20 @@
       "return": "Return",
       "cta": "X-ray your portfolio free · trimmtrack.com"
     }
+  },
+  "tools": {
+    "faqHeading": "Frequently asked questions",
+    "dcfShort": "DCF calculator",
+    "reverseDcfShort": "Reverse DCF",
+    "grahamShort": "Graham number",
+    "monteCarloShort": "Monte Carlo",
+    "groupLabel": "Calculators"
+  },
+  "notFound": {
+    "title": "Page not found (404) | TrimmTrack",
+    "description": "This address does not exist on TrimmTrack.",
+    "heading": "This page does not exist",
+    "body": "The link may be outdated or contain a typo. Try starting from the home page or exploring companies.",
+    "home": "Go to the home page"
   }
 }

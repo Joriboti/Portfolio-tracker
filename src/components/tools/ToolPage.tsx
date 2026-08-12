@@ -1,18 +1,33 @@
 import { useMemo, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { LocaleLink } from "@/components/LocaleLink";
 import { useSeo } from "@/lib/seo";
-import { SITE_ORIGIN, type Locale } from "@/lib/locale";
+import { localeUrl, type Locale } from "@/lib/locale";
 
-// Shared scaffold for the English SEO tool pages (/en/*). Renders a keyword H1,
-// the interactive calculator, 400–600 words of educational prose + a worked
+// Shared scaffold for the search-intent tool landing pages. Renders a keyword
+// H1, the interactive calculator, 400–600 words of educational prose + a worked
 // example, an FAQ, and a CTA into the product. Emits SoftwareApplication +
-// FAQPage JSON-LD and a self-referencing, English-only canonical/hreflang.
+// FAQPage JSON-LD and a self-referencing canonical.
+//
+// Pages are addressed by ROUTE_SLUGS route id rather than a literal path, so the
+// canonical and the hreflang cluster are built from the same slug table the
+// router and the sitemap read. A page that exists in three languages gets three
+// reciprocal URLs for free; one that exists only in English passes
+// alternates={["en"]} and advertises no ca/es URL that would 404.
 
 export type Faq = { q: string; a: ReactNode };
 
 export type ToolPageProps = {
-  /** Language-neutral path; the canonical becomes /en + this ("/dcf-calculator"). */
-  slug: string;
+  /**
+   * This page's slug WITHOUT the locale prefix, worded for `locale`
+   * ("/calculadora-dcf" in ca/es, "/dcf-calculator" in en). Usually
+   * ROUTE_SLUGS[id][locale]; English-only pages pass their literal slug.
+   */
+  path: string;
+  /** Locale this instance renders in; drives canonical, JSON-LD url and copy. */
+  locale: Locale;
+  /** Locales this page actually exists in (reciprocal hreflang set). */
+  alternates: Locale[];
   seoTitle: string;
   seoDescription: string;
   appName: string;
@@ -32,9 +47,6 @@ export type ToolPageProps = {
   };
 };
 
-// English-only pages: don't advertise ca/es hreflang alternates that don't exist.
-const EN_ONLY: Locale[] = ["en"];
-
 /** Plain-text version of an FAQ answer for the schema (strips any JSX). */
 function faqText(a: ReactNode): string {
   if (typeof a === "string") return a;
@@ -43,8 +55,9 @@ function faqText(a: ReactNode): string {
 }
 
 export function ToolPage(props: ToolPageProps) {
-  const { slug, appName, faqs } = props;
-  const canonical = `${SITE_ORIGIN}/en${slug}`;
+  const { path, locale, alternates, appName, faqs } = props;
+  const { t } = useTranslation();
+  const canonical = localeUrl(path, locale);
 
   const jsonLd = useMemo(
     () => ({
@@ -56,11 +69,13 @@ export function ToolPage(props: ToolPageProps) {
           applicationCategory: "FinanceApplication",
           operatingSystem: "Web",
           url: canonical,
-          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          inLanguage: locale,
+          offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
           isAccessibleForFree: true,
         },
         {
           "@type": "FAQPage",
+          inLanguage: locale,
           mainEntity: faqs.map((f) => ({
             "@type": "Question",
             name: f.q,
@@ -69,14 +84,14 @@ export function ToolPage(props: ToolPageProps) {
         },
       ],
     }),
-    [appName, canonical, faqs],
+    [appName, canonical, faqs, locale],
   );
 
   useSeo({
     title: props.seoTitle,
     description: props.seoDescription,
-    path: `/en${slug}`,
-    alternates: EN_ONLY,
+    path,
+    alternates,
     jsonLd,
   });
 
@@ -104,7 +119,7 @@ export function ToolPage(props: ToolPageProps) {
       ))}
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-slate-900">Frequently asked questions</h2>
+        <h2 className="text-xl font-semibold text-slate-900">{t("tools.faqHeading")}</h2>
         <dl className="space-y-4">
           {faqs.map((f) => (
             <div key={f.q}>
@@ -120,13 +135,13 @@ export function ToolPage(props: ToolPageProps) {
           <h2 className="text-lg font-semibold text-slate-900">{props.cta.title}</h2>
           <p className="mt-1 text-sm text-slate-600">{props.cta.body}</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link to={props.cta.primaryTo} className="btn-primary text-sm px-4 py-2">
+            <LocaleLink to={props.cta.primaryTo} className="btn-primary text-sm px-4 py-2">
               {props.cta.primaryLabel}
-            </Link>
+            </LocaleLink>
             {props.cta.secondaryTo ? (
-              <Link to={props.cta.secondaryTo} className="btn-ghost text-sm px-4 py-2">
+              <LocaleLink to={props.cta.secondaryTo} className="btn-ghost text-sm px-4 py-2">
                 {props.cta.secondaryLabel}
-              </Link>
+              </LocaleLink>
             ) : null}
           </div>
         </section>

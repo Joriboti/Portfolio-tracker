@@ -1112,5 +1112,20 @@
       "return": "Rendiment",
       "cta": "Analitza la teva cartera gratis · trimmtrack.com"
     }
+  },
+  "tools": {
+    "faqHeading": "Preguntes freqüents",
+    "dcfShort": "Calculadora DCF",
+    "reverseDcfShort": "DCF invers",
+    "grahamShort": "Número de Graham",
+    "monteCarloShort": "Monte Carlo",
+    "groupLabel": "Calculadores"
+  },
+  "notFound": {
+    "title": "Pàgina no trobada (404) | TrimmTrack",
+    "description": "Aquesta adreça no existeix a TrimmTrack.",
+    "heading": "Aquesta pàgina no existeix",
+    "body": "L'enllaç pot ser antic o tenir una errada. Prova de començar per la portada o d'explorar les empreses.",
+    "home": "Ves a la portada"
   }
 }

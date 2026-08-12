@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useLocation, useParams } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import {
   getLiveCompany,
@@ -273,12 +274,12 @@ function CompanyCard({
       <p className="mt-2 text-lg font-semibold tabular-nums text-slate-900">
         {price != null && ccy ? formatCompact(price, ccy) : "—"}
       </p>
-      <Link
+      <LocaleLink
         to={`/explore/${symbol.toLowerCase()}`}
         className="mt-1 inline-block text-xs text-brand-600 hover:underline"
       >
         {t("compare.viewCompany", { name })}
-      </Link>
+      </LocaleLink>
     </section>
   );
 }
@@ -451,8 +452,7 @@ function OtherComparisons({ current }: { current: Pair }) {
   const { t } = useTranslation();
   // Keep the reader in the language they are browsing: these links are the crawl
   // path between the pages, so a ca link on /es would leak the whole grid back
-  // to the default locale.
-  const locale = localeFromPath(useLocation().pathname);
+  // to the default locale. LocaleLink now does that from the neutral path.
   const others = COMPARE_PAIRS.filter(
     (p) => !(p.a === current.a && p.b === current.b),
   ).slice(0, 24);
@@ -461,13 +461,13 @@ function OtherComparisons({ current }: { current: Pair }) {
       <h2 className="text-sm font-semibold text-slate-700">{t("compare.othersTitle")}</h2>
       <div className="mt-3 flex flex-wrap gap-2">
         {others.map((p) => (
-          <Link
+          <LocaleLink
             key={pairSlug(p)}
-            to={withLocale(`/explore/compare/${pairSlug(p)}`, locale)}
+            to={`/explore/compare/${pairSlug(p)}`}
             className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 transition-colors hover:border-brand-300 hover:bg-brand-50"
           >
             {companyName(p.a)} vs {companyName(p.b)}
-          </Link>
+          </LocaleLink>
         ))}
       </div>
     </section>

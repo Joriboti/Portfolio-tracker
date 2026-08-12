@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { companyName, pairSlug, pairsFor } from "@/lib/compare";
-import { localeFromPath, withLocale, SITE_ORIGIN } from "@/lib/locale";
+import { SITE_ORIGIN } from "@/lib/locale";
 import {
   searchTickers,
   getLiveCompany,
@@ -91,6 +92,11 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
           image: staticName
             ? `${SITE_ORIGIN}/og/${routeTicker.toLowerCase()}.png`
             : undefined,
+          // /explore/:ticker resolves ANY symbol via the live API, so the route
+          // can mint unlimited URLs. Only the curated list (tickers.json — the
+          // same source as the sitemap and the prerender) is indexable; anything
+          // else stays a working page but not a thin one competing in search.
+          noindex: !staticName,
         }
       : {
           title: company
@@ -381,7 +387,7 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
 // the crawl path in, and the natural next click for someone weighing two rivals.
 function ComparisonLinks({ ticker }: { ticker: string }) {
   const { t } = useTranslation();
-  const locale = localeFromPath(useLocation().pathname);
+  // No locale plumbing needed: LocaleLink localizes the neutral path itself.
   const pairs = pairsFor(ticker);
   if (pairs.length === 0) return null;
   return (
@@ -391,13 +397,13 @@ function ComparisonLinks({ ticker }: { ticker: string }) {
       </h2>
       <div className="mt-3 flex flex-wrap gap-2">
         {pairs.map((p) => (
-          <Link
+          <LocaleLink
             key={pairSlug(p)}
-            to={withLocale(`/explore/compare/${pairSlug(p)}`, locale)}
+            to={`/explore/compare/${pairSlug(p)}`}
             className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 transition-colors hover:border-brand-300 hover:bg-brand-50"
           >
             {companyName(p.a)} vs {companyName(p.b)}
-          </Link>
+          </LocaleLink>
         ))}
       </div>
     </section>
@@ -415,13 +421,13 @@ function PopularCompanies({ exclude }: { exclude: string | null }) {
       <h2 className="text-sm font-semibold text-slate-700">{t("explore.popularTitle")}</h2>
       <div className="mt-3 flex flex-wrap gap-2">
         {list.map((c) => (
-          <Link
+          <LocaleLink
             key={c.symbol}
             to={`/explore/${c.symbol.toLowerCase()}`}
             className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 transition-colors hover:border-brand-300 hover:bg-brand-50"
           >
             {c.name}
-          </Link>
+          </LocaleLink>
         ))}
       </div>
     </section>

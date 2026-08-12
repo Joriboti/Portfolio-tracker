@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
+
 import { useTranslation } from "react-i18next";
 import { PortfolioXray } from "@/components/PortfolioXray";
 import { useSeo } from "@/lib/seo";
@@ -90,12 +91,12 @@ export function RadiografiaPage() {
         <h2 className="text-lg font-semibold text-slate-900">{t("xray.ctaTitle")}</h2>
         <p className="mt-1 text-sm text-slate-600">{t("xray.ctaBody")}</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link to="/explore" className="btn-primary text-sm px-4 py-2">
+          <LocaleLink to="/explore" className="btn-primary text-sm px-4 py-2">
             {t("xray.exploreCta")}
-          </Link>
-          <Link to="/forecast" className="btn-ghost text-sm px-4 py-2">
+          </LocaleLink>
+          <LocaleLink to="/forecast" className="btn-ghost text-sm px-4 py-2">
             {t("xray.forecastCta")}
-          </Link>
+          </LocaleLink>
         </div>
       </section>
 

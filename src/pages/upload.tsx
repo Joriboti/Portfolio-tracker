@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { parseWorkbook, type ParsedWorkbook } from "@/lib/excel-parser";
 import { hasAcceptedDisclaimer } from "./disclaimer";
@@ -29,9 +30,9 @@ function UploadInner() {
       <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="card border-amber-200 bg-amber-50">
           <p className="text-amber-900">{t("disclaimer.important")}</p>
-          <Link to="/disclaimer" className="btn-primary mt-4 inline-flex">
+          <LocaleLink to="/disclaimer" className="btn-primary mt-4 inline-flex">
             {t("disclaimer.title")} →
-          </Link>
+          </LocaleLink>
         </div>
       </div>
     );

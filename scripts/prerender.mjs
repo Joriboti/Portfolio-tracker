@@ -11,22 +11,28 @@
 
 import http from "node:http";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
 import { generateOgImages } from "./og-images.mjs";
+import { PAIR_DATA, TICKER_DATA, allPrerenderRoutes } from "./routes.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const DIST = path.join(ROOT, "dist");
 const PORT = 4317;
 
-// Every route listed in the two sitemaps gets a snapshot, once per language, so
-// each URL ships real translated HTML plus its own self-referencing canonical
-// and hreflang set. Anything in a sitemap but not prerendered would fall back to
-// the SPA shell (see SHELL_FILE below) and depend on Google executing JS to get
-// its canonical — so this list and the sitemap generators must stay in sync.
+// Every indexable URL gets a snapshot IN ITS OWN LANGUAGE, so each ships real
+// translated HTML plus its own self-referencing canonical and hreflang set.
+// Anything in a sitemap but not prerendered falls back to the SPA shell — which
+// is a Catalan document with a generic title and no canonical, so under /es or
+// /en it is actively wrong, not merely slower. That was the live bug: the route
+// list here was ca-only for the 116 programmatic pages while the ticker sitemap
+// advertised all three languages.
+//
+// The fix is structural rather than a longer list: the inventory comes from
+// scripts/routes.mjs, the same module the two sitemap generators read.
 //
 // The API is OPTIONAL here: useSeo() derives the canonical from the URL and the
 // /explore/:ticker heading + tags come from the static tickers.json, so a
@@ -36,45 +42,8 @@ const PORT = 4317;
 // origin (see the request handler), which bakes the company dashboard's actual
 // figures and the Notion article bodies into the static HTML — the difference
 // between Google seeing a heading and Google seeing the whole page.
-const LANGS = ["ca", "es", "en"];
-const NEUTRAL = [
-  "/",
-  "/explore",
-  "/research",
-  "/radiografia",
-  "/calculadora-fifo",
-  "/taxes",
-  "/forecast",
-  "/disclaimer",
-];
-const ARTICLES = ["/research/netflix", "/research/exor", "/research/meta"];
-// English-only SEO tool pages (Phase 1) — each only exists under /en.
-const EN_TOOLS = [
-  "/en/dcf-calculator",
-  "/en/reverse-dcf-calculator",
-  "/en/graham-number-calculator",
-  "/en/monte-carlo-stock-simulator",
-  "/en/fifo-capital-gains-calculator",
-  "/en/etf-growth-calculator",
-  "/en/portfolio-tracker",
-];
-// Programmatic /explore/:ticker pages — the same source sitemap-tickers.xml is
-// generated from. Only the bare (Catalan) URL is in that sitemap's <loc>, so the
-// /es|/en variants it advertises via hreflang ride the SPA shell fallback.
-const readData = (f) => JSON.parse(readFileSync(path.join(ROOT, f), "utf8"));
-const TICKER_DATA = readData("src/data/tickers.json");
-const PAIR_DATA = readData("src/data/compare-pairs.json");
 const NAME_OF = Object.fromEntries(
   TICKER_DATA.map(({ symbol, name }) => [symbol.toUpperCase(), name]),
-);
-const TICKERS = TICKER_DATA.map(
-  ({ symbol }) => `/explore/${symbol.toLowerCase()}`,
-);
-// Head-to-head pages. Curated direction only — the reverse slug redirects to it,
-// so snapshotting both would bake a redirect into a page Google would then treat
-// as a duplicate.
-const COMPARISONS = PAIR_DATA.map(
-  ({ a, b }) => `/explore/compare/${a.toLowerCase()}-vs-${b.toLowerCase()}`,
 );
 
 // Open Graph cards, one per programmatic page. Names must match the og:image
@@ -94,24 +63,19 @@ const OG_SPECS = [
   })),
 ];
 
-function withPrefix(route, lng) {
-  if (lng === "ca") return route;
-  return route === "/" ? `/${lng}` : `/${lng}${route}`;
-}
+// One entry per indexable URL (all languages) plus the 404 page. Ticker and
+// comparison pages carry awaitCharts: they are the reason the API proxy exists,
+// since their content is entirely API-driven.
+const ALL_ROUTES = allPrerenderRoutes().map(
+  ({ path: url, locale, awaitCharts, notFound }) => ({
+    url,
+    lng: locale,
+    awaitCharts,
+    notFound,
+  }),
+);
 
-const ALL_ROUTES = [
-  ...LANGS.flatMap((lng) =>
-    [...NEUTRAL, ...ARTICLES].map((r) => ({ url: withPrefix(r, lng), lng })),
-  ),
-  ...EN_TOOLS.map((url) => ({ url, lng: "en" })),
-  // Ticker and comparison pages are the reason the API proxy exists: their
-  // content is entirely API-driven, so they wait for the charts to paint before
-  // snapshotting.
-  ...TICKERS.map((url) => ({ url, lng: "ca", awaitCharts: true })),
-  ...COMPARISONS.map((url) => ({ url, lng: "ca", awaitCharts: true })),
-];
-
-// Debug aid: PRERENDER_ONLY=/explore/aapl,/en narrows a 114-route run down to
+// Debug aid: PRERENDER_ONLY=/explore/aapl,/en narrows a ~400-route run down to
 // what you are actually iterating on. Never set in a real build.
 const ONLY = (process.env.PRERENDER_ONLY || "")
   .split(",")
@@ -369,11 +333,20 @@ async function snapshot(browser, route, lng, opts = {}) {
     const html = await page.evaluate(
       () => "<!DOCTYPE html>\n" + document.documentElement.outerHTML,
     );
-    const outDir = route === "/" ? DIST : path.join(DIST, route);
-    await mkdir(outDir, { recursive: true });
-    await writeFile(path.join(outDir, "index.html"), html, "utf8");
+    const outFile = path.join(
+      route === "/" ? DIST : path.join(DIST, route),
+      "index.html",
+    );
+    await mkdir(path.dirname(outFile), { recursive: true });
+    await writeFile(outFile, html, "utf8");
+    // The Catalan 404 is ALSO written to dist/404.html, which is what Vercel
+    // serves — with a real 404 status — for a path matching no rewrite and no
+    // file. Without that file an unknown URL answers 200 with the SPA shell.
+    if (opts.notFound && lng === "ca") {
+      await writeFile(path.join(DIST, "404.html"), html, "utf8");
+    }
     console.log(
-      `[prerender] ${route} → ${path.relative(DIST, path.join(outDir, "index.html"))} (${(html.length / 1024).toFixed(1)} kB)`,
+      `[prerender] ${route} → ${path.relative(DIST, outFile)} (${(html.length / 1024).toFixed(1)} kB)`,
     );
   } finally {
     await page.close().catch(() => {});

@@ -1112,5 +1112,20 @@
       "return": "Rentabilidad",
       "cta": "Analiza tu cartera gratis · trimmtrack.com"
     }
+  },
+  "tools": {
+    "faqHeading": "Preguntas frecuentes",
+    "dcfShort": "Calculadora DCF",
+    "reverseDcfShort": "DCF inverso",
+    "grahamShort": "Número de Graham",
+    "monteCarloShort": "Monte Carlo",
+    "groupLabel": "Calculadoras"
+  },
+  "notFound": {
+    "title": "Página no encontrada (404) | TrimmTrack",
+    "description": "Esta dirección no existe en TrimmTrack.",
+    "heading": "Esta página no existe",
+    "body": "El enlace puede ser antiguo o tener una errata. Prueba a empezar por la portada o a explorar las empresas.",
+    "home": "Ir a la portada"
   }
 }

@@ -1,33 +1,26 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { LOCALES, type Locale, stripLocale, withLocale } from "@/lib/locale";
+import { LOCALES, type Locale, isLocalizable, stripLocale, withLocale } from "@/lib/locale";
 
-// Public pages that exist under every locale prefix. Switching language on one
-// of these navigates to the sibling URL (/calculadora-fifo → /en/calculadora-fifo)
-// so the choice is reflected in a crawlable path. On any other page (app pages,
-// or the English-only tool pages) we just change the language in place, falling
-// back to that language's home when the current path has no localized sibling.
-const MIRRORED = ["/research", "/explore", "/forecast", "/disclaimer", "/calculadora-fifo"];
-
-function isMirrored(neutralPath: string): boolean {
-  return neutralPath === "/" || MIRRORED.some((p) => neutralPath.startsWith(p));
-}
-
+// Switching language navigates to the EQUIVALENT page, not to the home page.
+//
+// It used to compare the path against a hand-kept MIRRORED list that had gone
+// stale (/taxes and /radiografia were missing), so on those pages — and on every
+// English-only tool page — changing language dumped the reader on the home page
+// and lost their place. withLocale() knows the full route/slug table, so the only
+// question left is whether this path is a localizable public page at all.
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
   const current = (i18n.language?.slice(0, 2) ?? "ca") as Locale;
 
   function choose(lng: Locale) {
     void i18n.changeLanguage(lng);
-    const neutral = stripLocale(pathname);
-    if (isMirrored(neutral)) {
-      navigate(withLocale(neutral, lng));
-    } else if (pathname.startsWith("/en/") || pathname.startsWith("/es/")) {
-      // English-only tool page (no sibling): send to the chosen language home.
-      navigate(withLocale("/", lng));
-    }
+    // App/auth pages are deliberately language-neutral: switch the UI language
+    // in place rather than inventing a /es URL for them.
+    if (!isLocalizable(stripLocale(pathname))) return;
+    navigate(withLocale(pathname, lng) + search + hash);
   }
 
   return (

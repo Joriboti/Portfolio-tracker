@@ -1,0 +1,18 @@
+[
+  {
+    "slug": "applovin",
+    "locales": ["en"]
+  },
+  {
+    "slug": "netflix",
+    "locales": ["en"]
+  },
+  {
+    "slug": "exor",
+    "locales": ["en"]
+  },
+  {
+    "slug": "meta",
+    "locales": ["en"]
+  }
+]

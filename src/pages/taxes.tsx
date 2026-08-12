@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
+
 import { useTranslation } from "react-i18next";
 import {
   parseWorkbook,
@@ -362,7 +363,7 @@ export function TaxesPage() {
                     </span>
                   </button>
                 ) : (
-                  <Link
+                  <LocaleLink
                     to="/auth/sign-in?next=/taxes"
                     className="group mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-600"
                   >
@@ -370,7 +371,7 @@ export function TaxesPage() {
                     <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
                       →
                     </span>
-                  </Link>
+                  </LocaleLink>
                 )}
               </div>
               <div className="sm:px-6">
@@ -427,9 +428,9 @@ export function TaxesPage() {
             )}
             <p className={`mt-6 border-t ${HAIR} pt-4 text-xs text-slate-500`}>
               {t("taxes.source.formatHint")}{" "}
-              <Link to="/upload" className="text-brand-700 underline">
+              <LocaleLink to="/upload" className="text-brand-700 underline">
                 {t("taxes.source.formatLink")}
-              </Link>
+              </LocaleLink>
             </p>
           </section>
         )}
@@ -772,9 +773,9 @@ export function TaxesPage() {
 
       <p className="mt-12 text-xs italic leading-relaxed text-slate-500">
         {t("taxes.disclaimer")}{" "}
-        <Link to="/disclaimer" className="underline">
+        <LocaleLink to="/disclaimer" className="underline">
           Disclaimer
-        </Link>
+        </LocaleLink>
       </p>
 
       {/* Indexable copy + FAQ (the prerendered snapshot carries this). */}
@@ -818,15 +819,15 @@ export function TaxesPage() {
           <h2 className="font-display text-2xl text-[#f3ead9]">{t("taxes.cta.title")}</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-[#c9bda9]">{t("taxes.cta.body")}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-4">
-            <Link to="/upload" className="btn-primary text-sm px-5 py-2">
+            <LocaleLink to="/upload" className="btn-primary text-sm px-5 py-2">
               {t("taxes.cta.primary")}
-            </Link>
-            <Link
+            </LocaleLink>
+            <LocaleLink
               to="/calculadora-fifo"
               className="inline-flex items-center px-5 py-2 text-sm text-[#c9bda9] underline-offset-2 hover:text-[#f3ead9] hover:underline"
             >
               {t("taxes.cta.secondary")}
-            </Link>
+            </LocaleLink>
           </div>
         </section>
       </div>

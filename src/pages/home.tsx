@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { LocaleLink, useLocale } from "@/components/LocaleLink";
+import { withLocale } from "@/lib/locale";
+import { resolveArticleLocale } from "@/lib/research-locales";
+
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
 import { getResearchList, type ResearchCard } from "@/lib/research";
@@ -42,15 +46,15 @@ export function HomePage() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/explore" className="btn-primary px-5 py-2.5 text-sm sm:text-base">
+            <LocaleLink to="/explore" className="btn-primary px-5 py-2.5 text-sm sm:text-base">
               {t("home.ctaTry")}
-            </Link>
-            <Link
+            </LocaleLink>
+            <LocaleLink
               to="/disclaimer"
               className="inline-flex items-center rounded-lg border border-white/20 px-5 py-2.5 text-sm font-medium text-[#f3ead9] transition-colors hover:border-white/40 hover:bg-white/5 sm:text-base"
             >
               {t("home.ctaStart")}
-            </Link>
+            </LocaleLink>
           </div>
         </div>
 
@@ -91,9 +95,9 @@ export function HomePage() {
         </section>
 
         <div className="mt-16 text-center">
-          <Link to="/disclaimer" className="btn-primary px-7 py-3.5 text-base">
+          <LocaleLink to="/disclaimer" className="btn-primary px-7 py-3.5 text-base">
             {t("home.ctaStart")}
-          </Link>
+          </LocaleLink>
         </div>
       </div>
     </div>
@@ -211,6 +215,7 @@ function PreviewRow({
 // Landing showcase of the 3 newest published analyses. Fetches client-side and
 // renders nothing if the CMS is empty or unreachable (graceful degradation).
 function RecentResearch() {
+  const locale = useLocale();
   const [articles, setArticles] = useState<ResearchCard[]>([]);
   useEffect(() => {
     let cancelled = false;
@@ -230,18 +235,23 @@ function RecentResearch() {
         <h2 className="font-display text-3xl font-semibold tracking-tight text-[#f3ead9]">
           Anàlisis recents
         </h2>
-        <Link
+        <LocaleLink
           to="/research"
           className="shrink-0 text-sm font-medium text-brand-400 hover:text-brand-300"
         >
           Veure totes les anàlisis →
-        </Link>
+        </LocaleLink>
       </div>
       <div className="mt-6 grid gap-5 md:grid-cols-3">
         {articles.map((a) => (
+          // Straight to the language the article is written in, so a ca/es
+          // reader is not sent through a 301 (most articles are English-only).
           <Link
             key={a.slug}
-            to={`/research/${a.slug}`}
+            to={withLocale(
+              `/research/${a.slug}`,
+              resolveArticleLocale(a.slug, locale) ?? locale,
+            )}
             className="group flex flex-col rounded-2xl p-5 shadow-lg transition-transform duration-200 hover:-translate-y-1"
             style={{ background: "linear-gradient(180deg, #f8f2e6 0%, #e8dcc6 100%)" }}
           >
@@ -299,7 +309,7 @@ function ToolsShowcase() {
           start reachable when it overflows (justify-center would clip it) */}
       <div className="mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto">
         {TOOLS.map((tool) => (
-          <Link
+          <LocaleLink
             key={tool.key}
             to={tool.to}
             className="group flex w-48 shrink-0 snap-start flex-col items-center rounded-2xl px-4 pb-6 pt-8 text-center shadow-lg transition-transform duration-200 hover:-translate-y-1.5"
@@ -315,7 +325,7 @@ function ToolsShowcase() {
             <span className="mt-auto pt-4 text-xs font-semibold text-brand-700 opacity-60 transition-opacity group-hover:opacity-100">
               {t(`home.tools.${tool.key}.tag`)} →
             </span>
-          </Link>
+          </LocaleLink>
         ))}
       </div>
     </section>

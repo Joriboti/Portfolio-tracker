@@ -1,5 +1,9 @@
-import { Link } from "react-router-dom";
 import { ToolPage } from "@/components/tools/ToolPage";
+import { ALL_LOCALES, ROUTE_SLUGS, type Locale } from "@/lib/locale";
+
+// Pages with no ca/es sibling: advertise no alternate that would 404.
+const EN_ONLY: Locale[] = ["en"];
+import { LocaleLink } from "@/components/LocaleLink";
 import {
   CompoundGrowthCalculator,
   DcfCalculator,
@@ -17,7 +21,9 @@ import { FifoCalculator } from "@/components/FifoCalculator";
 export function DcfCalculatorPage() {
   return (
     <ToolPage
-      slug="/dcf-calculator"
+      path={ROUTE_SLUGS.dcf.en}
+      locale="en"
+      alternates={ALL_LOCALES}
       appName="TrimmTrack DCF Calculator"
       seoTitle="Free DCF Calculator — value any stock in seconds | TrimmTrack"
       seoDescription="A free discounted cash flow (DCF) calculator. Enter EPS or free cash flow per share, a growth rate, an exit multiple and your required return to get a stock's fair value and upside. No signup."
@@ -72,13 +78,13 @@ export function DcfCalculatorPage() {
               know — small changes compound over ten years. Be conservative: use a growth rate a
               quality business can plausibly sustain, and an exit multiple in line with mature peers
               rather than today's hype. When you are unsure of a single number, run the{" "}
-              <Link className="text-brand-700 underline" to="/en/monte-carlo-stock-simulator">
+              <LocaleLink className="text-brand-700 underline" to="/monte-carlo-stock-simulator">
                 Monte Carlo simulator
-              </Link>{" "}
+              </LocaleLink>{" "}
               to see a range instead of a false-precision point estimate, or the{" "}
-              <Link className="text-brand-700 underline" to="/en/reverse-dcf-calculator">
+              <LocaleLink className="text-brand-700 underline" to="/reverse-dcf-calculator">
                 reverse DCF
-              </Link>{" "}
+              </LocaleLink>{" "}
               to see what growth the price already assumes.
             </p>
           ),
@@ -117,7 +123,9 @@ export function DcfCalculatorPage() {
 export function ReverseDcfCalculatorPage() {
   return (
     <ToolPage
-      slug="/reverse-dcf-calculator"
+      path={ROUTE_SLUGS.reverseDcf.en}
+      locale="en"
+      alternates={ALL_LOCALES}
       appName="TrimmTrack Reverse DCF Calculator"
       seoTitle="Reverse DCF Calculator — what growth is priced in? | TrimmTrack"
       seoDescription="Free reverse DCF calculator. Enter the current price, EPS, exit multiple and your required return to find the annual growth rate the market is pricing into a stock. No signup."
@@ -158,9 +166,9 @@ export function ReverseDcfCalculatorPage() {
               If the market's implied growth is well <em>below</em> what a durable business can deliver,
               you may have found an undervalued stock. If it is well <em>above</em> the historical
               trend, the price is leaning on optimism. Pair this with the{" "}
-              <Link className="text-brand-700 underline" to="/en/dcf-calculator">
+              <LocaleLink className="text-brand-700 underline" to="/dcf-calculator">
                 forward DCF
-              </Link>{" "}
+              </LocaleLink>{" "}
               to see both sides.
             </p>
           ),
@@ -199,7 +207,9 @@ export function ReverseDcfCalculatorPage() {
 export function GrahamNumberCalculatorPage() {
   return (
     <ToolPage
-      slug="/graham-number-calculator"
+      path={ROUTE_SLUGS.graham.en}
+      locale="en"
+      alternates={ALL_LOCALES}
       appName="TrimmTrack Graham Number Calculator"
       seoTitle="Graham Number Calculator — Benjamin Graham fair value | TrimmTrack"
       seoDescription="Free Graham number calculator using Benjamin Graham's interest-rate-adjusted formula. Enter EPS, expected growth and the AAA bond yield to screen a stock's intrinsic value. No signup."
@@ -240,9 +250,9 @@ export function GrahamNumberCalculatorPage() {
               The Graham number is a <strong>screen</strong>, not a precise valuation. It works best
               for stable, profitable, dividend-paying companies with steady earnings. It is a poor fit
               for high-growth, asset-light or cyclical businesses, where a{" "}
-              <Link className="text-brand-700 underline" to="/en/dcf-calculator">
+              <LocaleLink className="text-brand-700 underline" to="/dcf-calculator">
                 DCF
-              </Link>{" "}
+              </LocaleLink>{" "}
               is more appropriate. Treat a pass as “worth a closer look,” not a buy signal.
             </p>
           ),
@@ -281,7 +291,9 @@ export function GrahamNumberCalculatorPage() {
 export function MonteCarloStockSimulatorPage() {
   return (
     <ToolPage
-      slug="/monte-carlo-stock-simulator"
+      path={ROUTE_SLUGS.monteCarlo.en}
+      locale="en"
+      alternates={ALL_LOCALES}
       appName="TrimmTrack Monte Carlo Simulator"
       seoTitle="Monte Carlo Stock Simulator — fair value distribution | TrimmTrack"
       seoDescription="Free Monte Carlo simulator for stock valuation. Draw growth and exit multiple from distributions and run thousands of DCF simulations to get a P10–P90 fair-value range. No signup."
@@ -359,7 +371,9 @@ export function MonteCarloStockSimulatorPage() {
 export function EtfGrowthCalculatorPage() {
   return (
     <ToolPage
-      slug="/etf-growth-calculator"
+      path="/etf-growth-calculator"
+      locale="en"
+      alternates={EN_ONLY}
       appName="TrimmTrack ETF Growth Calculator"
       seoTitle="ETF Compound Growth Calculator — project your portfolio | TrimmTrack"
       seoDescription="Free ETF compound growth calculator. Enter an initial investment, monthly contribution, expected annual return and time horizon to project your portfolio's future value. No signup."
@@ -398,9 +412,9 @@ export function EtfGrowthCalculatorPage() {
               A single fixed return hides real-world volatility and costs. Use a conservative figure
               (many investors model 5–7% after inflation), remember that fees compound against you
               just as returns compound for you, and stress-test the plan with the{" "}
-              <Link className="text-brand-700 underline" to="/en/monte-carlo-stock-simulator">
+              <LocaleLink className="text-brand-700 underline" to="/monte-carlo-stock-simulator">
                 Monte Carlo simulator
-              </Link>{" "}
+              </LocaleLink>{" "}
               to see the range of outcomes rather than a single smooth line.
             </p>
           ),
@@ -439,7 +453,9 @@ export function EtfGrowthCalculatorPage() {
 export function FifoCapitalGainsCalculatorPage() {
   return (
     <ToolPage
-      slug="/fifo-capital-gains-calculator"
+      path={ROUTE_SLUGS.fifo.en}
+      locale="en"
+      alternates={ALL_LOCALES}
       appName="TrimmTrack FIFO Capital Gains Calculator"
       seoTitle="FIFO Capital Gains Calculator — realized gains, free | TrimmTrack"
       seoDescription="Free FIFO capital gains calculator for stocks and crypto. Enter your buys and sells and it matches them first-in, first-out to compute your realized gain or loss. No signup."
@@ -516,7 +532,9 @@ export function FifoCapitalGainsCalculatorPage() {
 export function PortfolioTrackerPage() {
   return (
     <ToolPage
-      slug="/portfolio-tracker"
+      path="/portfolio-tracker"
+      locale="en"
+      alternates={EN_ONLY}
       appName="TrimmTrack Portfolio Tracker"
       seoTitle="Free Portfolio Tracker from an Excel export — no signup | TrimmTrack"
       seoDescription="Track your investment portfolio for free. Upload your broker's Excel export and see live P&L, dividends, weights and valuation models — no manual data entry, no subscription."
@@ -540,12 +558,12 @@ export function PortfolioTrackerPage() {
             ))}
           </ul>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link to="/upload" className="btn-primary text-sm px-4 py-2">
+            <LocaleLink to="/upload" className="btn-primary text-sm px-4 py-2">
               Upload your Excel
-            </Link>
-            <Link to="/explore" className="btn-ghost text-sm px-4 py-2">
+            </LocaleLink>
+            <LocaleLink to="/explore" className="btn-ghost text-sm px-4 py-2">
               Explore a demo
-            </Link>
+            </LocaleLink>
           </div>
         </div>
       }

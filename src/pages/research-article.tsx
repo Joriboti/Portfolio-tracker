@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
+import { LocaleLink, useLocale } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { getResearchArticle, type ResearchArticle } from "@/lib/research";
 import { Blocks } from "@/components/NotionBlocks";
 import { ResearchWordmark } from "@/components/Logo";
 import { useSeo } from "@/lib/seo";
+import { localeUrl, withLocale } from "@/lib/locale";
+import { articleLocales, resolveArticleLocale } from "@/lib/research-locales";
 import { TickerBadge, TagPill, formatDate } from "./research";
 
 const FALLBACK_OG = "https://www.trimmtrack.com/og.png";
@@ -12,6 +15,12 @@ const FALLBACK_OG = "https://www.trimmtrack.com/og.png";
 export function ResearchArticlePage() {
   const { t, i18n } = useTranslation();
   const { slug = "" } = useParams();
+  const locale = useLocale();
+  // This article is not written in the language of the URL. vercel.json 301s the
+  // known cases at the edge; this handles an article added to the manifest after
+  // the redirect list (and keeps in-app navigation honest) rather than rendering
+  // English prose under a Spanish canonical.
+  const shouldBe = resolveArticleLocale(slug, locale);
   const [state, setState] = useState<"loading" | "ready" | "notfound">(
     "loading",
   );
@@ -38,18 +47,25 @@ export function ResearchArticlePage() {
     };
   }, [slug]);
 
-  const url = `https://www.trimmtrack.com/research/${slug}`;
+  // Canonical/JSON-LD URL for THIS language variant — it used to be hardcoded to
+  // the Catalan path, so the English and Spanish pages pointed their structured
+  // data at a different URL than their canonical.
+  const url = localeUrl(`/research/${slug}`, locale);
   useSeo({
     title: article
       ? `${article.title} | TrimmTrack`
       : t("research.fallbackTitle"),
     description: article?.summary,
     image: article?.coverImage ?? FALLBACK_OG,
+    // Only the languages this article is really written in. An unknown slug
+    // (published in Notion since the last deploy) advertises just itself.
+    alternates: articleLocales(slug).length ? articleLocales(slug) : [locale],
     jsonLd: article
       ? {
           "@context": "https://schema.org",
           "@type": "Article",
           headline: article.title,
+          inLanguage: locale,
           datePublished: article.publishedAt ?? undefined,
           image: article.coverImage ?? FALLBACK_OG,
           author: { "@type": "Organization", name: "TrimmTrack" },
@@ -58,6 +74,10 @@ export function ResearchArticlePage() {
         }
       : undefined,
   });
+
+  if (shouldBe) {
+    return <Navigate to={withLocale(`/research/${slug}`, shouldBe)} replace />;
+  }
 
   if (state === "loading") {
     return (
@@ -71,24 +91,24 @@ export function ResearchArticlePage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
         <p className="text-slate-600">{t("research.notFound")}</p>
-        <Link to="/research" className="btn-primary mt-4 inline-flex">
+        <LocaleLink to="/research" className="btn-primary mt-4 inline-flex">
           ← {t("research.backToAll")}
-        </Link>
+        </LocaleLink>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <Link to="/research" className="inline-block transition-opacity hover:opacity-80">
+      <LocaleLink to="/research" className="inline-block transition-opacity hover:opacity-80">
         <ResearchWordmark />
-      </Link>
-      <Link
+      </LocaleLink>
+      <LocaleLink
         to="/research"
         className="mt-6 block text-sm text-slate-500 hover:text-slate-800"
       >
         ← {t("research.backToAll")}
-      </Link>
+      </LocaleLink>
 
       <header className="mt-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -153,9 +173,9 @@ export function ResearchArticlePage() {
         <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">
           {t("research.ctaBody")}
         </p>
-        <Link to="/disclaimer" className="btn-primary mt-4 inline-flex">
+        <LocaleLink to="/disclaimer" className="btn-primary mt-4 inline-flex">
           {t("research.ctaButton")} →
-        </Link>
+        </LocaleLink>
       </div>
     </div>
   );

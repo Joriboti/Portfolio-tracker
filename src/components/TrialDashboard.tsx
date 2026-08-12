@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { LocaleLink } from "@/components/LocaleLink";
+
 import { useTranslation } from "react-i18next";
 import { aggregatePositions } from "@/lib/excel-parser";
 import { convert, formatMoney, formatPct, type Currency } from "@/lib/currency";
@@ -99,12 +100,12 @@ export function TrialDashboard() {
       {/* Trial banner */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-brand-200 bg-brand-50/70 px-4 py-3">
         <span className="text-sm text-slate-700">{t("trial.banner")}</span>
-        <Link
+        <LocaleLink
           to="/auth/sign-in?next=/dashboard"
           className="btn-primary ml-auto shrink-0 px-3 py-1.5 text-xs"
         >
           {t("trial.signUp")}
-        </Link>
+        </LocaleLink>
       </div>
 
       <div className="flex items-end justify-between">
@@ -125,12 +126,12 @@ export function TrialDashboard() {
             {t("trial.empty", { rows: TRIAL_MAX_ROWS, positions: TRIAL_MAX_POSITIONS })}
           </p>
           <div className="mt-4 flex justify-center gap-3">
-            <Link to="/upload" className="btn-primary">
+            <LocaleLink to="/upload" className="btn-primary">
               {t("trial.emptyCta")}
-            </Link>
-            <Link to="/explore" className="btn-ghost">
+            </LocaleLink>
+            <LocaleLink to="/explore" className="btn-ghost">
               {t("home.ctaTry")}
-            </Link>
+            </LocaleLink>
           </div>
         </div>
       ) : (
