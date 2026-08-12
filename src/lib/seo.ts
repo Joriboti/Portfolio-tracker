@@ -29,6 +29,10 @@ type SeoInput = {
    *  all three. English-only pages (the /en tool pages) pass ["en"] so we don't
    *  advertise ca/es alternates that would 404. */
   alternates?: Locale[];
+  /** Keep this URL out of the index. For pages that render one person's data
+   *  under a shared link — a verified portfolio card, say — where the route
+   *  itself is public but each instance is somebody's business alone. */
+  noindex?: boolean;
 };
 
 function upsertMeta(selector: string, attr: "name" | "property", key: string) {
@@ -48,6 +52,7 @@ export function useSeo({
   image,
   jsonLd,
   alternates: hreflangLocales,
+  noindex,
 }: SeoInput) {
   useEffect(() => {
     const prevTitle = document.title;
@@ -123,6 +128,16 @@ export function useSeo({
     // x-default → en when the page exists in en, else the first available.
     addAlt("x-default", langs.includes(X_DEFAULT_LOCALE) ? X_DEFAULT_LOCALE : langs[0]);
 
+    // Added and removed per route rather than upserted, so leaving a noindex
+    // page cannot leave the tag behind on the next one.
+    let robots: HTMLMetaElement | null = null;
+    if (noindex) {
+      robots = document.createElement("meta");
+      robots.setAttribute("name", "robots");
+      robots.setAttribute("content", "noindex, nofollow");
+      document.head.appendChild(robots);
+    }
+
     let ld: HTMLScriptElement | null = null;
     if (jsonLd) {
       ld = document.createElement("script");
@@ -135,10 +150,11 @@ export function useSeo({
       document.title = prevTitle;
       document.documentElement.lang = prevLang;
       if (ld) ld.remove();
+      if (robots) robots.remove();
       for (const a of alternates) a.remove();
       if (canonical && prevCanonical) canonical.setAttribute("href", prevCanonical);
     };
-  }, [title, description, path, image, jsonLd, hreflangLocales]);
+  }, [title, description, path, image, jsonLd, hreflangLocales, noindex]);
 }
 
 export { SITE_ORIGIN };

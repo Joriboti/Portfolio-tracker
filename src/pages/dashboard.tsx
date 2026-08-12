@@ -38,6 +38,7 @@ import { HistoryChart } from "@/components/HistoryChart";
 import { ScenarioValuation } from "@/components/ScenarioValuation";
 import { CompanyOverview } from "@/components/CompanyOverview";
 import { CompanyLogo } from "@/components/CompanyLogo";
+import { PortfolioVerifier } from "@/components/PortfolioVerifier";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
@@ -558,6 +559,19 @@ function DashboardInner() {
       )}
 
       {openPositions.length > 0 && user && <AnalyticsCard userId={user.id} />}
+
+      {openPositions.length > 0 && user && (
+        <PortfolioVerifier
+          userId={user.id}
+          positions={openPositions}
+          quotes={quotes}
+          fxRates={fxRates}
+          fundamentals={fundamentals}
+          txns={visibleData?.transactions ?? []}
+          dividends={visibleData?.dividends ?? []}
+          interests={visibleData?.interests ?? []}
+        />
+      )}
 
       {openAutoDividends.length > 0 && (
         <section className="card overflow-x-auto">

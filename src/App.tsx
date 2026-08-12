@@ -20,6 +20,7 @@ const ForecastPage = lazy(() => import("@/pages/forecast").then((m) => ({ defaul
 const FifoCalculatorPage = lazy(() => import("@/pages/calculadora-fifo").then((m) => ({ default: m.FifoCalculatorPage })));
 const RadiografiaPage = lazy(() => import("@/pages/radiografia").then((m) => ({ default: m.RadiografiaPage })));
 const TaxesPage = lazy(() => import("@/pages/taxes").then((m) => ({ default: m.TaxesPage })));
+const VerifyPage = lazy(() => import("@/pages/verify").then((m) => ({ default: m.VerifyPage })));
 const DisclaimerPage = lazy(() => import("@/pages/disclaimer").then((m) => ({ default: m.DisclaimerPage })));
 const ResearchPage = lazy(() => import("@/pages/research").then((m) => ({ default: m.ResearchPage })));
 const ResearchArticlePage = lazy(() => import("@/pages/research-article").then((m) => ({ default: m.ResearchArticlePage })));
@@ -81,6 +82,12 @@ export default function App() {
         <Route path="/how-to-prepare" element={<Navigate to="/upload" replace />} />
         <Route path="/account" element={<Private><AccountPage /></Private>} />
         <Route path="/account/:pathname" element={<Private><AccountPage /></Private>} />
+
+        {/* Public but unprefixed and out of the sitemap: anyone can check a
+            card, yet /verify/:code renders one person's portfolio, so it is
+            noindex'd per route rather than crawled in three languages. */}
+        <Route path="/verify" element={<VerifyPage />} />
+        <Route path="/verify/:code" element={<VerifyPage />} />
 
         {/* Public content — indexable, no auth gate — in all three languages. */}
         {publicRoutes("")}

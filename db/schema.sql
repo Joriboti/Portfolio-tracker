@@ -179,3 +179,37 @@ CREATE TABLE IF NOT EXISTS financial_statements (
   fetched_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (ticker, period_end, period_type)
 );
+
+-- Verified portfolio snapshots — the signed figures behind a shareable card,
+-- its one-page PDF and the public /verify/:code page.
+--
+-- `canonical` is the exact serialised body the digest was taken over; it is
+-- stored verbatim and served verbatim, because re-serialising it anywhere would
+-- change the hash. `issued_at_iso` is TEXT for the same reason: it is part of
+-- the digest input, so it must survive the round-trip byte-for-byte (the
+-- TIMESTAMPTZ next to it is for ordering and retention only).
+--
+--   digest    = sha256(code || '\n' || issued_at_iso || '\n' || canonical)
+--   signature = HMAC-SHA256(SNAPSHOT_SECRET, digest)
+--
+-- The signature is what a tampered database row cannot fake, so it is verified
+-- server-side on every read and the result reported to the verify page.
+CREATE TABLE IF NOT EXISTS portfolio_snapshots (
+  code          TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL,
+  issued_at_iso TEXT NOT NULL,
+  tier          TEXT NOT NULL DEFAULT 'self', -- 'self' | 'broker'
+  broker        TEXT,
+  amounts       BOOLEAN NOT NULL DEFAULT FALSE,
+  canonical     TEXT NOT NULL,
+  digest        TEXT NOT NULL,
+  signature     TEXT NOT NULL,
+  -- Set when the owner withdraws a card they had shared; the verify page then
+  -- reports it as revoked instead of valid. Rows are never hard-deleted, so an
+  -- old link resolves to an explicit "no longer vouched for" rather than a 404.
+  revoked_at    TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_portfolio_snapshots_user
+  ON portfolio_snapshots (user_id, created_at DESC);

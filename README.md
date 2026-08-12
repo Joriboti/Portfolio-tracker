@@ -50,6 +50,22 @@ Or paste the SQL into Neon Console → SQL Editor.
 | `NEON_AUTH_URL` | Backend | Same value, server-side |
 | `DATABASE_URL` | Backend | Postgres connection string |
 | `CRON_SECRET` | Backend (optional) | Bearer token to protect the cron |
+| `SNAPSHOT_SECRET` | Backend | HMAC key for verified portfolio snapshots (random, 16+ chars) |
+
+### Verified portfolio snapshots
+
+The dashboard can issue a signed snapshot of a portfolio — a shareable card, a
+one-page PDF and a public `/verify/:code` page. Two things must be in place or
+`/api/snapshot-create` returns a 500 rather than issuing an unsigned card:
+
+1. `db/schema.sql` re-run so `portfolio_snapshots` exists (the file is
+   idempotent — `IF NOT EXISTS` throughout).
+2. `SNAPSHOT_SECRET` set to a random string of at least 16 characters.
+
+**Rotating `SNAPSHOT_SECRET` invalidates the signature on every card already
+issued.** The digest still matches, so the verify page still confirms the
+figures are unedited, but it will say the issuer can no longer be confirmed.
+Rotate only deliberately.
 
 ## Excel format
 

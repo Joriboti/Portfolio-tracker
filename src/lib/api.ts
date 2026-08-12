@@ -500,3 +500,55 @@ export function saveScenarioModel(
     userId,
   });
 }
+
+// --- Verified portfolio snapshots -------------------------------------------
+
+export type SnapshotListRow = {
+  code: string;
+  issuedAt: string;
+  tier: "self" | "broker";
+  broker: string | null;
+  amounts: boolean;
+  digest: string;
+  revokedAt: string | null;
+};
+
+export type FetchedSnapshot = SnapshotListRow & {
+  /** The exact string the digest was taken over — re-hashed in the browser. */
+  canonical: string;
+  digestValid: boolean;
+  signatureValid: boolean;
+};
+
+/** Issue a signed snapshot. `canonical` must be the string that will be
+ *  digested — never a re-serialised copy of it. */
+export function createSnapshot(
+  userId: string,
+  canonical: string,
+): Promise<{ code: string; issuedAt: string; digest: string }> {
+  return jsonFetch("/api/snapshot-create", {
+    method: "POST",
+    body: JSON.stringify({ canonical }),
+    userId,
+  });
+}
+
+/** Public read for the verify page — deliberately unauthenticated. */
+export function getSnapshot(code: string): Promise<FetchedSnapshot> {
+  return jsonFetch(`/api/snapshot-get?code=${encodeURIComponent(code)}`);
+}
+
+export function listSnapshots(userId: string): Promise<{ snapshots: SnapshotListRow[] }> {
+  return jsonFetch("/api/snapshot-list", { userId });
+}
+
+export function revokeSnapshot(
+  userId: string,
+  code: string,
+): Promise<{ code: string; revokedAt: string }> {
+  return jsonFetch("/api/snapshot-revoke", {
+    method: "POST",
+    body: JSON.stringify({ code }),
+    userId,
+  });
+}
