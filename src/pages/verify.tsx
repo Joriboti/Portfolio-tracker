@@ -127,6 +127,8 @@ export function VerifyPage() {
       buildReportLabels(t, {
         code: verdict.kind === "checked" ? verdict.snapshot.code : "",
         origin: typeof window !== "undefined" ? window.location.origin : "",
+        tier: verdict.kind === "checked" ? verdict.snapshot.body.tier : "self",
+        broker: verdict.kind === "checked" ? verdict.snapshot.body.broker : null,
       }),
     [t, verdict],
   );
@@ -208,10 +210,7 @@ export function VerifyPage() {
             <Row label={t("verify.code")} value={verdict.snapshot.code} />
             <Row label={t("verify.issuedOn")} value={fmt.date(verdict.snapshot.issuedAt)} />
             <Row label={t("verify.digest")} value={shortDigest(verdict.snapshot.digest)} />
-            <Row
-              label={t("verify.tier")}
-              value={t(verdict.snapshot.body.tier === "broker" ? "verify.tierBroker" : "verify.tierSelf")}
-            />
+            <Row label={t("verify.tier")} value={labels.tierLabel} />
           </dl>
 
           <section className="border-t border-slate-200 pt-5">
@@ -227,10 +226,20 @@ export function VerifyPage() {
                 <span className="text-emerald-600">✓</span>
                 {t("verify.meaning.unedited")}
               </li>
-              <li className="flex gap-2">
-                <span className="text-slate-400">✕</span>
-                {t("verify.meaning.notBroker")}
-              </li>
+              {/* The third line is the whole difference between the tiers. */}
+              {verdict.snapshot.body.tier === "broker" ? (
+                <li className="flex gap-2">
+                  <span className="text-emerald-600">✓</span>
+                  {t("verify.meaning.fromBroker", {
+                    broker: labels.tierLabel,
+                  })}
+                </li>
+              ) : (
+                <li className="flex gap-2">
+                  <span className="text-slate-400">✕</span>
+                  {t("verify.meaning.notBroker")}
+                </li>
+              )}
             </ul>
           </section>
         </div>

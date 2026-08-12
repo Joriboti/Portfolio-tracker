@@ -903,6 +903,19 @@
     "tier": "Nivell",
     "tierSelf": "Autodeclarat · signat per TrimmTrack",
     "tierBroker": "Verificat amb el bròker",
+    "tierBrokerNamed": "Verificat amb {{broker}}",
+    "attestationBroker": "Aquest document acredita que TrimmTrack va llegir aquestes posicions directament de {{broker}} en la data indicada, mitjançant un accés de només lectura autoritzat pel titular, i que les xifres no s'han modificat des de llavors.",
+    "unrealisedReturn": "Plusvàlua latent",
+    "sourceSelf": "El meu Excel",
+    "sourceSelfHint": "Fem servir la cartera que tens al panell. La targeta dirà que les dades les has aportat tu.",
+    "sourceIbkr": "Interactive Brokers",
+    "sourceIbkrHint": "Llegim les posicions reals del teu compte amb un accés de només lectura. La targeta dirà que venen del bròker.",
+    "flexToken": "Token del Flex Web Service",
+    "flexQueryId": "Identificador de la Flex Query",
+    "flexHelp": "Els generes al teu compte d'IBKR, a Performance & Reports → Flex Queries. Són de només lectura: no permeten operar ni moure diners. No els desem enlloc, només els fem servir per a aquesta consulta.",
+    "generateVerified": "Genera la targeta verificada amb el bròker",
+    "issuing": "Consultant el bròker…",
+    "skipped": "No hem pogut convertir a euros aquestes posicions i queden fora de la targeta: {{tickers}}.",
     "attestation": "Aquest document acredita que TrimmTrack va emetre aquestes xifres exactes en la data indicada i que no s'han modificat des de llavors. Les dades provenen de l'Excel que el titular va importar: no s'han contrastat amb cap bròker.",
     "issuedOn": "Emès el",
     "distribution": "Distribució de la cartera",
@@ -929,7 +942,8 @@
     "meaning": {
       "issued": "TrimmTrack va emetre aquestes xifres en la data indicada.",
       "unedited": "Les xifres no s'han modificat des de l'emissió.",
-      "notBroker": "No s'ha comprovat amb el bròker: les dades les va aportar el titular."
+      "notBroker": "No s'ha comprovat amb el bròker: les dades les va aportar el titular.",
+      "fromBroker": "Les posicions es van llegir directament del bròker ({{broker}})."
     },
     "result": {
       "validTitle": "Targeta vàlida",

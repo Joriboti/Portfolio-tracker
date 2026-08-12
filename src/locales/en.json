@@ -903,6 +903,19 @@
     "tier": "Level",
     "tierSelf": "Self-reported · signed by TrimmTrack",
     "tierBroker": "Broker-verified",
+    "tierBrokerNamed": "Verified with {{broker}}",
+    "attestationBroker": "This document attests that TrimmTrack read these positions directly from {{broker}} on the date shown, through read-only access authorised by the account holder, and that the figures have not been modified since.",
+    "unrealisedReturn": "Unrealised gain",
+    "sourceSelf": "My Excel",
+    "sourceSelfHint": "Uses the portfolio in your dashboard. The card will say the data came from you.",
+    "sourceIbkr": "Interactive Brokers",
+    "sourceIbkrHint": "Reads the real positions in your account through read-only access. The card will say they came from the broker.",
+    "flexToken": "Flex Web Service token",
+    "flexQueryId": "Flex Query id",
+    "flexHelp": "You generate both inside your IBKR account, under Performance & Reports → Flex Queries. They are read-only: they cannot trade or move money. We don't store them anywhere — they're used for this one request.",
+    "generateVerified": "Generate broker-verified card",
+    "issuing": "Asking the broker…",
+    "skipped": "These positions couldn't be converted to euros and are left off the card: {{tickers}}.",
     "attestation": "This document attests that TrimmTrack issued these exact figures on the date shown and that they have not been modified since. The data comes from the Excel the holder imported: it has not been checked against any broker.",
     "issuedOn": "Issued on",
     "distribution": "Portfolio distribution",
@@ -929,7 +942,8 @@
     "meaning": {
       "issued": "TrimmTrack issued these figures on the date shown.",
       "unedited": "The figures have not been modified since they were issued.",
-      "notBroker": "Not checked against a broker: the data was supplied by the holder."
+      "notBroker": "Not checked against a broker: the data was supplied by the holder.",
+      "fromBroker": "The positions were read directly from the broker ({{broker}})."
     },
     "result": {
       "validTitle": "Valid card",

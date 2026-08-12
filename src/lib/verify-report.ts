@@ -283,12 +283,17 @@ export function buildReportPdf(
     { label: L.irr, value: fmt.pct(body.ret.irr, true), tone: toneFor(body.ret.irr) },
   ];
   if (body.amounts && body.totals) {
-    figures.push(
-      { label: L.totalValue, value: fmt.money(body.totals.value) },
-      { label: L.totalCost, value: fmt.money(body.totals.cost) },
-      { label: L.realized, value: fmt.money(body.totals.realized), tone: toneFor(body.totals.realized) },
-      { label: L.dividends, value: fmt.money(body.totals.dividends) },
-    );
+    const { value, cost, realized, dividends } = body.totals;
+    figures.push({ label: L.totalValue, value: fmt.money(value) });
+    if (cost > 0) figures.push({ label: L.totalCost, value: fmt.money(cost) });
+    // Omitted entirely when the source could not tell us — a "0 €" here would
+    // read as "you have realised nothing", which is a different statement.
+    if (realized != null) {
+      figures.push({ label: L.realized, value: fmt.money(realized), tone: toneFor(realized) });
+    }
+    if (dividends != null) {
+      figures.push({ label: L.dividends, value: fmt.money(dividends) });
+    }
   }
 
   const cols = 3;

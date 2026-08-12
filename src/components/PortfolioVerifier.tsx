@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Position, Transaction, Dividend, Interest } from "@/lib/excel-parser";
 import type { Fundamentals, PriceQuote, SnapshotListRow } from "@/lib/api";
-import { createSnapshot, listSnapshots, revokeSnapshot } from "@/lib/api";
+import {
+  createBrokerSnapshot,
+  createSnapshot,
+  listSnapshots,
+  revokeSnapshot,
+} from "@/lib/api";
 import { convert, type Currency } from "@/lib/currency";
 import { computeXray, type XrayHoldingInput } from "@/lib/xray";
 import {
@@ -12,6 +17,7 @@ import {
   shortDigest,
   verifyUrl,
   type IssuedSnapshot,
+  type SnapshotBody,
 } from "@/lib/verify";
 import { buildReportPdf, buildVerifiedCardSvg } from "@/lib/verify-report";
 import { buildReportFormat, buildReportLabels } from "@/lib/verify-labels";
@@ -63,6 +69,12 @@ export function PortfolioVerifier({
   const [state, setState] = useState<State>({ status: "idle" });
   const [issued, setIssued] = useState<SnapshotListRow[]>([]);
   const [copied, setCopied] = useState(false);
+  // Broker tier. The credentials live in component state for the length of one
+  // request and are never persisted — not to localStorage, not anywhere.
+  const [source, setSource] = useState<"self" | "ibkr">("self");
+  const [flexToken, setFlexToken] = useState("");
+  const [flexQueryId, setFlexQueryId] = useState("");
+  const [skipped, setSkipped] = useState<string[]>([]);
 
   const fmt = useMemo(() => buildReportFormat(i18n.language), [i18n.language]);
 
@@ -108,6 +120,8 @@ export function PortfolioVerifier({
       buildReportLabels(t, {
         code: state.status === "issued" ? state.snapshot.code : "",
         origin: typeof window !== "undefined" ? window.location.origin : "",
+        tier: state.status === "issued" ? state.snapshot.body.tier : "self",
+        broker: state.status === "issued" ? state.snapshot.body.broker : null,
       }),
     [t, state],
   );
@@ -146,6 +160,58 @@ export function PortfolioVerifier({
         },
         ...prev,
       ]);
+    } catch (e) {
+      setState({ status: "error", message: (e as Error).message });
+    }
+  }
+
+  /**
+   * Broker tier. Nothing is computed here: the server fetches the positions
+   * from IBKR, derives the figures and signs them, and we render exactly the
+   * body it returned — the same bytes the digest covers.
+   */
+  async function issueFromBroker() {
+    setState({ status: "issuing" });
+    setCopied(false);
+    setSkipped([]);
+    try {
+      const r = await createBrokerSnapshot(userId, flexToken, flexQueryId, amounts);
+      const local = await recomputeDigest({
+        code: r.code,
+        issuedAt: r.issuedAt,
+        canonical: r.canonical,
+      });
+      if (local !== r.digest) {
+        setState({ status: "error", message: t("verify.errors.digestMismatch") });
+        return;
+      }
+      const body = JSON.parse(r.canonical) as SnapshotBody;
+      setSkipped(r.skipped);
+      setState({
+        status: "issued",
+        snapshot: {
+          code: r.code,
+          issuedAt: r.issuedAt,
+          body,
+          canonical: r.canonical,
+          digest: r.digest,
+          signatureValid: true,
+        },
+      });
+      setIssued((prev) => [
+        {
+          code: r.code,
+          issuedAt: r.issuedAt,
+          tier: "broker",
+          broker: body.broker,
+          amounts: body.amounts,
+          digest: r.digest,
+          revokedAt: null,
+        },
+        ...prev,
+      ]);
+      // The token has done its job; drop it from the page too.
+      setFlexToken("");
     } catch (e) {
       setState({ status: "error", message: (e as Error).message });
     }
@@ -199,11 +265,60 @@ export function PortfolioVerifier({
         </div>
       </div>
 
-      {!report ? (
-        <p className="mt-4 text-sm text-slate-400">{t("verify.noPositions")}</p>
-      ) : (
+      {
         <>
-          <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-slate-200 pt-4">
+          <div className="mt-5 border-t border-slate-200 pt-4">
+            <div className="flex flex-wrap gap-2">
+              <SourceBtn active={source === "self"} onClick={() => setSource("self")}>
+                {t("verify.sourceSelf")}
+              </SourceBtn>
+              <SourceBtn active={source === "ibkr"} onClick={() => setSource("ibkr")}>
+                {t("verify.sourceIbkr")}
+              </SourceBtn>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              {t(source === "ibkr" ? "verify.sourceIbkrHint" : "verify.sourceSelfHint")}
+            </p>
+            {/* A broker card is built from the broker's data, so an empty local
+                portfolio only blocks the self-reported route. */}
+            {source === "self" && !report && (
+              <p className="mt-2 text-sm text-slate-400">{t("verify.noPositions")}</p>
+            )}
+          </div>
+
+          {source === "ibkr" && (
+            <div className="mt-4 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-sm">
+                  <span className="text-slate-600">{t("verify.flexToken")}</span>
+                  <input
+                    value={flexToken}
+                    onChange={(e) => setFlexToken(e.target.value.replace(/\D/g, ""))}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="123456789012345"
+                    className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 font-mono text-sm"
+                  />
+                </label>
+                <label className="text-sm">
+                  <span className="text-slate-600">{t("verify.flexQueryId")}</span>
+                  <input
+                    value={flexQueryId}
+                    onChange={(e) => setFlexQueryId(e.target.value.replace(/\D/g, ""))}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="123456"
+                    className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 font-mono text-sm"
+                  />
+                </label>
+              </div>
+              <p className="text-xs text-slate-400">{t("verify.flexHelp")}</p>
+            </div>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-4">
             <label className="flex items-center gap-2 text-sm text-slate-600">
               <input
                 type="checkbox"
@@ -215,13 +330,28 @@ export function PortfolioVerifier({
             </label>
             <span className="text-xs text-slate-400">{t("verify.includeAmountsHint")}</span>
             <button
-              onClick={() => void issue()}
-              disabled={state.status === "issuing"}
-              className="btn-primary ml-auto text-sm px-4 py-2"
+              onClick={() => void (source === "ibkr" ? issueFromBroker() : issue())}
+              disabled={
+                state.status === "issuing" ||
+                (source === "ibkr"
+                  ? flexToken.length < 6 || flexQueryId.length < 3
+                  : !report)
+              }
+              className="btn-primary ml-auto text-sm px-4 py-2 disabled:opacity-50"
             >
-              {state.status === "issuing" ? t("common.loading") : t("verify.generate")}
+              {state.status === "issuing"
+                ? t("verify.issuing")
+                : source === "ibkr"
+                  ? t("verify.generateVerified")
+                  : t("verify.generate")}
             </button>
           </div>
+
+          {skipped.length > 0 && (
+            <p className="mt-3 text-xs text-amber-600">
+              {t("verify.skipped", { tickers: skipped.join(", ") })}
+            </p>
+          )}
 
           {state.status === "error" && (
             <p className="mt-3 text-sm text-rose-600">{state.message}</p>
@@ -293,7 +423,28 @@ export function PortfolioVerifier({
             </div>
           )}
         </>
-      )}
+      }
     </section>
+  );
+}
+
+function SourceBtn({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+        active ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+      }`}
+    >
+      {children}
+    </button>
   );
 }

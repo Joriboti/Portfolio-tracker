@@ -552,3 +552,55 @@ export function revokeSnapshot(
     userId,
   });
 }
+
+// --- Broker-verified snapshots (IBKR Flex) ----------------------------------
+
+export type IbkrPositionPreview = {
+  ticker: string;
+  symbol: string;
+  description: string | null;
+  currency: string;
+  assetCategory: string | null;
+  quantity: number;
+  markPrice: number | null;
+  value: number | null;
+  cost: number | null;
+  unrealized: number | null;
+};
+
+/** Read the account's open positions so the user can check them before issuing.
+ *  The token is sent for this call only — the server never stores it. */
+export function fetchIbkrPositions(
+  userId: string,
+  token: string,
+  queryId: string,
+): Promise<{ account: string | null; asOf: string | null; positions: IbkrPositionPreview[] }> {
+  return jsonFetch("/api/broker-ibkr-positions", {
+    method: "POST",
+    body: JSON.stringify({ token, queryId }),
+    userId,
+  });
+}
+
+/** Issue a broker-tier snapshot. The figures are derived server-side from the
+ *  broker's own data, so unlike the self tier there is no body to send. */
+export function createBrokerSnapshot(
+  userId: string,
+  token: string,
+  queryId: string,
+  amounts: boolean,
+): Promise<{
+  code: string;
+  issuedAt: string;
+  digest: string;
+  canonical: string;
+  account: string | null;
+  asOf: string | null;
+  skipped: string[];
+}> {
+  return jsonFetch("/api/snapshot-create-broker", {
+    method: "POST",
+    body: JSON.stringify({ token, queryId, amounts }),
+    userId,
+  });
+}

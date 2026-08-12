@@ -11,7 +11,19 @@
 import type { Transaction, Dividend, Interest } from "./excel-parser";
 import { computeSinceInception, type SinceInception } from "./performance";
 
-export type Region = "US" | "Europe" | "UK" | "Asia" | "Crypto" | "Other";
+import {
+  concentrationOf,
+  regionForTicker,
+  scoreDiversification,
+  scoreToGrade,
+  slicesFrom,
+  type Region,
+  type Slice,
+} from "./xray-core";
+
+// Re-exported so callers keep importing the X-ray's vocabulary from one place.
+export { regionForTicker, scoreToGrade };
+export type { Region, Slice };
 
 export type XrayHoldingInput = {
   ticker: string;
@@ -35,7 +47,6 @@ export type XrayInput = {
 };
 
 export type XrayWeight = { ticker: string; weight: number; valueEur: number };
-export type Slice = { key: string; weight: number };
 export type FlagSeverity = "high" | "med" | "low";
 export type XrayFlag = { id: string; severity: FlagSeverity; value?: number; label?: string };
 
@@ -57,85 +68,6 @@ export type XrayReport = {
   scoreParts: { concentration: number; count: number; region: number; sector: number | null };
   flags: XrayFlag[];
 };
-
-const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
-
-/** Herfindahl index of a set of weights that sum to 1 (Σ wᵢ²). 1 = one bucket
- *  holds everything; → 0 as the split becomes more even. */
-function herfindahl(weights: number[]): number {
-  return weights.reduce((s, w) => s + w * w, 0);
-}
-
-// Exchange-suffix → region. Yahoo appends the market as a dotted suffix
-// (SAN.MC = Madrid, VOD.L = London). US listings carry no suffix. This is the
-// most reliable geography signal we have without a paid data source; currency
-// is the fallback when a ticker has no recognised suffix.
-const SUFFIX_REGION: Record<string, Region> = {
-  // United Kingdom
-  L: "UK",
-  IL: "UK",
-  // Europe (continental)
-  MC: "Europe", PA: "Europe", AS: "Europe", DE: "Europe", F: "Europe",
-  BE: "Europe", MI: "Europe", BR: "Europe", LS: "Europe", VI: "Europe",
-  MA: "Europe", ST: "Europe", HE: "Europe", OL: "Europe", CO: "Europe",
-  SW: "Europe", VX: "Europe", IR: "Europe", AT: "Europe", WA: "Europe",
-  PR: "Europe", LI: "Europe",
-  // Asia-Pacific
-  HK: "Asia", T: "Asia", JP: "Asia", KS: "Asia", KQ: "Asia", SS: "Asia",
-  SZ: "Asia", TW: "Asia", SI: "Asia", AX: "Asia", NS: "Asia", BO: "Asia",
-  KL: "Asia", BK: "Asia",
-};
-
-const CURRENCY_REGION: Record<string, Region> = {
-  USD: "US",
-  EUR: "Europe",
-  GBP: "UK",
-  GBp: "UK",
-  CHF: "Europe",
-  SEK: "Europe", NOK: "Europe", DKK: "Europe", PLN: "Europe",
-  JPY: "Asia", HKD: "Asia", CNY: "Asia", KRW: "Asia", TWD: "Asia",
-  SGD: "Asia", AUD: "Asia", INR: "Asia",
-  CAD: "Other", BRL: "Other", MXN: "Other",
-};
-
-/** Classify a holding's region from its ticker suffix, falling back to the
- *  quote currency, then "Other". A "-USD" tail (BTC-USD…) marks crypto. */
-export function regionForTicker(ticker: string, currency: string | null): Region {
-  const up = ticker.trim().toUpperCase();
-  if (/-USD$/.test(up) || /^(BTC|ETH|SOL|ADA|XRP|DOGE|DOT|LTC|BNB|USDT|USDC)$/.test(up)) {
-    return "Crypto";
-  }
-  const dot = up.lastIndexOf(".");
-  if (dot >= 0) {
-    const suffix = up.slice(dot + 1);
-    if (SUFFIX_REGION[suffix]) return SUFFIX_REGION[suffix];
-  }
-  if (currency && CURRENCY_REGION[currency]) return CURRENCY_REGION[currency];
-  // No suffix and an unknown/absent currency: overwhelmingly a US listing.
-  if (!currency || currency === "USD") return "US";
-  return "Other";
-}
-
-function slicesFrom(map: Map<string, number>, total: number): Slice[] {
-  if (total <= 0) return [];
-  return [...map.entries()]
-    .map(([key, v]) => ({ key, weight: v / total }))
-    .sort((a, b) => b.weight - a.weight);
-}
-
-// Grade bands on the 0..100 diversification score. Deliberately generous at the
-// top (a genuinely spread portfolio should be able to reach an A) and harsh at
-// the bottom (a one- or two-stock "portfolio" earns an F).
-export function scoreToGrade(score: number): string {
-  if (score >= 88) return "A+";
-  if (score >= 78) return "A";
-  if (score >= 70) return "B+";
-  if (score >= 62) return "B";
-  if (score >= 52) return "C+";
-  if (score >= 42) return "C";
-  if (score >= 30) return "D";
-  return "F";
-}
 
 export function computeXray(input: XrayInput): XrayReport {
   const holdings = input.holdings;
@@ -160,10 +92,7 @@ export function computeXray(input: XrayInput): XrayReport {
     .sort((a, b) => b.weight - a.weight);
 
   const w = weights.map((x) => x.weight);
-  const hhi = herfindahl(w);
-  const effectiveN = hhi > 0 ? 1 / hhi : 0;
-  const top1 = w[0] ?? 0;
-  const top3 = w.slice(0, 3).reduce((s, x) => s + x, 0);
+  const { hhi, effectiveN, top1, top3 } = concentrationOf(w);
 
   // Region mix by market value.
   const regionMap = new Map<string, number>();
@@ -204,27 +133,12 @@ export function computeXray(input: XrayInput): XrayReport {
   const weightedPe = peRecip > 0 && peCoverage >= 0.4 ? peWeight / peRecip : null;
 
   // ---- Diversification score ----------------------------------------------
-  // Four transparent components, each 0..1:
-  //  concentration — how many "effective" equal-weight names you hold
-  //  count         — raw breadth (saturates around 15 names)
-  //  region        — geographic spread (1 − Herfindahl of region weights)
-  //  sector        — sector spread, when we have the data
-  const concPart = clamp01((effectiveN - 1) / 9); // effN 1→0, 10→1
-  const countPart = clamp01((n - 1) / 14); // 1 name→0, 15+→1
-  const regionPart = regions.length ? 1 - herfindahl(regions.map((r) => r.weight)) : 0;
-  const sectorPart = sectors ? 1 - herfindahl(sectors.map((s) => s.weight)) : null;
-
-  const weightsMix =
-    sectorPart != null
-      ? { concentration: 0.34, count: 0.24, region: 0.21, sector: 0.21 }
-      : { concentration: 0.44, count: 0.3, region: 0.26, sector: 0 };
-  const raw =
-    concPart * weightsMix.concentration +
-    countPart * weightsMix.count +
-    regionPart * weightsMix.region +
-    (sectorPart ?? 0) * weightsMix.sector;
-  const score = Math.round(clamp01(raw) * 100);
-  const grade = scoreToGrade(score);
+  const { score, grade, parts: scoreParts } = scoreDiversification({
+    effectiveN,
+    count: n,
+    regions,
+    sectors,
+  });
 
   // ---- Risk flags ----------------------------------------------------------
   const flags: XrayFlag[] = [];
@@ -288,7 +202,7 @@ export function computeXray(input: XrayInput): XrayReport {
     peCoverage,
     score,
     grade,
-    scoreParts: { concentration: concPart, count: countPart, region: regionPart, sector: sectorPart },
+    scoreParts,
     flags,
   };
 }

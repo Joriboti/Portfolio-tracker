@@ -92,7 +92,10 @@ const isWeight = (v: unknown): v is number => isFiniteNum(v) && v >= -0.0001 && 
  *
  * Returns the fields the row denormalises for querying, or throws.
  */
-export function validateCanonicalBody(canonical: string): ValidatedBody {
+export function validateCanonicalBody(
+  canonical: string,
+  opts: { allowBrokerTier?: boolean } = {},
+): ValidatedBody {
   if (typeof canonical !== "string" || canonical.length === 0) {
     throw new Error("Missing snapshot body");
   }
@@ -114,9 +117,12 @@ export function validateCanonicalBody(canonical: string): ValidatedBody {
   if (b.v !== 1) throw new Error("Unsupported snapshot version");
   if (b.tier !== "self" && b.tier !== "broker") throw new Error("Invalid tier");
   // Only the server may mint a broker-tier snapshot, and it only does that from
-  // data it fetched from the broker itself. A client asking for one is either a
-  // bug or someone trying to award themselves a badge.
-  if (b.tier === "broker") throw new Error("Broker tier cannot be self-issued");
+  // data it fetched from the broker itself — snapshot-create-broker opts in
+  // explicitly. A client asking for one is either a bug or someone trying to
+  // award themselves a badge.
+  if (b.tier === "broker" && !opts.allowBrokerTier) {
+    throw new Error("Broker tier cannot be self-issued");
+  }
   if (b.broker !== null && typeof b.broker !== "string") throw new Error("Invalid broker");
   if (typeof b.amounts !== "boolean") throw new Error("Invalid amounts flag");
 
@@ -171,8 +177,13 @@ export function validateCanonicalBody(canonical: string): ValidatedBody {
   if (b.amounts) {
     const totals = b.totals as Record<string, unknown> | undefined;
     if (!totals) throw new Error("Missing totals");
-    for (const k of ["value", "cost", "realized", "dividends"] as const) {
+    for (const k of ["value", "cost"] as const) {
       if (!isFiniteNum(totals[k])) throw new Error("Invalid totals");
+    }
+    // A broker positions statement carries no realised P&L or dividend history,
+    // so these are legitimately absent rather than zero.
+    for (const k of ["realized", "dividends"] as const) {
+      if (totals[k] !== null && !isFiniteNum(totals[k])) throw new Error("Invalid totals");
     }
   } else if (b.totals !== null) {
     throw new Error("Totals present but amounts not disclosed");

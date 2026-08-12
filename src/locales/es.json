@@ -903,6 +903,19 @@
     "tier": "Nivel",
     "tierSelf": "Autodeclarado · firmado por TrimmTrack",
     "tierBroker": "Verificado con el bróker",
+    "tierBrokerNamed": "Verificado con {{broker}}",
+    "attestationBroker": "Este documento acredita que TrimmTrack leyó estas posiciones directamente de {{broker}} en la fecha indicada, mediante un acceso de solo lectura autorizado por el titular, y que las cifras no se han modificado desde entonces.",
+    "unrealisedReturn": "Plusvalía latente",
+    "sourceSelf": "Mi Excel",
+    "sourceSelfHint": "Usamos la cartera que tienes en el panel. La tarjeta dirá que los datos los has aportado tú.",
+    "sourceIbkr": "Interactive Brokers",
+    "sourceIbkrHint": "Leemos las posiciones reales de tu cuenta con un acceso de solo lectura. La tarjeta dirá que vienen del bróker.",
+    "flexToken": "Token del Flex Web Service",
+    "flexQueryId": "Identificador de la Flex Query",
+    "flexHelp": "Los generas en tu cuenta de IBKR, en Performance & Reports → Flex Queries. Son de solo lectura: no permiten operar ni mover dinero. No los guardamos en ningún sitio, solo los usamos para esta consulta.",
+    "generateVerified": "Generar la tarjeta verificada con el bróker",
+    "issuing": "Consultando al bróker…",
+    "skipped": "No hemos podido convertir a euros estas posiciones y quedan fuera de la tarjeta: {{tickers}}.",
     "attestation": "Este documento acredita que TrimmTrack emitió estas cifras exactas en la fecha indicada y que no se han modificado desde entonces. Los datos provienen del Excel que el titular importó: no se han contrastado con ningún bróker.",
     "issuedOn": "Emitido el",
     "distribution": "Distribución de la cartera",
@@ -929,7 +942,8 @@
     "meaning": {
       "issued": "TrimmTrack emitió estas cifras en la fecha indicada.",
       "unedited": "Las cifras no se han modificado desde la emisión.",
-      "notBroker": "No se ha comprobado con el bróker: los datos los aportó el titular."
+      "notBroker": "No se ha comprobado con el bróker: los datos los aportó el titular.",
+      "fromBroker": "Las posiciones se leyeron directamente del bróker ({{broker}})."
     },
     "result": {
       "validTitle": "Tarjeta válida",

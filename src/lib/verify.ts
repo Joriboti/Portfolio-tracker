@@ -54,8 +54,17 @@ export type SnapshotBody = {
   sectors: SnapshotSlice[] | null;
   conc: { top1: number; top3: number; effN: number };
   ret: { total: number | null; irr: number | null };
-  /** Euro totals — null unless `amounts` is true. */
-  totals: { value: number; cost: number; realized: number; dividends: number } | null;
+  /**
+   * Euro totals — null unless `amounts` is true. `realized` and `dividends` are
+   * individually nullable because a broker positions statement carries neither:
+   * printing them as zero would state something we were never told.
+   */
+  totals: {
+    value: number;
+    cost: number;
+    realized: number | null;
+    dividends: number | null;
+  } | null;
   score: number;
   grade: string;
 };
@@ -84,10 +93,12 @@ export const SNAPSHOT_TOP_HOLDINGS = 8;
 /** Bucket key for everything past the top N. Not a ticker — rendered as "Other". */
 export const REMAINDER_KEY = "__rest__";
 
-const round = (x: number, dp: number): number => {
+/** Shared so every producer of a body rounds identically before signing. */
+export const roundTo = (x: number, dp: number): number => {
   const f = 10 ** dp;
   return Math.round(x * f) / f;
 };
+const round = roundTo;
 const roundOrNull = (x: number | null | undefined, dp: number): number | null =>
   x == null || !Number.isFinite(x) ? null : round(x, dp);
 
