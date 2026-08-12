@@ -67,6 +67,40 @@ issued.** The digest still matches, so the verify page still confirms the
 figures are unedited, but it will say the issuer can no longer be confirmed.
 Rotate only deliberately.
 
+#### Trust ladder
+
+A card states which of two things it can back up, and the tier is inside the
+signed body so a weaker card cannot be passed off as a stronger one:
+
+| Tier | Source | What it attests |
+|------|--------|-----------------|
+| `self` | the user's imported Excel | TrimmTrack issued these figures at this time and they are unedited |
+| `broker` | read directly from the broker | the above, plus that the positions came from the account itself |
+
+Broker-tier snapshots are issued by `api/snapshot-create-broker`, which fetches,
+derives and signs in one request. `validateCanonicalBody` rejects a broker tier
+unless that route opts in, so a client cannot award itself the badge.
+
+#### Connecting Interactive Brokers
+
+No API key of ours and nothing to pay for. The user creates, inside their own
+IBKR account (Performance & Reports → Flex Queries), an Activity Flex Query with
+open positions and a Flex Web Service token, then pastes both into the dashboard.
+Flex is read-only by construction — it can fetch reports and cannot place an
+order or move money. The token is used for the two calls that make up the
+handshake and is then discarded: never stored, never logged, never returned.
+
+Two figures the self tier reports are absent from a positions statement and are
+not fabricated: IRR is null (no cash-flow history), and realised P&L and
+dividends are null, which makes the report omit those rows rather than print a
+zero. What the statement does support exactly — the unrealised return on cost —
+is labelled as such, so the tiers never present different measures under one word.
+
+Other brokers (Trade Republic, Schwab, Robinhood) have no free official
+read-only API. The intended route for those is verifying a DKIM-signed statement
+email, which needs no third party and works for any broker that emails
+statements — not built yet.
+
 ## Excel format
 
 The app expects up to 4 sheets with these exact names:
