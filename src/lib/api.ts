@@ -439,7 +439,7 @@ export type FundamentalsRefreshResult = {
 export function refreshFundamentals(
   userId: string,
 ): Promise<FundamentalsRefreshResult> {
-  return jsonFetch("/api/fundamentals-refresh", { method: "GET", userId });
+  return jsonFetch("/api/fundamentals-get?refresh=1", { method: "GET", userId });
 }
 
 // Load the saved scenario valuation model for one holding, or null when the
@@ -526,7 +526,7 @@ export function createSnapshot(
   userId: string,
   canonical: string,
 ): Promise<{ code: string; issuedAt: string; digest: string }> {
-  return jsonFetch("/api/snapshot-create", {
+  return jsonFetch("/api/snapshots?action=create", {
     method: "POST",
     body: JSON.stringify({ canonical }),
     userId,
@@ -535,18 +535,18 @@ export function createSnapshot(
 
 /** Public read for the verify page — deliberately unauthenticated. */
 export function getSnapshot(code: string): Promise<FetchedSnapshot> {
-  return jsonFetch(`/api/snapshot-get?code=${encodeURIComponent(code)}`);
+  return jsonFetch(`/api/snapshots?code=${encodeURIComponent(code)}`);
 }
 
 export function listSnapshots(userId: string): Promise<{ snapshots: SnapshotListRow[] }> {
-  return jsonFetch("/api/snapshot-list", { userId });
+  return jsonFetch("/api/snapshots", { userId });
 }
 
 export function revokeSnapshot(
   userId: string,
   code: string,
 ): Promise<{ code: string; revokedAt: string }> {
-  return jsonFetch("/api/snapshot-revoke", {
+  return jsonFetch("/api/snapshots?action=revoke", {
     method: "POST",
     body: JSON.stringify({ code }),
     userId,
@@ -575,7 +575,7 @@ export function fetchIbkrPositions(
   token: string,
   queryId: string,
 ): Promise<{ account: string | null; asOf: string | null; positions: IbkrPositionPreview[] }> {
-  return jsonFetch("/api/broker-ibkr-positions", {
+  return jsonFetch("/api/snapshots?action=ibkr-preview", {
     method: "POST",
     body: JSON.stringify({ token, queryId }),
     userId,
@@ -598,7 +598,7 @@ export function createBrokerSnapshot(
   asOf: string | null;
   skipped: string[];
 }> {
-  return jsonFetch("/api/snapshot-create-broker", {
+  return jsonFetch("/api/snapshots?action=broker", {
     method: "POST",
     body: JSON.stringify({ token, queryId, amounts }),
     userId,

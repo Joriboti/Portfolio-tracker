@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+// Type-only, so the refresh core is still loaded lazily inside handleRefresh.
+import type { SqlClient as FundamentalsSqlClient } from "./_fundamentals-core.js";
 
 // Read-only market-data lookup for the dashboard. Two modes:
 //   • ?tickers=A,B  → cached rows from the `fundamentals` table (default).
@@ -212,12 +214,55 @@ async function handleLiveQuotes(req: VercelRequest, res: VercelResponse) {
   res.status(200).end(JSON.stringify({ ok: true, quotes }));
 }
 
+/**
+ * Refresh the cached fundamentals for the caller's holdings, stale-first within
+ * a time budget. Reachable either by the dashboard button (x-user-id) or by the
+ * cron bearer token, exactly as when this was its own route.
+ */
+async function handleRefresh(req: VercelRequest, res: VercelResponse) {
+  const startMs = Date.now();
+  // Leave headroom inside maxDuration for the DB writes + response.
+  const TIME_BUDGET_MS = 50_000;
+
+  const cronSecret = process.env.CRON_SECRET;
+  const authz = req.headers.authorization ?? "";
+  const cronOk = !cronSecret || authz === `Bearer ${cronSecret}`;
+  const userId = req.headers["x-user-id"];
+  if (!cronOk && !userId) {
+    res.status(401).end(JSON.stringify({ error: "Unauthorized" }));
+    return;
+  }
+
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    res.status(500).end(JSON.stringify({ error: "DATABASE_URL not configured" }));
+    return;
+  }
+
+  const { makeYahooClient, refreshFundamentals } = await import("./_fundamentals-core.js");
+  const dbMod = await import("@neondatabase/serverless");
+  const sql = dbMod.neon(dbUrl) as unknown as FundamentalsSqlClient;
+  const yahoo = await makeYahooClient();
+
+  const stats = await refreshFundamentals(sql, yahoo, startMs + TIME_BUDGET_MS);
+  const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
+  res.status(200).end(JSON.stringify({ ok: true, ...stats, elapsed: `${elapsed}s` }));
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     res.setHeader("Content-Type", "application/json");
 
     if (req.method !== "GET") {
       res.status(405).end(JSON.stringify({ error: "Method not allowed" }));
+      return;
+    }
+
+    // Fundamentals refresh mode (dashboard button). Was its own route until the
+    // 12-function ceiling; the work itself still lives in _fundamentals-core,
+    // shared with the weekly cron in historical-backfill.
+    if (req.query.refresh != null) {
+      await handleRefresh(req, res);
       return;
     }
 

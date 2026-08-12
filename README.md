@@ -56,7 +56,7 @@ Or paste the SQL into Neon Console → SQL Editor.
 
 The dashboard can issue a signed snapshot of a portfolio — a shareable card, a
 one-page PDF and a public `/verify/:code` page. Two things must be in place or
-`/api/snapshot-create` returns a 500 rather than issuing an unsigned card:
+`/api/snapshots` returns a 500 rather than issuing an unsigned card:
 
 1. `db/schema.sql` re-run so `portfolio_snapshots` exists (the file is
    idempotent — `IF NOT EXISTS` throughout).
@@ -77,7 +77,7 @@ signed body so a weaker card cannot be passed off as a stronger one:
 | `self` | the user's imported Excel | TrimmTrack issued these figures at this time and they are unedited |
 | `broker` | read directly from the broker | the above, plus that the positions came from the account itself |
 
-Broker-tier snapshots are issued by `api/snapshot-create-broker`, which fetches,
+Broker-tier snapshots are issued by `POST /api/snapshots?action=broker`, which fetches,
 derives and signs in one request. `validateCanonicalBody` rejects a broker tier
 unless that route opts in, so a client cannot award itself the badge.
 
@@ -100,6 +100,20 @@ Other brokers (Trade Republic, Schwab, Robinhood) have no free official
 read-only API. The intended route for those is verifying a DKIM-signed statement
 email, which needs no third party and works for any broker that emails
 statements — not built yet.
+
+#### Why the routes are multiplexed
+
+The Hobby plan caps a deployment at 12 Serverless Functions, and every non-`_`
+file in `api/` is one. So related operations share a route and dispatch on a
+query parameter, lazily importing only the core each branch needs:
+
+- `api/snapshots.ts` — `?code=` (public read), bare `GET` (list), and
+  `POST ?action=create|broker|revoke|ibkr-preview`
+- `api/fundamentals-get.ts` — `?search=`, `?quote=`, `?statements=`, `?live=`,
+  `?research=`, `?refresh=`
+
+Adding a file to `api/` therefore costs a function. Fold it into an existing
+route unless there is a slot free.
 
 ## Excel format
 
