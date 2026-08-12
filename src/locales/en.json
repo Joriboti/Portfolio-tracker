@@ -16,7 +16,12 @@
     "signOut": "Sign out",
     "taxes": "Taxes",
     "menu": "Menu",
-    "close": "Close"
+    "close": "Close",
+    "groups": {
+      "models": "Valuation models",
+      "portfolio": "Portfolio",
+      "taxes": "Taxes"
+    }
   },
   "home": {
     "heroTitle": "Your portfolio, always up to date",

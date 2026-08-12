@@ -16,7 +16,12 @@
     "signOut": "Tanca sessió",
     "taxes": "Impostos",
     "menu": "Menú",
-    "close": "Tanca"
+    "close": "Tanca",
+    "groups": {
+      "models": "Models de valoració",
+      "portfolio": "Cartera",
+      "taxes": "Fiscalitat"
+    }
   },
   "home": {
     "heroTitle": "El teu portfolio, sempre actualitzat",

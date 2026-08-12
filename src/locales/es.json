@@ -16,7 +16,12 @@
     "signOut": "Cerrar sesión",
     "taxes": "Impuestos",
     "menu": "Menú",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "groups": {
+      "models": "Modelos de valoración",
+      "portfolio": "Cartera",
+      "taxes": "Fiscalidad"
+    }
   },
   "home": {
     "heroTitle": "Tu cartera, siempre actualizada",

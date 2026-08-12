@@ -93,7 +93,7 @@ const EN_ONLY = [
 // are authored in English today, so only /en/research/:slug is indexable and the
 // ca/es paths 301 to it (see vercel.json). Publishing a real translation = add
 // the locale here and drop that redirect; nothing else needs touching.
-const ARTICLES = read("src/data/research-articles.json");
+export const ARTICLES = read("src/data/research-articles.json");
 
 const TICKERS = read("src/data/tickers.json");
 const PAIRS = read("src/data/compare-pairs.json");

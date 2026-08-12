@@ -36,6 +36,10 @@ export type PrerenderRoute = {
 
 export type TickerEntry = { symbol: string; name: string };
 export type PairEntry = { a: string; b: string };
+/** Which languages each research article is actually written in. */
+export type ArticleEntry = { slug: string; locales: Locale[] };
+
+export const ARTICLES: ArticleEntry[];
 
 export const BASE: string;
 export const LOCALES: Locale[];

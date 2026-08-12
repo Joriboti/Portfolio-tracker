@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LocaleLink, LocaleNavLink } from "@/components/LocaleLink";
+import { LocaleLink, LocaleNavLink, useLocalePath } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo, Wordmark } from "./Logo";
@@ -180,25 +180,48 @@ export function Layout() {
 function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => void; loggedIn: boolean }) {
   const { t } = useTranslation();
 
+  // The drawer is grouped: a short flat list of the main sections, then
+  // collapsible groups for the tool landings. Ungrouped, the twelve links read
+  // as one undifferentiated column and the four valuation calculators (added
+  // when ca/es got their own keyword pages) made it longer than the viewport on
+  // a phone. Groups start CLOSED so the drawer opens short; the group holding
+  // the current page opens itself (see NavGroup).
+  //
+  // LocaleNavLink turns each neutral slug into the current language's URL
+  // (/calculadora-dcf → /en/dcf-calculator), so these are written once.
   const sections = [
     { to: "/dashboard", label: t("nav.dashboard") },
     { to: "/upload", label: t("nav.upload") },
     { to: "/explore", label: t("nav.explore") },
-    { to: "/forecast", label: t("nav.forecast") },
-    { to: "/taxes", label: t("nav.taxes") },
     { to: "/research", label: t("nav.research") },
   ];
-  // Tool landings. The four valuation calculators are keyword pages that exist
-  // in all three languages, so they belong in the drawer — a page reachable only
-  // from a sitemap is a page Google treats as an orphan. LocaleNavLink turns each
-  // neutral slug into the current language's URL (/calculadora-dcf → /en/dcf-calculator).
-  const tools = [
-    { to: "/radiografia", label: t("xray.short") },
-    { to: "/calculadora-fifo", label: t("fifoPage.short") },
-    { to: "/calculadora-dcf", label: t("tools.dcfShort") },
-    { to: "/dcf-invers", label: t("tools.reverseDcfShort") },
-    { to: "/numero-de-graham", label: t("tools.grahamShort") },
-    { to: "/simulador-monte-carlo", label: t("tools.monteCarloShort") },
+  const groups = [
+    {
+      key: "models",
+      label: t("nav.groups.models"),
+      items: [
+        { to: "/calculadora-dcf", label: t("tools.dcfShort") },
+        { to: "/dcf-invers", label: t("tools.reverseDcfShort") },
+        { to: "/numero-de-graham", label: t("tools.grahamShort") },
+        { to: "/simulador-monte-carlo", label: t("tools.monteCarloShort") },
+      ],
+    },
+    {
+      key: "portfolio",
+      label: t("nav.groups.portfolio"),
+      items: [
+        { to: "/radiografia", label: t("xray.short") },
+        { to: "/forecast", label: t("nav.forecast") },
+      ],
+    },
+    {
+      key: "taxes",
+      label: t("nav.groups.taxes"),
+      items: [
+        { to: "/taxes", label: t("nav.taxes") },
+        { to: "/calculadora-fifo", label: t("fifoPage.short") },
+      ],
+    },
   ];
 
   return (
@@ -237,8 +260,8 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
             <DrawerItem key={it.to} to={it.to} label={it.label} onClick={onClose} />
           ))}
           <div className="my-2 border-t border-[#ece0cb]" />
-          {tools.map((it) => (
-            <DrawerItem key={it.to} to={it.to} label={it.label} onClick={onClose} />
+          {groups.map((g) => (
+            <NavGroup key={g.key} label={g.label} items={g.items} onNavigate={onClose} />
           ))}
           {loggedIn && (
             <>
@@ -249,6 +272,58 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
         </nav>
       </aside>
     </>
+  );
+}
+
+// A collapsible group of drawer links.
+//
+// Closed by default, EXCEPT when it contains the page you are on — otherwise
+// opening the menu from /es/calculadora-dcf would hide where you are. Rendered
+// with <details>/<summary> so it works before hydration and is keyboard- and
+// screen-reader-accessible for free; `open` is set from the route rather than
+// held in state, so it stays right after client-side navigation.
+//
+// The links are in the DOM whether or not the group is expanded — a crawler
+// still sees every one of them, which is the point of putting the tool landings
+// in the nav at all.
+function NavGroup({
+  label,
+  items,
+  onNavigate,
+}: {
+  label: string;
+  items: { to: string; label: string }[];
+  onNavigate: () => void;
+}) {
+  const { pathname } = useLocation();
+  const localize = useLocalePath();
+  const holdsCurrent = items.some((it) => pathname === localize(it.to));
+
+  return (
+    <details open={holdsCurrent} className="group">
+      <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
+        {label}
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className="transition-transform duration-200 group-open:rotate-180"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </summary>
+      <div className="mb-1 ml-2 border-l border-[#ece0cb] pl-2">
+        {items.map((it) => (
+          <DrawerItem key={it.to} to={it.to} label={it.label} onClick={onNavigate} />
+        ))}
+      </div>
+    </details>
   );
 }
 
