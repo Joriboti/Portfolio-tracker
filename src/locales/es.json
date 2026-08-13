@@ -20,13 +20,14 @@
     "groups": {
       "models": "Modelos de valoración",
       "portfolio": "Cartera",
-      "taxes": "Fiscalidad"
+      "taxes": "Fiscalidad",
+      "about": "Sobre TrimmTrack"
     }
   },
   "home": {
     "heroTitle": "Tu cartera, siempre actualizada",
     "heroSubtitle": "Sube tu hoja de cálculo y transfórmala en un panel con precios en tiempo real, P&L y dividendos. Con calculadora FIFO para plusvalías, valoración DCF y número de Graham — gratis y sin registro.",
-    "ctaStart": "Empieza gratis",
+    "ctaStart": "Prepara tu cartera",
     "ctaTry": "Prueba un modelo de valoración",
     "ctaHowTo": "Cómo preparar mi Excel",
     "feat1Title": "Sin fricción",
@@ -37,8 +38,8 @@
     "feat3Desc": "Selecciona la divisa de visualización y la app hace la conversión FX automáticamente.",
     "previewCaption": "Vista de ejemplo del panel (datos ilustrativos)",
     "tools": {
-      "title": "Todo lo que puedes hacer con TrimmTrack",
-      "intro": "Cinco herramientas, un objetivo: entender tus inversiones. Investigación profunda, visuales potentes.",
+      "title": "Seis herramientas, un objetivo",
+      "intro": "Seis herramientas, un objetivo: entender tus inversiones. Investigación profunda, visuales potentes.",
       "dashboard": {
         "title": "Mi cartera",
         "desc": "Posiciones en vivo, P&L, pesos y evolución frente al S&P 500.",
@@ -86,6 +87,22 @@
       "t2d": "Precios y fundamentales de Yahoo Finance, actualizados a diario.",
       "t3t": "Tú tienes el control",
       "t3d": "No es asesoramiento financiero: te ayudamos a verlo claro y las decisiones las tomas tú."
+    },
+    "preview": {
+      "title": "Mi cartera",
+      "badge": "demo",
+      "totalValue": "Valor total",
+      "cost": "Coste",
+      "unrealized": "P&L no realizado",
+      "irr": "TIR anual",
+      "ticker": "Ticker",
+      "value": "Valor",
+      "weight": "Peso",
+      "pl": "P&L"
+    },
+    "research": {
+      "title": "Análisis recientes",
+      "seeAll": "Ver todos los análisis"
     }
   },
   "disclaimer": {
@@ -185,7 +202,8 @@
       "pros": "Ventajas competitivas",
       "risks": "Riesgos de inversión",
       "source": "Análisis de TrimmTrack"
-    }
+    },
+    "expandChart": "Ampliar el gráfico"
   },
   "compare": {
     "heading": "{{a}} vs {{b}}: comparativa financiera",
@@ -225,7 +243,15 @@
     "ctaTitle": "Sigue a {{name}} en TrimmTrack",
     "ctaCompany": "esta empresa",
     "ctaBody": "Añádela a tu cartera y aplícale los modelos de valoración (DCF, Graham, NAV…) con datos en vivo. Gratis y sin registro.",
-    "ctaButton": "Empieza gratis"
+    "ctaButton": "Empieza gratis",
+    "availableIn": "Artículo disponible en {{lang}}",
+    "langNames": {
+      "ca": "catalán",
+      "es": "español",
+      "en": "inglés"
+    },
+    "editorialLink": "Cómo trabajamos",
+    "shareX": "Compartir en X"
   },
   "seo": {
     "homeTitle": "TrimmTrack — Seguidor de cartera, calculadoras DCF y proyección de ETFs",
@@ -417,6 +443,27 @@
       "payments": "Pagos",
       "total": "Total recibido",
       "yield": "Rendimiento"
+    },
+    "rename": {
+      "action": "Cambia el ticker de {{ticker}}",
+      "title": "Cambiar el ticker",
+      "lead": "Si tu Excel usa un código que Yahoo Finance no reconoce, elige aquí el símbolo correcto de la empresa.",
+      "current": "Ticker actual",
+      "newTicker": "Nuevo ticker",
+      "searchPlaceholder": "Busca por nombre o símbolo (Grifols, GRF.MC…)",
+      "searchHint": "También puedes escribir el símbolo exacto, con el sufijo del mercado (.MC, .PA, .L…).",
+      "checking": "Comprobando el símbolo…",
+      "found": "{{ticker}} cotiza a {{price}} {{currency}}",
+      "notFound": "Yahoo Finance no da precio para este símbolo. Puedes continuar, pero la posición se quedará sin valorar.",
+      "invalid": "Símbolo no válido.",
+      "same": "Es el ticker que ya tienes.",
+      "scope": "Se aplica a todas las operaciones y dividendos de esta posición, y al modelo de valoración guardado. Después actualizamos precios e histórico.",
+      "confirm": "Cambiar el ticker",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "applying": "Aplicando…",
+      "missingHint": "Si el símbolo no es correcto, cámbialo con ✎ en la fila.",
+      "merge": "Ya tienes {{ticker}} en la cartera: las dos posiciones se fusionarán en una."
     }
   },
   "performance": {
@@ -1132,5 +1179,58 @@
     "heading": "Esta página no existe",
     "body": "El enlace puede ser antiguo o tener una errata. Prueba a empezar por la portada o a explorar las empresas.",
     "home": "Ir a la portada"
+  },
+  "footer": {
+    "about": "Sobre nosotros",
+    "privacy": "Privacidad",
+    "terms": "Legal",
+    "xAria": "TrimmTrack en X"
+  },
+  "insights": {
+    "unavailable": "El comentario cualitativo todavía no está disponible en español. Puedes consultar la versión catalana.",
+    "viewCatalan": "Ver la versión catalana"
+  },
+  "calc": {
+    "fields": {
+      "epsFcf": "BPA previsto / FCF por acción",
+      "growth": "Crecimiento anual",
+      "years": "Años",
+      "exitMultiple": "PER de salida",
+      "requiredReturn": "Rentabilidad exigida",
+      "currentPrice": "Precio actual",
+      "trailingEps": "BPA de los últimos 12 meses",
+      "expectedGrowth": "Crecimiento esperado",
+      "aaaYield": "Rentabilidad del bono corporativo AAA",
+      "initial": "Inversión inicial",
+      "monthly": "Aportación mensual",
+      "expectedReturn": "Rentabilidad anual esperada",
+      "forwardEps": "BPA previsto",
+      "growthMean": "Crecimiento (media)",
+      "growthSd": "Crecimiento ± (desviación)",
+      "multipleMean": "Múltiplo de salida (media)",
+      "multipleSd": "Múltiplo ± (desviación)"
+    },
+    "stats": {
+      "fairValue": "Valor razonable hoy",
+      "upside": "Potencial sobre el precio",
+      "impliedReturn": "Rentabilidad implícita (TCAC)",
+      "impliedGrowth": "Crecimiento que el precio descuenta",
+      "graham": "Número de Graham (valor intrínseco)",
+      "futureValue": "Valor futuro",
+      "contributed": "Total aportado",
+      "investmentGrowth": "Ganancia de la inversión",
+      "p10": "P10 (pesimista)",
+      "p50": "P50 (valor razonable medio)",
+      "p90": "P90 (optimista)"
+    },
+    "notes": {
+      "dcf": "Valor razonable = BPA × (1+g)^n × múltiplo de salida, descontado a la rentabilidad que exiges. Un potencial positivo significa que el modelo ve la acción infravalorada al precio de hoy.",
+      "reverse": "El DCF inverso resuelve el modelo al revés: dado el precio, el múltiplo de salida y la rentabilidad que exiges, ¿qué crecimiento constante del BPA tendría que estar asumiendo el mercado? Compáralo con el crecimiento realista de la empresa para juzgar si las expectativas son caras o baratas.",
+      "graham": "V = BPA × (8,5 + 2g) × 4,4 / Y, la revisión ajustada por tipos de interés. Es un cribado rápido y conservador, no una valoración precisa.",
+      "grahamCapped": "El crecimiento se ha limitado al {{cap}}% porque el término lineal 2g se infla por encima de ese punto.",
+      "compound": "Asume que las aportaciones se añaden al final de cada mes y que la rentabilidad se capitaliza mensualmente. La rentabilidad real de un ETF varía año a año: usa el simulador de Monte Carlo para ver el rango.",
+      "mcRuns": "{{runs}} simulaciones de la distribución del valor razonable."
+    },
+    "rerun": "Volver a simular"
   }
 }

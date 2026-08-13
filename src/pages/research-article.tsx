@@ -6,11 +6,17 @@ import { getResearchArticle, type ResearchArticle } from "@/lib/research";
 import { Blocks } from "@/components/NotionBlocks";
 import { ResearchWordmark } from "@/components/Logo";
 import { useSeo } from "@/lib/seo";
-import { localeUrl, withLocale } from "@/lib/locale";
+import { ROUTE_SLUGS, localeUrl, withLocale } from "@/lib/locale";
+import { OG_IMAGE, SAME_AS, shareOnX } from "@/lib/brand";
+import { editorialName } from "@/pages/trust";
 import { articleLocales, resolveArticleLocale } from "@/lib/research-locales";
 import { TickerBadge, TagPill, formatDate } from "./research";
 
-const FALLBACK_OG = "https://www.trimmtrack.com/og.png";
+// Every article shares one OG/Schema image, on our own domain. Article covers
+// come from Notion — uploaded ones are ~1h-signed S3 URLs and linked ones point
+// at press sites — so using them as og:image meant social cards and structured
+// data referencing images we neither host nor have the right to distribute.
+// The cover still renders in the page header; it just never leaves the page.
 
 export function ResearchArticlePage() {
   const { t, i18n } = useTranslation();
@@ -51,12 +57,13 @@ export function ResearchArticlePage() {
   // the Catalan path, so the English and Spanish pages pointed their structured
   // data at a different URL than their canonical.
   const url = localeUrl(`/research/${slug}`, locale);
+  const aboutUrl = localeUrl(ROUTE_SLUGS.about[locale], locale);
   useSeo({
     title: article
       ? `${article.title} | TrimmTrack`
       : t("research.fallbackTitle"),
     description: article?.summary,
-    image: article?.coverImage ?? FALLBACK_OG,
+    image: OG_IMAGE,
     // Only the languages this article is really written in. An unknown slug
     // (published in Notion since the last deploy) advertises just itself.
     alternates: articleLocales(slug).length ? articleLocales(slug) : [locale],
@@ -67,9 +74,22 @@ export function ResearchArticlePage() {
           headline: article.title,
           inLanguage: locale,
           datePublished: article.publishedAt ?? undefined,
-          image: article.coverImage ?? FALLBACK_OG,
-          author: { "@type": "Organization", name: "TrimmTrack" },
-          publisher: { "@type": "Organization", name: "TrimmTrack" },
+          // No dateModified: the CMS records no edit date, and inventing one
+          // would tell Google the piece was refreshed when it was not.
+          image: OG_IMAGE,
+          author: {
+            "@type": "Organization",
+            name: editorialName(locale),
+            url: aboutUrl,
+            sameAs: SAME_AS,
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "TrimmTrack",
+            url: localeUrl("/", locale),
+            logo: { "@type": "ImageObject", url: OG_IMAGE },
+            sameAs: SAME_AS,
+          },
           mainEntityOfPage: url,
         }
       : undefined,
@@ -122,6 +142,24 @@ export function ResearchArticlePage() {
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">
           {article.title}
         </h1>
+        {/* Who wrote it, when, and where to check how we work — the signals a
+            reader (and Google's quality guidelines) expect on a finance piece. */}
+        <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+          <span>{editorialName(locale)}</span>
+          <span aria-hidden>·</span>
+          <LocaleLink to={ROUTE_SLUGS.about.ca} className="text-brand-700 hover:underline">
+            {t("research.editorialLink")}
+          </LocaleLink>
+          <span aria-hidden>·</span>
+          <a
+            href={shareOnX(url, article.title)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand-700 hover:underline"
+          >
+            {t("research.shareX")}
+          </a>
+        </p>
         {article.summary && (
           <p className="mt-3 text-lg leading-relaxed text-slate-600">
             {article.summary}

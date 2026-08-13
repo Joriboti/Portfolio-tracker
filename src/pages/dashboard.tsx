@@ -19,7 +19,9 @@ import {
   refreshDividends,
   getFundamentals,
   refreshFundamentals,
+  refreshHistoricalPrices,
   appendHoldings,
+  renameTicker,
   type PriceQuote,
   type Fundamentals,
   type LiveCompany,
@@ -40,6 +42,7 @@ import { ScenarioValuation } from "@/components/ScenarioValuation";
 import { CompanyOverview } from "@/components/CompanyOverview";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { PortfolioVerifier } from "@/components/PortfolioVerifier";
+import { TickerRenameDialog } from "@/components/TickerRenameDialog";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
 
@@ -79,6 +82,8 @@ function DashboardInner() {
   // allocations mixing the Excel import and manually-added holdings. The stack
   // is ordered oldest→newest so undo pops the most recent removal.
   const [removed, setRemoved] = useState<string[]>([]);
+  // Ticker of the holding whose "change ticker" dialog is open, if any.
+  const [renaming, setRenaming] = useState<string | null>(null);
 
   async function handleRefresh() {
     if (!user || refreshing) return;
@@ -292,6 +297,65 @@ function DashboardInner() {
     return latest;
   }, [fundamentals]);
 
+  // "Change ticker": re-point a holding at the market symbol Yahoo actually
+  // knows (a broker Excel often names a less-covered company something else),
+  // then pull its price and weekly history so the row stops showing "—".
+  async function handleRename(from: string, to: string) {
+    if (!user) return;
+    await renameTicker(user.id, from, to);
+
+    // Re-point the loaded rows locally so the table shows the new symbol at
+    // once; the price/history refresh below can take the better part of a
+    // minute and shouldn't hold the dialog open.
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            transactions: prev.transactions.map((tx) =>
+              tx.ticker === from ? { ...tx, ticker: to } : tx,
+            ),
+            dividends: prev.dividends.map((d) =>
+              d.ticker === from ? { ...d, ticker: to } : d,
+            ),
+            dividendEvents: prev.dividendEvents.filter((e) => e.ticker !== from),
+          }
+        : prev,
+    );
+    // A deconstructor removal referred to the old symbol — carry it across so
+    // the view doesn't silently bring the holding back.
+    setRemoved((prev) => prev.map((tk) => (tk === from ? to : tk)));
+    setRenaming(null);
+
+    // The new symbol may be one nothing has ever priced. Everything here is
+    // best-effort: the rename itself is already committed, and the daily crons
+    // catch up on whatever fails.
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refreshPrices(user.id),
+        refreshDividends(user.id).catch(() => null),
+      ]);
+      try {
+        await refreshHistoricalPrices(user.id);
+      } catch {
+        /* cron will catch up */
+      }
+      const [portfolioRes, priceRes] = await Promise.all([
+        getPortfolio(user.id),
+        getPrices([...new Set(openPositions.map((p) => (p.ticker === from ? to : p.ticker)))]),
+      ]);
+      const map: Record<string, PriceQuote> = {};
+      for (const q of priceRes.quotes) map[q.ticker] = q;
+      setQuotes(map);
+      setFxRates(priceRes.fxRates);
+      setData(portfolioRes);
+    } catch {
+      /* the rename landed; a manual refresh will pick the prices up */
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   // Deconstructor controls.
   function removePosition(ticker: string) {
     setRemoved((prev) => (prev.includes(ticker) ? prev : [...prev, ticker]));
@@ -433,6 +497,7 @@ function DashboardInner() {
               >
                 {t("dashboard.refresh")}
               </button>
+              {user && <span className="ml-1">{t("dashboard.rename.missingHint")}</span>}
             </span>
           </div>
         )}
@@ -521,8 +586,18 @@ function DashboardInner() {
             userId={user?.id ?? null}
             totalPortfolioValue={totalValue}
             onRemove={removePosition}
+            onRename={user ? setRenaming : undefined}
           />
         </section>
+      )}
+
+      {renaming && (
+        <TickerRenameDialog
+          ticker={renaming}
+          existing={allPositions.map((p) => p.ticker).filter((tk) => tk !== renaming)}
+          onClose={() => setRenaming(null)}
+          onConfirm={(to) => handleRename(renaming, to)}
+        />
       )}
 
       {showPie && (
@@ -767,6 +842,7 @@ function PositionsTable({
   userId,
   totalPortfolioValue,
   onRemove,
+  onRename,
 }: {
   positions: Position[];
   quotes: Record<string, PriceQuote>;
@@ -776,6 +852,8 @@ function PositionsTable({
   userId: string | null;
   totalPortfolioValue: number;
   onRemove: (ticker: string) => void;
+  /** Only offered to signed-in users — the rename is a DB write. */
+  onRename?: (ticker: string) => void;
 }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -867,7 +945,7 @@ function PositionsTable({
           <SortTh label={t("dashboard.headers.cost")} k="cost" sort={sort} onSort={toggleSort} />
           <SortTh label={t("dashboard.headers.pl")} k="pl" sort={sort} onSort={toggleSort} />
           <SortTh label={t("dashboard.headers.plPct")} k="plPct" sort={sort} onSort={toggleSort} />
-          <th className="w-8" />
+          <th className={onRename ? "w-16" : "w-8"} />
         </tr>
       </thead>
       <tbody>
@@ -926,7 +1004,26 @@ function PositionsTable({
                 >
                   {formatPct(plPct)}
                 </td>
-                <td className="text-right">
+                <td className="text-right whitespace-nowrap">
+                  {onRename && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRename(p.ticker);
+                      }}
+                      // A position with no quote is precisely the one whose
+                      // ticker needs fixing, so flag the action there.
+                      className={`px-1 text-sm leading-none ${
+                        quote
+                          ? "text-slate-300 hover:text-brand-600"
+                          : "text-amber-500 hover:text-amber-600"
+                      }`}
+                      title={t("dashboard.rename.action", { ticker: p.ticker })}
+                      aria-label={t("dashboard.rename.action", { ticker: p.ticker })}
+                    >
+                      ✎
+                    </button>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

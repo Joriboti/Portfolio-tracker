@@ -19,7 +19,24 @@ import { DEFAULT_LOCALE, LOCALES, X_DEFAULT_LOCALE, type Locale } from "@/lib/lo
 // To publish a real translation: write it in Notion, add the locale here, and
 // remove that path's redirect from vercel.json. Nothing else needs changing.
 
-type Entry = { slug: string; locales: string[] };
+type Preview = { title: string; excerpt: string };
+type Entry = {
+  slug: string;
+  locales: string[];
+  /**
+   * Localized CARD copy (listing + landing), for languages the article itself
+   * is not written in. The card is translated so a Spanish reader knows what
+   * the piece is about; the link still goes to the language it exists in, and
+   * the UI labels that explicitly. These are faithful translations of the CMS
+   * title/summary — never a machine translation of the body, and never a new
+   * financial claim.
+   *
+   * There is deliberately no entry for the language the article is written in:
+   * that copy comes live from the CMS, and duplicating it here would be a
+   * second source of truth that silently rots when the article is edited.
+   */
+  preview?: Partial<Record<Locale, Preview>>;
+};
 
 const BY_SLUG: Record<string, Locale[]> = Object.fromEntries(
   (manifest as Entry[]).map((e) => [
@@ -36,6 +53,20 @@ const BY_SLUG: Record<string, Locale[]> = Object.fromEntries(
  */
 export function articleLocales(slug: string): Locale[] {
   return BY_SLUG[slug] ?? [];
+}
+
+const PREVIEWS: Record<string, Partial<Record<Locale, Preview>>> = Object.fromEntries(
+  (manifest as Entry[]).map((e) => [e.slug, e.preview ?? {}]),
+);
+
+/**
+ * Card title/excerpt for this article in `locale`, or null when the reader's
+ * language IS one the article is written in (use the live CMS copy then) or no
+ * translation of the card exists yet.
+ */
+export function articleCardCopy(slug: string, locale: Locale): Preview | null {
+  if (articleLocales(slug).includes(locale)) return null;
+  return PREVIEWS[slug]?.[locale] ?? null;
 }
 
 /** True when this slug is declared in the manifest at all. */

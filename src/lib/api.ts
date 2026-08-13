@@ -161,6 +161,30 @@ export function appendHoldings(
   });
 }
 
+export type RenameTickerResult = {
+  ok: true;
+  from: string;
+  to: string;
+  renamed: { transactions: number; dividends: number };
+};
+
+// Re-point a holding at a different market symbol — the fix for a broker Excel
+// that names a company something Yahoo doesn't know. Rewrites the user's own
+// rows (transactions, dividends and the saved valuation model); the shared
+// price caches are keyed by ticker, so a price + history refresh afterwards
+// fills the new symbol in.
+export function renameTicker(
+  userId: string,
+  from: string,
+  to: string,
+): Promise<RenameTickerResult> {
+  return jsonFetch("/api/portfolio-import", {
+    method: "POST",
+    body: JSON.stringify({ rename: { from, to } }),
+    userId,
+  });
+}
+
 export async function getPortfolio(userId: string): Promise<{
   transactions: Transaction[];
   dividends: Dividend[];

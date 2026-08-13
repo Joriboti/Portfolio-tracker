@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { LocaleLink } from "@/components/LocaleLink";
+import { LocaleLink, useLocale } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { companyName, pairSlug, pairsFor } from "@/lib/compare";
-import { SITE_ORIGIN } from "@/lib/locale";
+import { SITE_ORIGIN, localeUrl } from "@/lib/locale";
+import { shareOnX } from "@/lib/brand";
 import {
   searchTickers,
   getLiveCompany,
@@ -36,6 +37,7 @@ const TICKER_NAMES: Record<string, string> = Object.fromEntries(
 // shares/avgCost = 0 (its engine returns null for the "vs cost" ratios then).
 function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
   const { t } = useTranslation();
+  const locale = useLocale();
   const { user } = useUser();
   const { currency } = useDisplayCurrency();
 
@@ -309,14 +311,29 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
                 {company.price != null ? formatMoney(company.price, qc) : "—"}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => void handleShare()}
-              className="btn-ghost px-3 py-1.5 text-xs"
-              title={t("explore.shareHint")}
-            >
-              {copied ? `✓ ${t("explore.shareCopied")}` : `🔗 ${t("explore.share")}`}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void handleShare()}
+                className="btn-ghost px-3 py-1.5 text-xs"
+                title={t("explore.shareHint")}
+              >
+                {copied ? `✓ ${t("explore.shareCopied")}` : `🔗 ${t("explore.share")}`}
+              </button>
+              {/* Plain intent URL on the canonical: no X SDK, no third-party
+                  script, nothing that runs before the user chooses to share. */}
+              <a
+                href={shareOnX(
+                  localeUrl(selected ? `/explore/${selected.symbol.toLowerCase()}` : "/explore", locale),
+                  selected ? `${selected.symbol} — ${selected.name}` : t("seo.exploreTitle"),
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost px-3 py-1.5 text-xs"
+              >
+                𝕏 {t("research.shareX")}
+              </a>
+            </div>
           </div>
 
           {!user && (

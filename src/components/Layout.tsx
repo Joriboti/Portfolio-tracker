@@ -7,7 +7,8 @@ import { Logo, Wordmark } from "./Logo";
 import { useUser } from "@/hooks/useUser";
 import { authClient } from "@/lib/auth";
 import i18n from "@/lib/i18n";
-import { stripLocale } from "@/lib/locale";
+import { ROUTE_SLUGS, stripLocale } from "@/lib/locale";
+import { X_HANDLE, X_URL } from "@/lib/brand";
 
 // Keep the active i18next language in sync with the URL's locale prefix so a
 // visitor landing directly on /en/… or /es/… (e.g. from Google) sees the right
@@ -164,9 +165,37 @@ export function Layout() {
             >
               {t("taxes.short")}
             </LocaleLink>
+            <LocaleLink
+              to={ROUTE_SLUGS.about.ca}
+              className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
+            >
+              {t("footer.about")}
+            </LocaleLink>
+            <LocaleLink
+              to={ROUTE_SLUGS.privacy.ca}
+              className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
+            >
+              {t("footer.privacy")}
+            </LocaleLink>
+            <LocaleLink
+              to={ROUTE_SLUGS.terms.ca}
+              className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
+            >
+              {t("footer.terms")}
+            </LocaleLink>
             <LocaleLink to="/disclaimer" className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}>
               Disclaimer
             </LocaleLink>
+            {/* rel="me" is what identifies this profile as the site's own. */}
+            <a
+              href={X_URL}
+              target="_blank"
+              rel="me noopener noreferrer"
+              aria-label={t("footer.xAria")}
+              className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}
+            >
+              {X_HANDLE}
+            </a>
           </span>
         </div>
       </footer>
@@ -220,6 +249,15 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
       items: [
         { to: "/taxes", label: t("nav.taxes") },
         { to: "/calculadora-fifo", label: t("fifoPage.short") },
+      ],
+    },
+    {
+      key: "about",
+      label: t("nav.groups.about"),
+      items: [
+        { to: ROUTE_SLUGS.about.ca, label: t("footer.about") },
+        { to: ROUTE_SLUGS.privacy.ca, label: t("footer.privacy") },
+        { to: ROUTE_SLUGS.terms.ca, label: t("footer.terms") },
       ],
     },
   ];

@@ -11,6 +11,9 @@ export type Redirect = {
 
 export type Rewrite = { source: string; destination: string };
 
+export type Header = { source: string; headers: { key: string; value: string }[] };
+
 export function buildRedirects(): Redirect[];
+export function buildHeaders(): Header[];
 export function buildRewrites(): Rewrite[];
 export function buildConfig(current: Record<string, unknown>): Record<string, unknown>;

@@ -123,8 +123,58 @@ export function buildRewrites() {
   return rules;
 }
 
+// ---------------------------------------------------------------------------
+// Headers
+// ---------------------------------------------------------------------------
+
+/**
+ * Routes that must never be indexed: the authenticated app and the auth flow.
+ * They carry `X-Robots-Tag` rather than a robots.txt Disallow, because a
+ * disallowed URL is one Google may not fetch — so it can never read the very
+ * header that tells it not to index, and the URL keeps showing up as a
+ * "crawled, no content" entry. robots.txt was never the protection here
+ * anyway: these routes are gated by the auth guard.
+ */
+const PRIVATE = ["auth", "dashboard", "upload", "account", "debug", "verify"];
+
+const NOINDEX = { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" };
+
+export function buildHeaders() {
+  const out = [
+    {
+      // Conservative, framework-agnostic defaults. Deliberately NO CSP: this
+      // app loads logo.dev images and Google Fonts, so a policy needs its own
+      // pass rather than a guess bundled into a routing change.
+      source: "/(.*)",
+      headers: [
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      ],
+    },
+    {
+      // Vite fingerprints everything under /assets/ (index-DSaO4Y7O.js), so the
+      // content of a given URL can never change — cache it for a year. The HTML
+      // keeps revalidating, which is what picks up a new deployment's hashes.
+      source: "/assets/:path*",
+      headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+    },
+  ];
+  for (const p of PRIVATE) {
+    out.push({ source: `/${p}`, headers: [NOINDEX] });
+    out.push({ source: `/${p}/:path*`, headers: [NOINDEX] });
+  }
+  return out;
+}
+
 export function buildConfig(current) {
-  return { ...current, redirects: buildRedirects(), rewrites: buildRewrites() };
+  return {
+    ...current,
+    redirects: buildRedirects(),
+    rewrites: buildRewrites(),
+    headers: buildHeaders(),
+  };
 }
 
 const isMain =
@@ -134,6 +184,7 @@ if (isMain) {
   const next = buildConfig(current);
   writeFileSync(FILE, JSON.stringify(next, null, 2) + "\n", "utf8");
   console.log(
-    `[vercel] ${next.redirects.length} redirects, ${next.rewrites.length} rewrites → vercel.json`,
+    `[vercel] ${next.redirects.length} redirects, ${next.rewrites.length} rewrites, ` +
+      `${next.headers.length} header rules → vercel.json`,
   );
 }

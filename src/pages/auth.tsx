@@ -2,6 +2,7 @@ import { AuthView } from "@neondatabase/neon-js/auth/react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Logo, Wordmark } from "@/components/Logo";
+import { AuthShell } from "@/components/AuthShell";
 
 export function AuthPage() {
   const { pathname } = useParams<{ pathname: string }>();
@@ -24,8 +25,10 @@ export function AuthPage() {
           <p className="mt-1 text-sm text-slate-500">{t("app.tagline")}</p>
         </div>
         <div className="card shadow-card">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <AuthView path={path as any} />
+          <AuthShell>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <AuthView path={path as any} />
+          </AuthShell>
         </div>
       </div>
     </div>

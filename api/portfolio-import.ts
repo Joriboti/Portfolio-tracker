@@ -23,7 +23,20 @@ type ImportPayload = {
   // of replacing everything (used by the manual "Add holding" form). Only
   // transactions are appended in this mode.
   append?: boolean;
+  // Re-point every row of one holding at a different market symbol, without
+  // touching the rest of the portfolio (dashboard "change ticker"). Folded in
+  // here rather than given its own route because the Hobby plan caps a
+  // deployment at 12 serverless functions and we are at the cap.
+  rename?: { from?: string; to?: string };
 };
+
+// Market symbols as Yahoo writes them: BRK-B, SAN.MC, BTC-EUR, ^GSPC, EURUSD=X.
+const TICKER_RE = /^[A-Z0-9.\-^=]{1,32}$/;
+
+function normaliseTicker(raw: string | undefined): string | null {
+  const t = (raw ?? "").trim().toUpperCase();
+  return TICKER_RE.test(t) ? t : null;
+}
 
 // Self-contained — mirrors the structure of /api/db-direct.ts exactly
 // (which we know works) but with INSERTs instead of SELECT 1.
@@ -75,6 +88,54 @@ export default async function handler(
     phase = "neon-import";
     const mod = await import("@neondatabase/serverless");
     const sql = mod.neon(dbUrl);
+
+    // Rename mode: swap the symbol on every row of one holding and stop. The
+    // ticker IS the storage key everywhere (prices, historical_prices,
+    // fundamentals, dividend_events are all shared per-ticker caches), so once
+    // the user's rows point at the right symbol the normal price/backfill
+    // refresh populates the new key and every downstream view follows.
+    if (body.rename) {
+      phase = "rename";
+      const from = normaliseTicker(body.rename.from);
+      const to = normaliseTicker(body.rename.to);
+      if (!from || !to) {
+        res.status(400).end(JSON.stringify({ error: "Invalid ticker" }));
+        return;
+      }
+      if (from === to) {
+        res.status(400).end(JSON.stringify({ error: "Tickers are identical" }));
+        return;
+      }
+      const txnRows = await sql`
+        UPDATE transactions SET ticker = ${to}
+        WHERE user_id = ${userId} AND ticker = ${from}
+        RETURNING id
+      `;
+      const divRows = await sql`
+        UPDATE dividends SET ticker = ${to}
+        WHERE user_id = ${userId} AND ticker = ${from}
+        RETURNING id
+      `;
+      // Carry the saved valuation model over too, but never clobber one the
+      // user already has under the target symbol (the PK is (user_id, ticker)).
+      await sql`
+        UPDATE holding_scenarios SET ticker = ${to}, updated_at = NOW()
+        WHERE user_id = ${userId} AND ticker = ${from}
+          AND NOT EXISTS (
+            SELECT 1 FROM holding_scenarios
+            WHERE user_id = ${userId} AND ticker = ${to}
+          )
+      `;
+      res.status(200).end(
+        JSON.stringify({
+          ok: true,
+          from,
+          to,
+          renamed: { transactions: txnRows.length, dividends: divRows.length },
+        }),
+      );
+      return;
+    }
 
     // Full import replaces the portfolio; append mode keeps it and only adds
     // the new transactions (manual "Add holding").

@@ -26,6 +26,10 @@ const ResearchPage = lazy(() => import("@/pages/research").then((m) => ({ defaul
 const ResearchArticlePage = lazy(() => import("@/pages/research-article").then((m) => ({ default: m.ResearchArticlePage })));
 const NotFoundPage = lazy(() => import("@/pages/not-found").then((m) => ({ default: m.NotFoundPage })));
 
+// About / privacy / terms — static prose, one component, three ids × three
+// languages (slugs come from ROUTE_SLUGS like every other translated page).
+const TrustPage = lazy(() => import("@/pages/trust").then((m) => ({ default: m.TrustPage })));
+
 // Catalan/Spanish versions of the four valuation tool landings.
 const CaDcfPage = lazy(() => import("@/pages/tools-localized").then((m) => ({ default: m.CaDcfPage })));
 const CaReverseDcfPage = lazy(() => import("@/pages/tools-localized").then((m) => ({ default: m.CaReverseDcfPage })));
@@ -77,6 +81,9 @@ function publicRoutes(locale: Locale) {
     <Route key={k("fifo")} path={at(ROUTE_SLUGS.fifo[locale])} element={<FifoPageFor locale={locale} />} />,
     <Route key={k("xray")} path={at("/radiografia")} element={<RadiografiaPage />} />,
     <Route key={k("taxes")} path={at("/taxes")} element={<TaxesPage />} />,
+    <Route key={k("about")} path={at(ROUTE_SLUGS.about[locale])} element={<TrustPage id="about" locale={locale} />} />,
+    <Route key={k("privacy")} path={at(ROUTE_SLUGS.privacy[locale])} element={<TrustPage id="privacy" locale={locale} />} />,
+    <Route key={k("terms")} path={at(ROUTE_SLUGS.terms[locale])} element={<TrustPage id="terms" locale={locale} />} />,
   ];
 }
 

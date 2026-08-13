@@ -144,15 +144,32 @@ export function PortfolioXray() {
 
   // Fetch the dashboard portfolio on first visit to the tab: the account's
   // imported Excel when signed in, otherwise the anonymous trial.
+  //
+  // `saved.status` must NOT be a dependency and the fetch must NOT be torn down
+  // on tab changes: the effect sets the status to "loading" itself, so React
+  // would immediately clean up the very run that started the fetch and the
+  // response would be discarded — the panel spins forever. A ref keyed on the
+  // session identity guards against duplicate runs instead, and only unmounting
+  // stops the result from landing.
+  const mounted = useRef(true);
   useEffect(() => {
-    if (tab !== "saved" || saved.status !== "idle") return;
-    let cancelled = false;
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const loadedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (tab !== "saved") return;
+    const key = user?.id ?? "anon";
+    if (loadedFor.current === key) return;
+    loadedFor.current = key;
     setSaved({ status: "loading" });
     void (async () => {
       if (user) {
         try {
           const d = await getPortfolio(user.id);
-          if (cancelled) return;
+          if (!mounted.current) return;
           if (d.transactions.length > 0) {
             setSaved({
               status: "ready",
@@ -164,22 +181,21 @@ export function PortfolioXray() {
             return;
           }
         } catch {
-          if (!cancelled) setSaved({ status: "error" });
+          // Allow a retry the next time the tab is opened.
+          loadedFor.current = null;
+          if (mounted.current) setSaved({ status: "error" });
           return;
         }
       }
       const trial = getTrialTxns();
-      if (cancelled) return;
+      if (!mounted.current) return;
       setSaved(
         trial.length > 0
           ? { status: "ready", txns: trial, dividends: [], interests: [], from: "trial" }
           : { status: "empty" },
       );
     })();
-    return () => {
-      cancelled = true;
-    };
-  }, [tab, saved.status, user]);
+  }, [tab, user]);
 
   // Preview of what the saved portfolio will analyse (open positions only).
   const savedPositions = useMemo(

@@ -1,8 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { NeonAuthUIProvider } from "@neondatabase/neon-js/auth/react";
-import { authClient } from "./lib/auth";
 import "./lib/i18n";
 import App from "./App";
 import "./index.css";
@@ -27,17 +25,15 @@ if (
 const root = document.getElementById("root");
 if (!root) throw new Error("#root element not found");
 
+// The Neon Auth UI provider used to wrap the whole app here, which pulled the
+// auth SDK (and its zod dependency) into the entry chunk on every public page.
+// Only the two pages that render its views need it, and both are lazy routes,
+// so it now lives in AuthShell inside those chunks. The auth CLIENT is a
+// separate module and still loads wherever the session is read.
 createRoot(root).render(
   <StrictMode>
-    <NeonAuthUIProvider
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      authClient={authClient as any}
-      emailOTP
-      magicLink
-    >
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </NeonAuthUIProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 );

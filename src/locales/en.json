@@ -20,13 +20,14 @@
     "groups": {
       "models": "Valuation models",
       "portfolio": "Portfolio",
-      "taxes": "Taxes"
+      "taxes": "Taxes",
+      "about": "About TrimmTrack"
     }
   },
   "home": {
     "heroTitle": "Your portfolio, always up to date",
     "heroSubtitle": "Upload your spreadsheet and turn it into a dashboard with live prices, P&L, and dividends. Plus a free FIFO calculator, DCF and Reverse DCF valuation, and the Graham Number — no sign-up needed.",
-    "ctaStart": "Get started for free",
+    "ctaStart": "Prepare your portfolio",
     "ctaTry": "Try a valuation model",
     "ctaHowTo": "How to prepare my Excel",
     "feat1Title": "Frictionless",
@@ -37,8 +38,8 @@
     "feat3Desc": "Pick a display currency and we handle FX conversion automatically.",
     "previewCaption": "Example dashboard view (illustrative data)",
     "tools": {
-      "title": "Everything you can do with TrimmTrack",
-      "intro": "Five tools, one goal: understanding your investments. Deep research, powerful visuals.",
+      "title": "Six tools, one goal",
+      "intro": "Six tools, one goal: understanding your investments. Deep research, powerful visuals.",
       "dashboard": {
         "title": "My portfolio",
         "desc": "Live positions, P&L, weights and performance vs the S&P 500.",
@@ -86,6 +87,22 @@
       "t2d": "Prices and fundamentals from Yahoo Finance, refreshed daily.",
       "t3t": "You stay in control",
       "t3d": "Not financial advice: we help you see clearly and you make the decisions."
+    },
+    "preview": {
+      "title": "My portfolio",
+      "badge": "demo",
+      "totalValue": "Total value",
+      "cost": "Cost",
+      "unrealized": "Unrealised P&L",
+      "irr": "Annual IRR",
+      "ticker": "Ticker",
+      "value": "Value",
+      "weight": "Weight",
+      "pl": "P&L"
+    },
+    "research": {
+      "title": "Recent analyses",
+      "seeAll": "See all analyses"
     }
   },
   "disclaimer": {
@@ -185,7 +202,8 @@
       "pros": "Competitive advantages",
       "risks": "Investment risks",
       "source": "TrimmTrack analysis"
-    }
+    },
+    "expandChart": "Expand chart"
   },
   "compare": {
     "heading": "{{a}} vs {{b}}: financial comparison",
@@ -225,7 +243,15 @@
     "ctaTitle": "Follow {{name}} on TrimmTrack",
     "ctaCompany": "this company",
     "ctaBody": "Add it to your portfolio and apply the valuation models (DCF, Graham, NAV…) with live data. Free, no sign-up.",
-    "ctaButton": "Start free"
+    "ctaButton": "Start free",
+    "availableIn": "Article available in {{lang}}",
+    "langNames": {
+      "ca": "Catalan",
+      "es": "Spanish",
+      "en": "English"
+    },
+    "editorialLink": "How we work",
+    "shareX": "Share on X"
   },
   "seo": {
     "homeTitle": "TrimmTrack — Portfolio tracker, DCF calculators & ETF forecasting",
@@ -417,6 +443,27 @@
       "payments": "Payments",
       "total": "Total received",
       "yield": "Yield"
+    },
+    "rename": {
+      "action": "Change {{ticker}}'s ticker",
+      "title": "Change ticker",
+      "lead": "If your Excel uses a code Yahoo Finance doesn't recognise, pick the company's correct symbol here.",
+      "current": "Current ticker",
+      "newTicker": "New ticker",
+      "searchPlaceholder": "Search by name or symbol (Grifols, GRF.MC…)",
+      "searchHint": "You can also type the exact symbol, including the market suffix (.MC, .PA, .L…).",
+      "checking": "Checking the symbol…",
+      "found": "{{ticker}} trades at {{price}} {{currency}}",
+      "notFound": "Yahoo Finance returns no price for this symbol. You can continue, but the position will stay unvalued.",
+      "invalid": "Invalid symbol.",
+      "same": "That's the ticker you already have.",
+      "scope": "Applies to every transaction and dividend of this holding, and to its saved valuation model. Prices and history are refreshed afterwards.",
+      "confirm": "Change ticker",
+      "cancel": "Cancel",
+      "close": "Close",
+      "applying": "Applying…",
+      "missingHint": "If the symbol is wrong, change it with ✎ in the row.",
+      "merge": "You already hold {{ticker}}: the two positions will be merged into one."
     }
   },
   "performance": {
@@ -1132,5 +1179,58 @@
     "heading": "This page does not exist",
     "body": "The link may be outdated or contain a typo. Try starting from the home page or exploring companies.",
     "home": "Go to the home page"
+  },
+  "footer": {
+    "about": "About",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "xAria": "TrimmTrack on X"
+  },
+  "insights": {
+    "unavailable": "The qualitative commentary is not yet available in English. You can view the Catalan version.",
+    "viewCatalan": "View the Catalan version"
+  },
+  "calc": {
+    "fields": {
+      "epsFcf": "Forward EPS / FCF per share",
+      "growth": "Annual growth",
+      "years": "Years",
+      "exitMultiple": "Exit P/E multiple",
+      "requiredReturn": "Required return",
+      "currentPrice": "Current price",
+      "trailingEps": "Trailing EPS",
+      "expectedGrowth": "Expected growth",
+      "aaaYield": "AAA corporate bond yield",
+      "initial": "Initial investment",
+      "monthly": "Monthly contribution",
+      "expectedReturn": "Expected annual return",
+      "forwardEps": "Forward EPS",
+      "growthMean": "Growth (mean)",
+      "growthSd": "Growth ± (std)",
+      "multipleMean": "Exit multiple (mean)",
+      "multipleSd": "Multiple ± (std)"
+    },
+    "stats": {
+      "fairValue": "Fair value today",
+      "upside": "Upside vs. price",
+      "impliedReturn": "Implied return (CAGR)",
+      "impliedGrowth": "Annual growth the price is pricing in",
+      "graham": "Graham number (intrinsic value)",
+      "futureValue": "Future value",
+      "contributed": "Total contributed",
+      "investmentGrowth": "Investment growth",
+      "p10": "P10 (pessimistic)",
+      "p50": "P50 (median fair value)",
+      "p90": "P90 (optimistic)"
+    },
+    "notes": {
+      "dcf": "Fair value = EPS × (1+g)^n × exit multiple, discounted back at your required return. A positive upside means the model sees the stock as undervalued at today's price.",
+      "reverse": "Reverse DCF solves the forward model for growth: given the price, exit multiple and the return you demand, what constant EPS growth would the market have to be assuming? Compare it with the company's realistic growth to judge whether expectations are rich or cheap.",
+      "graham": "V = EPS × (8.5 + 2g) × 4.4 / Y, the interest-rate-adjusted revision. It's a fast, conservative screen — not a precise valuation.",
+      "grahamCapped": "Growth was capped at {{cap}}% because the linear 2g term over-inflates above that.",
+      "compound": "Assumes contributions are added at the end of each month and the return compounds monthly. A real ETF return varies year to year — use the Monte Carlo simulator to see the range.",
+      "mcRuns": "{{runs}} simulations of the fair value distribution."
+    },
+    "rerun": "Re-run"
   }
 }

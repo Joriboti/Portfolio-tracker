@@ -1,13 +1,19 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { calculateSimpleDCF, impliedGrowth } from "@/lib/dcf";
 import { grahamValue, grahamGrowthClamped, GRAHAM_GROWTH_CAP } from "@/lib/graham";
 import { monteCarloSimpleDCF } from "@/lib/montecarlo";
 
-// Self-contained, signup-free calculator widgets for the English SEO tool pages
-// (see App.tsx /en/* routes). Each is a thin, controlled UI over the pure,
-// tested math in src/lib (dcf.ts, graham.ts, montecarlo.ts) — no backend, no
-// session, no live quotes: the visitor types the inputs. Copy is English-only
-// because these pages exist only under /en.
+// Self-contained, signup-free calculator widgets for the tool landing pages
+// (see App.tsx). Each is a thin, controlled UI over the pure, tested math in
+// src/lib (dcf.ts, graham.ts, montecarlo.ts) — no backend, no session, no live
+// quotes: the visitor types the inputs.
+//
+// Presentation only: every label, result caption and explanatory note comes
+// from the locale files under `calc.*`. The widgets are mounted on the ca and
+// es landings too (/calculadora-dcf, /simulador-monte-carlo…), where English
+// labels used to leak through; the maths below is untouched and unduplicated.
 
 const num = (s: string): number => {
   const n = Number(s.replace(",", "."));
@@ -68,6 +74,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export function DcfCalculator() {
+  const { t } = useTranslation();
   const [eps, setEps] = useState("6");
   const [growth, setGrowth] = useState("10");
   const [years, setYears] = useState("10");
@@ -91,27 +98,25 @@ export function DcfCalculator() {
   return (
     <Shell>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Field label="Forward EPS / FCF per share" value={eps} onChange={setEps} suffix="$" />
-        <Field label="Annual growth" value={growth} onChange={setGrowth} suffix="%" />
-        <Field label="Years" value={years} onChange={setYears} />
-        <Field label="Exit P/E multiple" value={mult} onChange={setMult} suffix="×" />
-        <Field label="Required return" value={ret} onChange={setRet} suffix="%" />
-        <Field label="Current price" value={price} onChange={setPrice} suffix="$" />
+        <Field label={t("calc.fields.epsFcf")} value={eps} onChange={setEps} suffix="$" />
+        <Field label={t("calc.fields.growth")} value={growth} onChange={setGrowth} suffix="%" />
+        <Field label={t("calc.fields.years")} value={years} onChange={setYears} />
+        <Field label={t("calc.fields.exitMultiple")} value={mult} onChange={setMult} suffix="×" />
+        <Field label={t("calc.fields.requiredReturn")} value={ret} onChange={setRet} suffix="%" />
+        <Field label={t("calc.fields.currentPrice")} value={price} onChange={setPrice} suffix="$" />
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <Stat label="Fair value today" value={money(r.fairValue)} accent />
-        <Stat label="Upside vs. price" value={r.upsideVsPrice == null ? "—" : pct(r.upsideVsPrice)} />
-        <Stat label="Implied return (CAGR)" value={r.impliedReturn == null ? "—" : pct(r.impliedReturn)} />
+        <Stat label={t("calc.stats.fairValue")} value={money(r.fairValue)} accent />
+        <Stat label={t("calc.stats.upside")} value={r.upsideVsPrice == null ? "—" : pct(r.upsideVsPrice)} />
+        <Stat label={t("calc.stats.impliedReturn")} value={r.impliedReturn == null ? "—" : pct(r.impliedReturn)} />
       </div>
-      <p className="mt-3 text-xs text-slate-400">
-        Fair value = EPS × (1+g)<sup>n</sup> × exit multiple, discounted back at your required return.
-        A positive upside means the model sees the stock as undervalued at today&apos;s price.
-      </p>
+      <p className="mt-3 text-xs text-slate-400">{t("calc.notes.dcf")}</p>
     </Shell>
   );
 }
 
 export function ReverseDcfCalculator() {
+  const { t } = useTranslation();
   const [price, setPrice] = useState("150");
   const [eps, setEps] = useState("6");
   const [years, setYears] = useState("10");
@@ -133,29 +138,22 @@ export function ReverseDcfCalculator() {
   return (
     <Shell>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Field label="Current price" value={price} onChange={setPrice} suffix="$" />
-        <Field label="Forward EPS / FCF per share" value={eps} onChange={setEps} suffix="$" />
-        <Field label="Years" value={years} onChange={setYears} />
-        <Field label="Exit P/E multiple" value={mult} onChange={setMult} suffix="×" />
-        <Field label="Required return" value={ret} onChange={setRet} suffix="%" />
+        <Field label={t("calc.fields.currentPrice")} value={price} onChange={setPrice} suffix="$" />
+        <Field label={t("calc.fields.epsFcf")} value={eps} onChange={setEps} suffix="$" />
+        <Field label={t("calc.fields.years")} value={years} onChange={setYears} />
+        <Field label={t("calc.fields.exitMultiple")} value={mult} onChange={setMult} suffix="×" />
+        <Field label={t("calc.fields.requiredReturn")} value={ret} onChange={setRet} suffix="%" />
       </div>
       <div className="mt-5">
-        <Stat
-          label="Annual growth the price is pricing in"
-          value={g == null ? "—" : pct(g)}
-          accent
-        />
+        <Stat label={t("calc.stats.impliedGrowth")} value={g == null ? "—" : pct(g)} accent />
       </div>
-      <p className="mt-3 text-xs text-slate-400">
-        Reverse DCF solves the forward model for growth: given the price, exit multiple and the
-        return you demand, what constant EPS growth would the market have to be assuming? Compare it
-        with the company&apos;s realistic growth to judge whether expectations are rich or cheap.
-      </p>
+      <p className="mt-3 text-xs text-slate-400">{t("calc.notes.reverse")}</p>
     </Shell>
   );
 }
 
 export function GrahamCalculator() {
+  const { t } = useTranslation();
   const [eps, setEps] = useState("6");
   const [growth, setGrowth] = useState("8");
   const [aaa, setAaa] = useState("4.5");
@@ -166,25 +164,23 @@ export function GrahamCalculator() {
   return (
     <Shell>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Field label="Trailing EPS" value={eps} onChange={setEps} suffix="$" />
-        <Field label="Expected growth" value={growth} onChange={setGrowth} suffix="%" />
-        <Field label="AAA corporate bond yield" value={aaa} onChange={setAaa} suffix="%" />
+        <Field label={t("calc.fields.trailingEps")} value={eps} onChange={setEps} suffix="$" />
+        <Field label={t("calc.fields.expectedGrowth")} value={growth} onChange={setGrowth} suffix="%" />
+        <Field label={t("calc.fields.aaaYield")} value={aaa} onChange={setAaa} suffix="%" />
       </div>
       <div className="mt-5">
-        <Stat label="Graham number (intrinsic value)" value={money(v ?? NaN)} accent />
+        <Stat label={t("calc.stats.graham")} value={money(v ?? NaN)} accent />
       </div>
       <p className="mt-3 text-xs text-slate-400">
-        V = EPS × (8.5 + 2g) × 4.4 / Y, the interest-rate-adjusted revision. It&apos;s a fast, conservative
-        screen — not a precise valuation.{" "}
-        {clamped
-          ? `Growth was capped at ${GRAHAM_GROWTH_CAP}% because the linear 2g term over-inflates above that.`
-          : ""}
+        {t("calc.notes.graham")}{" "}
+        {clamped ? t("calc.notes.grahamCapped", { cap: GRAHAM_GROWTH_CAP }) : ""}
       </p>
     </Shell>
   );
 }
 
 export function CompoundGrowthCalculator() {
+  const { t } = useTranslation();
   const [initial, setInitial] = useState("10000");
   const [monthly, setMonthly] = useState("500");
   const [ret, setRet] = useState("7");
@@ -208,25 +204,23 @@ export function CompoundGrowthCalculator() {
   return (
     <Shell>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Initial investment" value={initial} onChange={setInitial} suffix="$" />
-        <Field label="Monthly contribution" value={monthly} onChange={setMonthly} suffix="$" />
-        <Field label="Expected annual return" value={ret} onChange={setRet} suffix="%" />
-        <Field label="Years" value={years} onChange={setYears} />
+        <Field label={t("calc.fields.initial")} value={initial} onChange={setInitial} suffix="$" />
+        <Field label={t("calc.fields.monthly")} value={monthly} onChange={setMonthly} suffix="$" />
+        <Field label={t("calc.fields.expectedReturn")} value={ret} onChange={setRet} suffix="%" />
+        <Field label={t("calc.fields.years")} value={years} onChange={setYears} />
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <Stat label="Future value" value={money(out.future)} accent />
-        <Stat label="Total contributed" value={money(out.contributed)} />
-        <Stat label="Investment growth" value={money(out.growth)} />
+        <Stat label={t("calc.stats.futureValue")} value={money(out.future)} accent />
+        <Stat label={t("calc.stats.contributed")} value={money(out.contributed)} />
+        <Stat label={t("calc.stats.investmentGrowth")} value={money(out.growth)} />
       </div>
-      <p className="mt-3 text-xs text-slate-400">
-        Assumes contributions are added at the end of each month and the return compounds monthly.
-        A real ETF return varies year to year — use the Monte Carlo simulator to see the range.
-      </p>
+      <p className="mt-3 text-xs text-slate-400">{t("calc.notes.compound")}</p>
     </Shell>
   );
 }
 
 export function MonteCarloCalculator() {
+  const { t } = useTranslation();
   const [eps, setEps] = useState("6");
   const [growth, setGrowth] = useState("10");
   const [growthSd, setGrowthSd] = useState("3");
@@ -258,19 +252,19 @@ export function MonteCarloCalculator() {
   return (
     <Shell>
       <div className="grid gap-3 sm:grid-cols-4">
-        <Field label="Forward EPS" value={eps} onChange={setEps} suffix="$" />
-        <Field label="Growth (mean)" value={growth} onChange={setGrowth} suffix="%" />
-        <Field label="Growth ± (std)" value={growthSd} onChange={setGrowthSd} suffix="pp" />
-        <Field label="Years" value={years} onChange={setYears} />
-        <Field label="Exit multiple (mean)" value={mult} onChange={setMult} suffix="×" />
-        <Field label="Multiple ± (std)" value={multSd} onChange={setMultSd} suffix="×" />
-        <Field label="Required return" value={ret} onChange={setRet} suffix="%" />
-        <Field label="Current price" value={price} onChange={setPrice} suffix="$" />
+        <Field label={t("calc.fields.forwardEps")} value={eps} onChange={setEps} suffix="$" />
+        <Field label={t("calc.fields.growthMean")} value={growth} onChange={setGrowth} suffix="%" />
+        <Field label={t("calc.fields.growthSd")} value={growthSd} onChange={setGrowthSd} suffix="pp" />
+        <Field label={t("calc.fields.years")} value={years} onChange={setYears} />
+        <Field label={t("calc.fields.multipleMean")} value={mult} onChange={setMult} suffix="×" />
+        <Field label={t("calc.fields.multipleSd")} value={multSd} onChange={setMultSd} suffix="×" />
+        <Field label={t("calc.fields.requiredReturn")} value={ret} onChange={setRet} suffix="%" />
+        <Field label={t("calc.fields.currentPrice")} value={price} onChange={setPrice} suffix="$" />
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <Stat label="P10 (pessimistic)" value={money(res.p10)} />
-        <Stat label="P50 (median fair value)" value={money(res.p50)} accent />
-        <Stat label="P90 (optimistic)" value={money(res.p90)} />
+        <Stat label={t("calc.stats.p10")} value={money(res.p10)} />
+        <Stat label={t("calc.stats.p50")} value={money(res.p50)} accent />
+        <Stat label={t("calc.stats.p90")} value={money(res.p90)} />
       </div>
       <div className="mt-4 flex h-24 items-end gap-0.5" aria-hidden>
         {res.bins.map((b, i) => (
@@ -283,12 +277,12 @@ export function MonteCarloCalculator() {
         ))}
       </div>
       <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-        <span>{res.runs.toLocaleString("en-US")} simulations of the fair value distribution.</span>
+        <span>{t("calc.notes.mcRuns", { runs: res.runs.toLocaleString(i18n.language) })}</span>
         <button
           onClick={() => setSeed((s) => s + 1)}
           className="rounded-md border border-slate-300 px-3 py-1 font-medium text-slate-600 hover:bg-slate-50"
         >
-          Re-run
+          {t("calc.rerun")}
         </button>
       </div>
     </Shell>

@@ -1,5 +1,9 @@
 import { Fragment } from "react";
+import { Link } from "react-router-dom";
 import type { NotionBlock } from "@/lib/research";
+import { useLocale } from "@/components/LocaleLink";
+import { withLocale } from "@/lib/locale";
+import { normalizeArticleLink } from "@/lib/article-links";
 
 // Minimal, dependency-free renderer for the Notion block types the Research
 // articles use: paragraph, heading_1/2/3, bulleted/numbered lists, quote,
@@ -9,6 +13,7 @@ import type { NotionBlock } from "@/lib/research";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 function RichText({ rich }: { rich: any[] }) {
+  const locale = useLocale();
   return (
     <>
       {(rich ?? []).map((t, i) => {
@@ -24,8 +29,22 @@ function RichText({ rich }: { rich: any[] }) {
         if (a.italic) node = <em>{node}</em>;
         if (a.strikethrough) node = <s>{node}</s>;
         if (a.underline) node = <u>{node}</u>;
-        if (t?.href)
-          node = (
+        if (t?.href) {
+          // A link an author typed into Notion can point at our own site with
+          // the wrong scheme, the wrong host or no locale (http://trimmtrack.com
+          // /explore inside /en/research/meta). Those cost a redirect hop and
+          // drop an English reader onto a Catalan page, so internal targets are
+          // normalised to an in-app route in the reader's language and rendered
+          // as a client-side <Link>; anything genuinely external is untouched.
+          const internal = normalizeArticleLink(t.href);
+          node = internal ? (
+            <Link
+              to={withLocale(internal, locale)}
+              className="text-brand-700 underline hover:text-brand-800"
+            >
+              {node}
+            </Link>
+          ) : (
             <a
               href={t.href}
               target="_blank"
@@ -35,6 +54,7 @@ function RichText({ rich }: { rich: any[] }) {
               {node}
             </a>
           );
+        }
         return <Fragment key={i}>{node}</Fragment>;
       })}
     </>

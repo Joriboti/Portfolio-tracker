@@ -71,6 +71,22 @@ export const ROUTE_SLUGS = {
     es: "/simulador-monte-carlo",
     en: "/monte-carlo-stock-simulator",
   },
+  // Trust pages. Static, prerendered, no serverless function behind them.
+  about: {
+    ca: "/sobre-trimmtrack",
+    es: "/sobre-trimmtrack",
+    en: "/about",
+  },
+  privacy: {
+    ca: "/privacitat",
+    es: "/privacidad",
+    en: "/privacy",
+  },
+  terms: {
+    ca: "/termes",
+    es: "/terminos",
+    en: "/terms",
+  },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type RouteId = keyof typeof ROUTE_SLUGS;

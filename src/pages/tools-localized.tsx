@@ -760,15 +760,17 @@ const TOOLS: Partial<Record<Locale, Partial<Record<RouteId, ToolCopy>>>> = {
   },
 };
 
-/** The calculator widget for each tool — shared by every language. */
-const WIDGET: Record<RouteId, React.ReactNode> = {
+/**
+ * The calculator widget for each tool — shared by every language. Partial
+ * because ROUTE_SLUGS also carries pages that are not calculators (the FIFO
+ * page has its own route in ca/es and its keyword page in en-tools; about,
+ * privacy and terms are prose).
+ */
+const WIDGET: Partial<Record<RouteId, React.ReactNode>> = {
   dcf: <DcfCalculator />,
   reverseDcf: <ReverseDcfCalculator />,
   graham: <GrahamCalculator />,
   monteCarlo: <MonteCarloCalculator />,
-  // The FIFO page has its own dedicated route in ca/es (/calculadora-fifo) and
-  // its English keyword page in en-tools; it is here only so the map is total.
-  fifo: null,
 };
 
 /**

@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getInsights, type CompanyInsights as Insights } from "@/lib/research";
+import { useLocale } from "@/components/LocaleLink";
+import { stripLocale, withLocale, DEFAULT_LOCALE } from "@/lib/locale";
 
 // "Insights" section of the company dashboard: qualitative competitive
 // advantages / investment risks, authored in the Notion research CMS and keyed
@@ -10,20 +13,43 @@ import { getInsights, type CompanyInsights as Insights } from "@/lib/research";
 
 export function CompanyInsights({ ticker }: { ticker: string }) {
   const { t } = useTranslation();
+  const locale = useLocale();
+  const { pathname } = useLocation();
   const [data, setData] = useState<Insights | null>(null);
+  const [hasCatalan, setHasCatalan] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setData(null);
-    getInsights(ticker).then((d) => {
-      if (!cancelled) setData(d);
+    setHasCatalan(false);
+    getInsights(ticker, locale).then((r) => {
+      if (cancelled) return;
+      setData(r.insights);
+      setHasCatalan(r.hasCatalan);
     });
     return () => {
       cancelled = true;
     };
-  }, [ticker]);
+  }, [ticker, locale]);
 
-  if (!data || (data.pros.length === 0 && data.risks.length === 0)) return null;
+  if (!data || (data.pros.length === 0 && data.risks.length === 0)) {
+    // Nothing authored in THIS language. Never fall back to the Catalan text —
+    // point at the Catalan page instead and keep the quantitative sections,
+    // which are translated, exactly where they were.
+    if (!hasCatalan || locale === DEFAULT_LOCALE) return null;
+    return (
+      <section className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+        <p className="text-sm text-slate-600">{t("insights.unavailable")}</p>
+        <Link
+          to={withLocale(stripLocale(pathname), DEFAULT_LOCALE)}
+          hrefLang={DEFAULT_LOCALE}
+          className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline"
+        >
+          {t("insights.viewCatalan")} →
+        </Link>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-3">

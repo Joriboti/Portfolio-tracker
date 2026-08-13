@@ -1,18 +1,58 @@
 [
   {
     "slug": "applovin",
-    "locales": ["en"]
+    "locales": ["en"],
+    "preview": {
+      "ca": {
+        "title": "AppLovin: comprar el creixement que el mercat ha deixat d'explicar",
+        "excerpt": "AppLovin cotitza un 46% per sota del màxim del desembre del 2025 tot i créixer un 59% en ingressos i marcar un rècord de marge EBITDA. El descompte va de confiança en com es guanyen els diners —informes de venedors en curt i una investigació oberta de la SEC—, no de les xifres."
+      },
+      "es": {
+        "title": "AppLovin: comprar el crecimiento que el mercado ha dejado de explicar",
+        "excerpt": "AppLovin cotiza un 46% por debajo del máximo de diciembre de 2025 pese a crecer un 59% en ingresos y marcar un récord de margen EBITDA. El descuento va de confianza en cómo se gana el dinero —informes de bajistas y una investigación abierta de la SEC—, no de las cifras."
+      }
+    }
   },
   {
     "slug": "netflix",
-    "locales": ["en"]
+    "locales": ["en"],
+    "preview": {
+      "ca": {
+        "title": "Comprar Netflix: estratègia de DCA",
+        "excerpt": "Una estratègia deliberadament simple: per cada 20 accions que es vulguin acabar tenint, 4 a la zona dels 75–78 $, 7 més a 62–64 $ i les 9 últimes reservades per als 45–47 $. No es tracta d'encertar el mínim, sinó d'augmentar la convicció a mesura que millora la valoració."
+      },
+      "es": {
+        "title": "Comprar Netflix: estrategia de DCA",
+        "excerpt": "Una estrategia deliberadamente simple: por cada 20 acciones que se quieran acabar teniendo, 4 en la zona de los 75–78 $, 7 más a 62–64 $ y las 9 últimas reservadas para los 45–47 $. No se trata de acertar el mínimo, sino de aumentar la convicción a medida que mejora la valoración."
+      }
+    }
   },
   {
     "slug": "exor",
-    "locales": ["en"]
+    "locales": ["en"],
+    "preview": {
+      "ca": {
+        "title": "EXOR N.V.: comprar el holding dels Agnelli",
+        "excerpt": "És un holding europeu controlat per una família, amb una estructura més complicada que la d'un negoci operatiu normal i amb diverses de les seves inversions més grans passant per moments difícils."
+      },
+      "es": {
+        "title": "EXOR N.V.: comprar el holding de los Agnelli",
+        "excerpt": "Es un holding europeo controlado por una familia, con una estructura más complicada que la de un negocio operativo normal y con varias de sus mayores inversiones atravesando momentos difíciles."
+      }
+    }
   },
   {
     "slug": "meta",
-    "locales": ["en"]
+    "locales": ["en"],
+    "preview": {
+      "ca": {
+        "title": "Meta: el mercat llegeix la factura del capex i ignora què està comprant",
+        "excerpt": "Amb l'acció a 583 $ i el consens encallat en els titulars, la tesi alcista és més simple del que sembla: la màquina publicitària paga la revolució de la IA. El valor raonable actual és d'uns 843 $, i s'acosta als 1.200 $ a cinc anys."
+      },
+      "es": {
+        "title": "Meta: el mercado lee la factura del capex e ignora qué está comprando",
+        "excerpt": "Con la acción a 583 $ y el consenso atascado en los titulares, la tesis alcista es más simple de lo que parece: la máquina publicitaria paga la revolución de la IA. El valor razonable actual ronda los 843 $, y se acerca a los 1.200 $ a cinco años."
+      }
+    }
   }
 ]

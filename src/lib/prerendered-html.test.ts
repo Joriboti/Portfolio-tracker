@@ -203,3 +203,113 @@ describe.skipIf(!built)("prerendered HTML (no JavaScript)", () => {
     expect(shell.length).toBeLessThan(15000);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Language leaks
+// ---------------------------------------------------------------------------
+// A page can be perfectly canonicalised and still ship the wrong language in
+// its body: hardcoded Catalan on the /es landing, English calculator labels on
+// /calculadora-dcf. These read the built HTML — the exact bytes a crawler gets —
+// and fail on any marker that belongs to another language.
+
+/** Markers that can only be Catalan / English UI copy, never a proper noun. */
+const CATALAN_MARKERS = [
+  "La meva cartera",
+  "Anàlisis recents",
+  "Veure totes les anàlisis",
+  "P&L no realitzat",
+  "Sis eines",
+  "Comprovant el símbol",
+];
+const ENGLISH_MARKERS = [
+  "Forward EPS / FCF per share",
+  "Fair value today",
+  "Exit P/E multiple",
+  "Required return",
+  "Annual growth",
+  "Upside vs. price",
+  "Graham number (intrinsic value)",
+  "P50 (median fair value)",
+];
+
+/** Pages that render the shared calculator widgets, per locale. */
+const CALCULATOR_URLS: Record<"es" | "en", string[]> = {
+  es: ["/es/calculadora-dcf", "/es/dcf-inverso", "/es/numero-de-graham", "/es/simulador-monte-carlo"],
+  en: ["/en/dcf-calculator", "/en/reverse-dcf-calculator", "/en/graham-number-calculator"],
+};
+
+describe.skipIf(!built)("no language leaks in the built HTML", () => {
+  const SPANISH_PAGES = ["/es", "/es/research", ...CALCULATOR_URLS.es];
+  const ENGLISH_PAGES = ["/en", "/en/research", ...CALCULATOR_URLS.en];
+
+  it.each(SPANISH_PAGES)("%s ships no Catalan UI copy", (url) => {
+    const html = fileFor(url);
+    expect(html, `${url} is not prerendered`).toBeTruthy();
+    const found = CATALAN_MARKERS.filter((m) => html!.includes(m));
+    expect(found, `${url} leaks Catalan`).toEqual([]);
+  });
+
+  it.each(ENGLISH_PAGES)("%s ships no Catalan UI copy", (url) => {
+    const html = fileFor(url);
+    expect(html, `${url} is not prerendered`).toBeTruthy();
+    const found = CATALAN_MARKERS.filter((m) => html!.includes(m));
+    expect(found, `${url} leaks Catalan`).toEqual([]);
+  });
+
+  it.each(CALCULATOR_URLS.es)("%s ships no English calculator labels", (url) => {
+    const html = fileFor(url);
+    expect(html, `${url} is not prerendered`).toBeTruthy();
+    const found = ENGLISH_MARKERS.filter((m) => html!.includes(m));
+    expect(found, `${url} leaks English`).toEqual([]);
+  });
+
+  it("still renders the calculators in the language of the URL", () => {
+    // Guard against "fixed the leak by deleting the widget".
+    expect(fileFor("/es/calculadora-dcf")).toContain("Valor razonable hoy");
+    expect(fileFor("/calculadora-dcf")).toContain("Valor raonable avui");
+    expect(fileFor("/en/dcf-calculator")).toContain("Fair value today");
+  });
+
+  it("localises the landing's dashboard preview", () => {
+    expect(fileFor("/")).toContain("La meva cartera");
+    expect(fileFor("/es")).toContain("Mi cartera");
+    expect(fileFor("/en")).toContain("My portfolio");
+  });
+});
+
+describe.skipIf(!built)("trust pages", () => {
+  const PAGES = [
+    { url: "/sobre-trimmtrack", lang: "ca" },
+    { url: "/es/sobre-trimmtrack", lang: "es" },
+    { url: "/en/about", lang: "en" },
+    { url: "/privacitat", lang: "ca" },
+    { url: "/es/privacidad", lang: "es" },
+    { url: "/en/privacy", lang: "en" },
+    { url: "/termes", lang: "ca" },
+    { url: "/es/terminos", lang: "es" },
+    { url: "/en/terms", lang: "en" },
+  ];
+
+  it.each(PAGES)("$url is real prerendered HTML in $lang", ({ url, lang }) => {
+    const html = fileFor(url);
+    expect(html, `${url} is not prerendered`).toBeTruthy();
+    expect(htmlLang(html!)).toBe(lang);
+    expect(title(html!)).not.toContain(SHELL_TITLE_FRAGMENT);
+    expect(h1s(html!).length).toBeGreaterThanOrEqual(1);
+    expect(canonicals(html!)).toEqual([`${BASE}${url}`]);
+    // Reciprocal hreflang: three languages plus x-default.
+    expect(hreflangs(html!).map((a) => a.hreflang).sort()).toEqual([
+      "ca",
+      "en",
+      "es",
+      "x-default",
+    ]);
+  });
+
+  it("is linked from every page's footer", () => {
+    const html = fileFor("/en/about")!;
+    expect(internalLinks(html)).toEqual(expect.arrayContaining(["/en/about", "/en/privacy", "/en/terms"]));
+    expect(html).toContain('href="https://x.com/trimmtrack"');
+    expect(html).toContain('rel="me noopener noreferrer"');
+  });
+});

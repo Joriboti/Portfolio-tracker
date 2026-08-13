@@ -38,3 +38,8 @@ samples/
 # tsc -b composite project outputs
 vite.config.js
 vite.config.d.ts
+
+# tsc -b emits these next to vite.config.ts unless outDir is set; a stale
+# vite.config.js silently SHADOWS vite.config.ts when Vite resolves its config.
+vite.config.js
+vite.config.d.ts

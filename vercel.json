@@ -140,6 +140,81 @@
       "permanent": true
     },
     {
+      "source": "/about",
+      "destination": "/sobre-trimmtrack",
+      "permanent": true
+    },
+    {
+      "source": "/es/about",
+      "destination": "/es/sobre-trimmtrack",
+      "permanent": true
+    },
+    {
+      "source": "/en/sobre-trimmtrack",
+      "destination": "/en/about",
+      "permanent": true
+    },
+    {
+      "source": "/privacidad",
+      "destination": "/privacitat",
+      "permanent": true
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacitat",
+      "permanent": true
+    },
+    {
+      "source": "/es/privacitat",
+      "destination": "/es/privacidad",
+      "permanent": true
+    },
+    {
+      "source": "/es/privacy",
+      "destination": "/es/privacidad",
+      "permanent": true
+    },
+    {
+      "source": "/en/privacitat",
+      "destination": "/en/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/en/privacidad",
+      "destination": "/en/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/terminos",
+      "destination": "/termes",
+      "permanent": true
+    },
+    {
+      "source": "/terms",
+      "destination": "/termes",
+      "permanent": true
+    },
+    {
+      "source": "/es/termes",
+      "destination": "/es/terminos",
+      "permanent": true
+    },
+    {
+      "source": "/es/terms",
+      "destination": "/es/terminos",
+      "permanent": true
+    },
+    {
+      "source": "/en/termes",
+      "destination": "/en/terms",
+      "permanent": true
+    },
+    {
+      "source": "/en/terminos",
+      "destination": "/en/terms",
+      "permanent": true
+    },
+    {
       "source": "/",
       "has": [
         {
@@ -198,27 +273,27 @@
       "destination": "/app.html"
     },
     {
-      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo)",
+      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacitat|termes)",
       "destination": "/app.html"
     },
     {
-      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo)/:rest*",
+      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacitat|termes)/:rest*",
       "destination": "/app.html"
     },
     {
-      "source": "/es/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-inverso|numero-de-graham|simulador-monte-carlo)",
+      "source": "/es/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-inverso|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacidad|terminos)",
       "destination": "/app.html"
     },
     {
-      "source": "/es/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-inverso|numero-de-graham|simulador-monte-carlo)/:rest*",
+      "source": "/es/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-inverso|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacidad|terminos)/:rest*",
       "destination": "/app.html"
     },
     {
-      "source": "/en/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|etf-growth-calculator|portfolio-tracker)",
+      "source": "/en/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|about|privacy|terms|etf-growth-calculator|portfolio-tracker)",
       "destination": "/app.html"
     },
     {
-      "source": "/en/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|etf-growth-calculator|portfolio-tracker)/:rest*",
+      "source": "/en/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|about|privacy|terms|etf-growth-calculator|portfolio-tracker)/:rest*",
       "destination": "/app.html"
     },
     {
@@ -238,6 +313,146 @@
     {
       "path": "/api/historical-backfill",
       "schedule": "0 22 * * 6"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    },
+    {
+      "source": "/assets/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/auth",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/auth/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/dashboard",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/dashboard/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/upload",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/upload/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/account",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/account/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/debug",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/debug/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/verify",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/verify/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
     }
   ]
 }

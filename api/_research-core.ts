@@ -34,12 +34,24 @@ function bullets(text: string): string[] {
     .filter(Boolean);
 }
 
-function readInsights(props: any) {
+// Qualitative commentary is authored per language, in its own set of Notion
+// columns: Pros/Risks/Thesis (Catalan, the original) and ProsEs/RisksEs/
+// ThesisEs, ProsEn/RisksEn/ThesisEn for the translations.
+//
+// There is deliberately NO fallback between languages. Serving the Catalan text
+// on /es or /en is exactly the "fake translation" pattern that made a Spanish
+// page render half in Catalan; an empty result is the honest answer, and the
+// client turns it into a notice that links to the Catalan page.
+const INSIGHT_SUFFIX: Record<string, string> = { ca: "", es: "Es", en: "En" };
+
+function readInsights(props: any, locale: string) {
+  const sfx = INSIGHT_SUFFIX[locale] ?? "";
+  const col = (base: string) => plain(props?.[`${base}${sfx}`]?.rich_text);
   return {
     ticker: plain(props?.Ticker?.rich_text),
-    pros: bullets(plain(props?.Pros?.rich_text)),
-    risks: bullets(plain(props?.Risks?.rich_text)),
-    thesis: plain(props?.Thesis?.rich_text) || null,
+    pros: bullets(col("Pros")),
+    risks: bullets(col("Risks")),
+    thesis: col("Thesis") || null,
   };
 }
 
@@ -166,8 +178,11 @@ export async function handleResearch(req: VercelRequest, res: VercelResponse) {
       const ticker = (Array.isArray(tRaw) ? tRaw[0] : (tRaw ?? ""))
         .trim()
         .toUpperCase();
+      const lRaw = req.query.locale;
+      const localeAsked = (Array.isArray(lRaw) ? lRaw[0] : (lRaw ?? "ca")).trim();
+      const locale = localeAsked in INSIGHT_SUFFIX ? localeAsked : "ca";
       if (!ticker) {
-        res.status(200).end(JSON.stringify({ ok: true, insights: null }));
+        res.status(200).end(JSON.stringify({ ok: true, insights: null, hasCatalan: false }));
         return;
       }
       const q: any = await notion.databases.query({
@@ -178,14 +193,16 @@ export async function handleResearch(req: VercelRequest, res: VercelResponse) {
       let found:
         | { ticker: string; pros: string[]; risks: string[]; thesis: string | null }
         | null = null;
+      // Whether the ORIGINAL (Catalan) commentary exists, so a reader on /es or
+      // /en can be pointed at it instead of being shown nothing at all.
+      let hasCatalan = false;
       for (const p of q.results ?? []) {
-        const ins = readInsights(p.properties);
-        if (ins.pros.length || ins.risks.length) {
-          found = ins;
-          break;
-        }
+        const ca = readInsights(p.properties, "ca");
+        if (ca.pros.length || ca.risks.length) hasCatalan = true;
+        const ins = readInsights(p.properties, locale);
+        if (!found && (ins.pros.length || ins.risks.length)) found = ins;
       }
-      res.status(200).end(JSON.stringify({ ok: true, insights: found }));
+      res.status(200).end(JSON.stringify({ ok: true, insights: found, hasCatalan }));
       return;
     }
 

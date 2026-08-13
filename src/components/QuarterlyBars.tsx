@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 // Hand-rolled SVG bar chart for the company dashboard (house style — no chart
 // lib, like HistoryChart / DividendsCard). Supports 1–2 series, grouped or
 // stacked, negative values (bars hang below the zero line) and per-bar
@@ -45,6 +47,7 @@ export function QuarterlyBars({
   /** Word marking the ghost bar as a forecast, e.g. "est." */
   estimateLabel?: string;
 }) {
+  const { t } = useTranslation();
   const est = series.length === 1 ? (estimate ?? null) : null;
   // The ghost bar occupies a real slot on the x axis, so it widens the grid and
   // participates in the extent — otherwise a consensus above the current high
@@ -137,7 +140,7 @@ export function QuarterlyBars({
                 onExpand();
               }}
               className="text-slate-300 hover:text-brand-600"
-              aria-label="Expand chart"
+              aria-label={t("company.expandChart")}
             >
               ⤢
             </button>

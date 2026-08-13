@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLocale } from "@/components/LocaleLink";
 import { withLocale } from "@/lib/locale";
-import { resolveArticleLocale } from "@/lib/research-locales";
+import { articleCardCopy, resolveArticleLocale } from "@/lib/research-locales";
 
 import { useTranslation } from "react-i18next";
 import { getResearchList, type ResearchCard } from "@/lib/research";
@@ -86,17 +86,17 @@ export function ResearchPage() {
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2">
-          {articles.map((a) => (
+          {articles.map((a) => {
             // Link straight to the language the article is actually written in.
             // Linking to the current locale's path would send every reader (and
             // every crawler) of the ca/es listing through a 301, because most
             // articles exist in English only.
+            const written = resolveArticleLocale(a.slug, locale) ?? locale;
+            const card = articleCardCopy(a.slug, locale);
+            return (
             <Link
               key={a.slug}
-              to={withLocale(
-                `/research/${a.slug}`,
-                resolveArticleLocale(a.slug, locale) ?? locale,
-              )}
+              to={withLocale(`/research/${a.slug}`, written)}
               className="card group flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover"
             >
               {a.coverImage && (
@@ -120,11 +120,18 @@ export function ResearchPage() {
                 )}
               </div>
               <h2 className="mt-2 text-lg font-semibold text-slate-900 group-hover:text-brand-700">
-                {a.title}
+                {card?.title ?? a.title}
               </h2>
               <p className="mt-1 flex-1 text-sm leading-relaxed text-slate-600">
-                {a.summary}
+                {card?.excerpt ?? a.summary}
               </p>
+              {/* Translated card, untranslated article: say which language the
+                  reader is about to land in instead of surprising them. */}
+              {written !== locale && (
+                <p className="mt-2 text-xs font-medium text-slate-400">
+                  {t("research.availableIn", { lang: t(`research.langNames.${written}`) })}
+                </p>
+              )}
               {a.tags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {a.tags.map((tag) => (
@@ -136,7 +143,8 @@ export function ResearchPage() {
                 {t("research.read")} →
               </span>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

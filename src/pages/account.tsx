@@ -5,6 +5,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
 import { AuthGuard } from "@/components/AuthGuard";
+import { AuthShell } from "@/components/AuthShell";
 
 function AccountInner() {
   const { t } = useTranslation();
@@ -53,8 +54,10 @@ function AccountInner() {
       </section>
 
       <section className="card">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <AccountView path={path as any} />
+        <AuthShell>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <AccountView path={path as any} />
+        </AuthShell>
       </section>
     </div>
   );

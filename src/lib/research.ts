@@ -27,20 +27,35 @@ export interface CompanyInsights {
   thesis: string | null;
 }
 
-// Qualitative Pros/Risks for a ticker, authored in the same Notion CMS.
-// Returns null when nothing is authored → the section self-hides.
+export type InsightsResult = {
+  /** Commentary in the REQUESTED language, or null — never another language. */
+  insights: CompanyInsights | null;
+  /** Whether the Catalan original exists, so we can link to it instead. */
+  hasCatalan: boolean;
+};
+
+// Qualitative Pros/Risks for a ticker, authored per language in the same Notion
+// CMS. Strictly locale-scoped: a page in Spanish never receives the Catalan
+// text. Returns nothing at all when the commentary is not authored for that
+// ticker → the section self-hides.
 export async function getInsights(
   ticker: string,
-): Promise<CompanyInsights | null> {
+  locale: string,
+): Promise<InsightsResult> {
+  const empty: InsightsResult = { insights: null, hasCatalan: false };
   try {
     const res = await fetch(
-      `/api/fundamentals-get?research=insights&ticker=${encodeURIComponent(ticker)}`,
+      `/api/fundamentals-get?research=insights&ticker=${encodeURIComponent(ticker)}` +
+        `&locale=${encodeURIComponent(locale)}`,
     );
-    if (!res.ok) return null;
+    if (!res.ok) return empty;
     const data = await res.json();
-    return (data.insights ?? null) as CompanyInsights | null;
+    return {
+      insights: (data.insights ?? null) as CompanyInsights | null,
+      hasCatalan: data.hasCatalan === true,
+    };
   } catch {
-    return null;
+    return empty;
   }
 }
 

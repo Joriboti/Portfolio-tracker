@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { LocaleLink, useLocale } from "@/components/LocaleLink";
 import { withLocale } from "@/lib/locale";
-import { resolveArticleLocale } from "@/lib/research-locales";
+import { articleCardCopy, resolveArticleLocale } from "@/lib/research-locales";
 
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
@@ -105,8 +105,11 @@ export function HomePage() {
 }
 
 // Illustrative, non-interactive mock of the dashboard so visitors can picture
-// the output. Numbers are fake and hard-coded; not localized on purpose.
+// the output. The numbers are fake and hard-coded (and stay that way — they are
+// an illustration, not data); the LABELS are translated like everything else,
+// so the Spanish landing does not show a Catalan screenshot.
 function DashboardPreview() {
+  const { t } = useTranslation();
   return (
     <div
       aria-hidden
@@ -114,26 +117,26 @@ function DashboardPreview() {
     >
       <div className="mb-4 flex items-center justify-between">
         <span className="text-sm font-semibold text-slate-900">
-          La meva cartera
+          {t("home.preview.title")}
         </span>
         <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] text-slate-400">
-          demo
+          {t("home.preview.badge")}
         </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <PreviewStat label="Valor total" value="24.860 €" />
-        <PreviewStat label="Cost" value="18.400 €" />
-        <PreviewStat label="P&L no realitzat" value="+6.460 €" tone="pos" />
-        <PreviewStat label="TIR anual" value="+14,2 %" tone="pos" />
+        <PreviewStat label={t("home.preview.totalValue")} value="24.860 €" />
+        <PreviewStat label={t("home.preview.cost")} value="18.400 €" />
+        <PreviewStat label={t("home.preview.unrealized")} value="+6.460 €" tone="pos" />
+        <PreviewStat label={t("home.preview.irr")} value="+14,2 %" tone="pos" />
       </div>
 
       <div className="mt-4 overflow-hidden rounded-lg border border-slate-100">
         <div className="grid grid-cols-[1.4fr_1fr_1fr_0.8fr] bg-slate-50 px-3 py-2 text-[10px] uppercase tracking-wide text-slate-400">
-          <span>Ticker</span>
-          <span className="text-right">Valor</span>
-          <span className="text-right">Pes</span>
-          <span className="text-right">P&L</span>
+          <span>{t("home.preview.ticker")}</span>
+          <span className="text-right">{t("home.preview.value")}</span>
+          <span className="text-right">{t("home.preview.weight")}</span>
+          <span className="text-right">{t("home.preview.pl")}</span>
         </div>
         <PreviewRow hue="#e76b1c" ticker="NVDA" value="6.120 €" weight="24,6 %" pl="+38 %" tone="pos" />
         <PreviewRow hue="#2563eb" ticker="MSFT" value="4.980 €" weight="20,0 %" pl="+21 %" tone="pos" />
@@ -215,6 +218,7 @@ function PreviewRow({
 // Landing showcase of the 3 newest published analyses. Fetches client-side and
 // renders nothing if the CMS is empty or unreachable (graceful degradation).
 function RecentResearch() {
+  const { t } = useTranslation();
   const locale = useLocale();
   const [articles, setArticles] = useState<ResearchCard[]>([]);
   useEffect(() => {
@@ -233,35 +237,42 @@ function RecentResearch() {
     <section className="mt-24">
       <div className="flex items-end justify-between gap-4">
         <h2 className="font-display text-3xl font-semibold tracking-tight text-[#f3ead9]">
-          Anàlisis recents
+          {t("home.research.title")}
         </h2>
         <LocaleLink
           to="/research"
           className="shrink-0 text-sm font-medium text-brand-400 hover:text-brand-300"
         >
-          Veure totes les anàlisis →
+          {t("home.research.seeAll")} →
         </LocaleLink>
       </div>
       <div className="mt-6 grid gap-5 md:grid-cols-3">
-        {articles.map((a) => (
+        {articles.map((a) => {
           // Straight to the language the article is written in, so a ca/es
           // reader is not sent through a 301 (most articles are English-only).
+          const written = resolveArticleLocale(a.slug, locale) ?? locale;
+          const card = articleCardCopy(a.slug, locale);
+          return (
           <Link
             key={a.slug}
-            to={withLocale(
-              `/research/${a.slug}`,
-              resolveArticleLocale(a.slug, locale) ?? locale,
-            )}
+            to={withLocale(`/research/${a.slug}`, written)}
             className="group flex flex-col rounded-2xl p-5 shadow-lg transition-transform duration-200 hover:-translate-y-1"
             style={{ background: "linear-gradient(180deg, #f8f2e6 0%, #e8dcc6 100%)" }}
           >
             <TickerBadge ticker={a.ticker} />
             <h3 className="mt-2 font-display font-semibold text-[#26211d] group-hover:text-brand-700">
-              {a.title}
+              {card?.title ?? a.title}
             </h3>
             <p className="mt-1 flex-1 text-sm leading-relaxed text-[#6b6152]">
-              {a.summary}
+              {card?.excerpt ?? a.summary}
             </p>
+            {/* The card is translated; the article itself is not. Say so
+                rather than letting the click be a surprise. */}
+            {written !== locale && (
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-[#8a7f6d]">
+                {t("research.availableIn", { lang: t(`research.langNames.${written}`) })}
+              </p>
+            )}
             {a.tags.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {a.tags.slice(0, 3).map((tag) => (
@@ -270,7 +281,8 @@ function RecentResearch() {
               </div>
             )}
           </Link>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

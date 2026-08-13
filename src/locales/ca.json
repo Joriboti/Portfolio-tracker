@@ -20,13 +20,14 @@
     "groups": {
       "models": "Models de valoració",
       "portfolio": "Cartera",
-      "taxes": "Fiscalitat"
+      "taxes": "Fiscalitat",
+      "about": "Sobre TrimmTrack"
     }
   },
   "home": {
     "heroTitle": "El teu portfolio, sempre actualitzat",
     "heroSubtitle": "Puja el teu full de càlcul i transforma-lo en un panell amb preus en temps real, P&L i dividends. Amb calculadora FIFO per a plusvàlues, valoració DCF i número de Graham — gratis i sense registre.",
-    "ctaStart": "Comença gratuïtament",
+    "ctaStart": "Prepara la teva cartera",
     "ctaTry": "Prova un model de valoració",
     "ctaHowTo": "Com preparar el meu Excel",
     "feat1Title": "Sense fricció",
@@ -37,8 +38,8 @@
     "feat3Desc": "Selecciona la divisa de visualització i l'app fa la conversió FX automàticament.",
     "previewCaption": "Vista d'exemple del panell (dades il·lustratives)",
     "tools": {
-      "title": "Tot el que pots fer amb TrimmTrack",
-      "intro": "Cinc eines, un objectiu: entendre les teves inversions. Recerca profunda, visuals potents.",
+      "title": "Sis eines, un objectiu",
+      "intro": "Sis eines, un objectiu: entendre les teves inversions. Recerca profunda, visuals potents.",
       "dashboard": {
         "title": "La meva cartera",
         "desc": "Posicions en viu, P&L, pesos i evolució davant l'S&P 500.",
@@ -86,6 +87,22 @@
       "t2d": "Preus i fonamentals de Yahoo Finance, actualitzats diàriament.",
       "t3t": "Tu tens el control",
       "t3d": "No és assessorament financer: t'ajudem a veure-hi clar i les decisions les prens tu."
+    },
+    "preview": {
+      "title": "La meva cartera",
+      "badge": "demo",
+      "totalValue": "Valor total",
+      "cost": "Cost",
+      "unrealized": "P&L no realitzat",
+      "irr": "TIR anual",
+      "ticker": "Ticker",
+      "value": "Valor",
+      "weight": "Pes",
+      "pl": "P&L"
+    },
+    "research": {
+      "title": "Anàlisis recents",
+      "seeAll": "Veure totes les anàlisis"
     }
   },
   "disclaimer": {
@@ -185,7 +202,8 @@
       "pros": "Avantatges competitius",
       "risks": "Riscos d'inversió",
       "source": "Anàlisi de TrimmTrack"
-    }
+    },
+    "expandChart": "Amplia el gràfic"
   },
   "compare": {
     "heading": "{{a}} vs {{b}}: comparativa financera",
@@ -225,7 +243,15 @@
     "ctaTitle": "Segueix {{name}} a TrimmTrack",
     "ctaCompany": "aquesta empresa",
     "ctaBody": "Afegeix-la a la teva cartera i aplica-hi els models de valoració (DCF, Graham, NAV…) amb dades en viu. Gratis i sense registre.",
-    "ctaButton": "Comença gratis"
+    "ctaButton": "Comença gratis",
+    "availableIn": "Article disponible en {{lang}}",
+    "langNames": {
+      "ca": "català",
+      "es": "castellà",
+      "en": "anglès"
+    },
+    "editorialLink": "Com treballem",
+    "shareX": "Comparteix a X"
   },
   "seo": {
     "homeTitle": "TrimmTrack — Seguidor de cartera, calculadores DCF i projecció d'ETFs",
@@ -417,6 +443,27 @@
       "payments": "Pagaments",
       "total": "Total rebut",
       "yield": "Rendiment"
+    },
+    "rename": {
+      "action": "Canvia el ticker de {{ticker}}",
+      "title": "Canvia el ticker",
+      "lead": "Si el teu Excel fa servir un codi que Yahoo Finance no reconeix, tria aquí el símbol correcte de l'empresa.",
+      "current": "Ticker actual",
+      "newTicker": "Nou ticker",
+      "searchPlaceholder": "Cerca per nom o símbol (Grifols, GRF.MC…)",
+      "searchHint": "També pots escriure el símbol exacte, amb el sufix del mercat (.MC, .PA, .L…).",
+      "checking": "Comprovant el símbol…",
+      "found": "{{ticker}} cotitza a {{price}} {{currency}}",
+      "notFound": "Yahoo Finance no dona preu per a aquest símbol. Pots continuar, però la posició es quedarà sense valorar.",
+      "invalid": "Símbol no vàlid.",
+      "same": "És el ticker que ja tens.",
+      "scope": "S'aplica a totes les operacions i dividends d'aquesta posició, i al model de valoració desat. Després actualitzem preus i històric.",
+      "confirm": "Canvia el ticker",
+      "cancel": "Cancel·la",
+      "close": "Tanca",
+      "applying": "Aplicant…",
+      "missingHint": "Si el símbol no és correcte, canvia'l amb ✎ a la fila.",
+      "merge": "Ja tens {{ticker}} a la cartera: les dues posicions es fusionaran en una."
     }
   },
   "performance": {
@@ -1132,5 +1179,58 @@
     "heading": "Aquesta pàgina no existeix",
     "body": "L'enllaç pot ser antic o tenir una errada. Prova de començar per la portada o d'explorar les empreses.",
     "home": "Ves a la portada"
+  },
+  "footer": {
+    "about": "Sobre nosaltres",
+    "privacy": "Privacitat",
+    "terms": "Legal",
+    "xAria": "TrimmTrack a X"
+  },
+  "insights": {
+    "unavailable": "El comentari qualitatiu encara no està disponible en aquest idioma. Pots consultar-ne la versió catalana.",
+    "viewCatalan": "Veure la versió catalana"
+  },
+  "calc": {
+    "fields": {
+      "epsFcf": "BPA previst / FCF per acció",
+      "growth": "Creixement anual",
+      "years": "Anys",
+      "exitMultiple": "PER de sortida",
+      "requiredReturn": "Rendibilitat exigida",
+      "currentPrice": "Preu actual",
+      "trailingEps": "BPA dels últims 12 mesos",
+      "expectedGrowth": "Creixement esperat",
+      "aaaYield": "Rendibilitat del bo corporatiu AAA",
+      "initial": "Inversió inicial",
+      "monthly": "Aportació mensual",
+      "expectedReturn": "Rendibilitat anual esperada",
+      "forwardEps": "BPA previst",
+      "growthMean": "Creixement (mitjana)",
+      "growthSd": "Creixement ± (desviació)",
+      "multipleMean": "Múltiple de sortida (mitjana)",
+      "multipleSd": "Múltiple ± (desviació)"
+    },
+    "stats": {
+      "fairValue": "Valor raonable avui",
+      "upside": "Potencial sobre el preu",
+      "impliedReturn": "Rendibilitat implícita (TCAC)",
+      "impliedGrowth": "Creixement que el preu descompta",
+      "graham": "Número de Graham (valor intrínsec)",
+      "futureValue": "Valor futur",
+      "contributed": "Total aportat",
+      "investmentGrowth": "Guany de la inversió",
+      "p10": "P10 (pessimista)",
+      "p50": "P50 (valor raonable mitjà)",
+      "p90": "P90 (optimista)"
+    },
+    "notes": {
+      "dcf": "Valor raonable = BPA × (1+g)^n × múltiple de sortida, descomptat a la rendibilitat que exigeixes. Un potencial positiu vol dir que el model veu l'acció infravalorada al preu d'avui.",
+      "reverse": "El DCF invers resol el model cap enrere: donat el preu, el múltiple de sortida i la rendibilitat que exigeixes, quin creixement constant del BPA hauria d'estar assumint el mercat? Compara'l amb el creixement realista de l'empresa per jutjar si les expectatives són cares o barates.",
+      "graham": "V = BPA × (8,5 + 2g) × 4,4 / Y, la revisió ajustada per tipus d'interès. És un cribratge ràpid i conservador, no una valoració precisa.",
+      "grahamCapped": "El creixement s'ha limitat al {{cap}}% perquè el terme lineal 2g s'infla per sobre d'aquest punt.",
+      "compound": "Assumeix que les aportacions s'afegeixen al final de cada mes i que la rendibilitat es capitalitza mensualment. La rendibilitat real d'un ETF varia any rere any: fes servir el simulador de Monte Carlo per veure'n el rang.",
+      "mcRuns": "{{runs}} simulacions de la distribució del valor raonable."
+    },
+    "rerun": "Torna a simular"
   }
 }

@@ -45,6 +45,9 @@ export const ROUTE_SLUGS = {
     es: "/simulador-monte-carlo",
     en: "/monte-carlo-stock-simulator",
   },
+  about: { ca: "/sobre-trimmtrack", es: "/sobre-trimmtrack", en: "/about" },
+  privacy: { ca: "/privacitat", es: "/privacidad", en: "/privacy" },
+  terms: { ca: "/termes", es: "/terminos", en: "/terms" },
 };
 
 /** The path of a page in one locale. `neutral` may be written in any locale. */
@@ -79,6 +82,9 @@ const MULTILANG = [
   [ROUTE_SLUGS.graham.ca, "0.8", "monthly"],
   [ROUTE_SLUGS.monteCarlo.ca, "0.8", "monthly"],
   ["/disclaimer", "0.4", "yearly"],
+  [ROUTE_SLUGS.about.ca, "0.6", "yearly"],
+  [ROUTE_SLUGS.privacy.ca, "0.3", "yearly"],
+  [ROUTE_SLUGS.terms.ca, "0.3", "yearly"],
 ];
 
 // English-only landings. Kept English-only on purpose: a ca/es "ETF growth"

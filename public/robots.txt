@@ -1,9 +1,10 @@
 User-agent: *
 Allow: /
-Disallow: /dashboard
-Disallow: /upload
-Disallow: /account
-Disallow: /debug
+
+# The authenticated app is not disallowed here on purpose: it answers with
+# `X-Robots-Tag: noindex, nofollow, noarchive` (see scripts/gen-vercel.mjs),
+# and Google can only read that header on a URL it is allowed to fetch. The
+# routes themselves are protected by the auth guard, not by this file.
 
 Sitemap: https://www.trimmtrack.com/sitemap.xml
 Sitemap: https://www.trimmtrack.com/sitemap-tickers.xml
