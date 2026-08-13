@@ -184,7 +184,7 @@ export function Layout() {
               {t("footer.terms")}
             </LocaleLink>
             <LocaleLink to="/disclaimer" className={dark ? "hover:text-[#f3ead9]" : "hover:text-slate-700"}>
-              Disclaimer
+              {t("footer.disclaimer")}
             </LocaleLink>
             {/* rel="me" is what identifies this profile as the site's own. */}
             <a

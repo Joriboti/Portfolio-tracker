@@ -103,6 +103,31 @@ describe("no hardcoded UI copy left in the components", () => {
     }
   });
 
+  // Matched as patterns rather than raw substrings on purpose: the first
+  // attempt at the footer fix used "\n" against a CRLF file, silently replaced
+  // nothing, and shipped — a substring assertion written the same way would
+  // have passed too.
+  const BANNED_PATTERNS: { file: string; patterns: RegExp[] }[] = [
+    { file: "src/components/Layout.tsx", patterns: [/>\s*Disclaimer\s*</] },
+    {
+      file: "src/pages/upload.tsx",
+      patterns: [/<th>\s*Ticker\s*<\/th>/, /<th>\s*Shares\s*<\/th>/, /<th>\s*Buy price\s*<\/th>/],
+    },
+    { file: "src/pages/dashboard.tsx", patterns: [/<td>\s*Total\s*<\/td>/] },
+    {
+      file: "src/components/CompanyOverview.tsx",
+      patterns: [/aria-label="Close"/],
+    },
+    { file: "src/pages/taxes.tsx", patterns: [/aria-label="progress"/] },
+  ];
+
+  it.each(BANNED_PATTERNS)("$file renders no hardcoded text node", ({ file, patterns }) => {
+    const src = read(file);
+    for (const re of patterns) {
+      expect(re.test(src), `${file} still hardcodes ${re}`).toBe(false);
+    }
+  });
+
   it("keeps the six-tool count honest in every language", () => {
     // The showcase renders six cards; the copy used to say five.
     const cards = [...read("src/pages/home.tsx").matchAll(/key: "(\w+)", to:/g)].length;
