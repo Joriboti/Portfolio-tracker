@@ -366,6 +366,7 @@ type ChartCfg = {
 };
 
 function ChartModal({ cfg, onClose }: { cfg: ChartCfg; onClose: () => void }) {
+  const { t } = useTranslation();
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -386,7 +387,7 @@ function ChartModal({ cfg, onClose }: { cfg: ChartCfg; onClose: () => void }) {
           type="button"
           onClick={onClose}
           className="absolute -top-9 right-0 text-2xl leading-none text-white/80 hover:text-white"
-          aria-label="Close"
+          aria-label={t("common.close")}
         >
           &times;
         </button>

@@ -380,7 +380,15 @@
     "orExcel": "o penja un Excel",
     "drop": "Arrossega el teu fitxer aquí o fes clic per seleccionar",
     "supports": "Format: .xlsx (exportable des de Google Sheets)",
-    "preview": "Previsualització",
+    "preview": {
+      "ticker": "Ticker",
+      "shares": "Accions",
+      "buyPrice": "Preu de compra",
+      "buyDate": "Data de compra",
+      "sellShares": "Accions venudes",
+      "sellPrice": "Preu de venda",
+      "sellDate": "Data de venda"
+    },
     "confirm": "Importar a la meva cartera",
     "cancel": "Cancel·lar",
     "importing": "Important transaccions…",
@@ -464,7 +472,8 @@
       "applying": "Aplicant…",
       "missingHint": "Si el símbol no és correcte, canvia'l amb ✎ a la fila.",
       "merge": "Ja tens {{ticker}} a la cartera: les dues posicions es fusionaran en una."
-    }
+    },
+    "grandTotal": "Total"
   },
   "performance": {
     "title": "Rendiment",
@@ -749,7 +758,8 @@
     "loading": "Carregant...",
     "error": "Hi ha hagut un error",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "close": "Tanca"
   },
   "taxes": {
     "h1": "Assistent d'impostos per a inversors",
@@ -926,7 +936,8 @@
       "primary": "Construeix el teu portfolio",
       "secondary": "Calculadora FIFO"
     },
-    "short": "Assistent d'impostos"
+    "short": "Assistent d'impostos",
+    "progressLabel": "Progrés"
   },
   "verify": {
     "seoTitle": "Verifica una cartera | TrimmTrack",
@@ -1184,7 +1195,8 @@
     "about": "Sobre nosaltres",
     "privacy": "Privacitat",
     "terms": "Legal",
-    "xAria": "TrimmTrack a X"
+    "xAria": "TrimmTrack a X",
+    "disclaimer": "Avís legal"
   },
   "insights": {
     "unavailable": "El comentari qualitatiu encara no està disponible en aquest idioma. Pots consultar-ne la versió catalana.",

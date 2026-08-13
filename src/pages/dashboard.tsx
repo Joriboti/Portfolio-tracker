@@ -1442,7 +1442,7 @@ function DividendsTable({
       </tbody>
       <tfoot>
         <tr className="font-semibold border-t border-slate-200">
-          <td>Total</td>
+          <td>{t("dashboard.grandTotal")}</td>
           <td />
           <td className="text-right text-brand-700">
             {formatMoney(grandTotal, currency)}

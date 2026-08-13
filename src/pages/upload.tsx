@@ -222,13 +222,13 @@ function UploadInner() {
             <table className="table-base">
               <thead className="bg-slate-50 sticky top-0">
                 <tr>
-                  <th>Ticker</th>
-                  <th>Shares</th>
-                  <th>Buy price</th>
-                  <th>Buy date</th>
-                  <th>Sell shares</th>
-                  <th>Sell price</th>
-                  <th>Sell date</th>
+                  <th>{t("upload.preview.ticker")}</th>
+                  <th>{t("upload.preview.shares")}</th>
+                  <th>{t("upload.preview.buyPrice")}</th>
+                  <th>{t("upload.preview.buyDate")}</th>
+                  <th>{t("upload.preview.sellShares")}</th>
+                  <th>{t("upload.preview.sellPrice")}</th>
+                  <th>{t("upload.preview.sellDate")}</th>
                 </tr>
               </thead>
               <tbody>

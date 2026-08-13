@@ -380,7 +380,15 @@
     "orExcel": "or upload an Excel",
     "drop": "Drop your file here or click to browse",
     "supports": "Format: .xlsx (exportable from Google Sheets)",
-    "preview": "Preview",
+    "preview": {
+      "ticker": "Ticker",
+      "shares": "Shares",
+      "buyPrice": "Buy price",
+      "buyDate": "Buy date",
+      "sellShares": "Sell shares",
+      "sellPrice": "Sell price",
+      "sellDate": "Sell date"
+    },
     "confirm": "Import into my portfolio",
     "cancel": "Cancel",
     "importing": "Importing transactions…",
@@ -464,7 +472,8 @@
       "applying": "Applying…",
       "missingHint": "If the symbol is wrong, change it with ✎ in the row.",
       "merge": "You already hold {{ticker}}: the two positions will be merged into one."
-    }
+    },
+    "grandTotal": "Total"
   },
   "performance": {
     "title": "Performance",
@@ -749,7 +758,8 @@
     "loading": "Loading...",
     "error": "Something went wrong",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "close": "Close"
   },
   "taxes": {
     "h1": "Investor tax assistant",
@@ -926,7 +936,8 @@
       "primary": "Build your portfolio",
       "secondary": "FIFO calculator"
     },
-    "short": "Tax assistant"
+    "short": "Tax assistant",
+    "progressLabel": "Progress"
   },
   "verify": {
     "seoTitle": "Verify a portfolio | TrimmTrack",
@@ -1184,7 +1195,8 @@
     "about": "About",
     "privacy": "Privacy",
     "terms": "Terms",
-    "xAria": "TrimmTrack on X"
+    "xAria": "TrimmTrack on X",
+    "disclaimer": "Disclaimer"
   },
   "insights": {
     "unavailable": "The qualitative commentary is not yet available in English. You can view the Catalan version.",

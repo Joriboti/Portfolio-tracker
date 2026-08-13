@@ -213,7 +213,7 @@ export function TaxesPage() {
       </header>
 
       {/* Progress line: numbered dots joined by a rule that fills as you go. */}
-      <ol className="mt-10 flex items-center print:hidden" aria-label="progress">
+      <ol className="mt-10 flex items-center print:hidden" aria-label={t("taxes.progressLabel")}>
         {STEPS.map((s, i) => (
           <li key={s} className={`flex items-center ${i > 0 ? "flex-1" : ""}`}>
             {i > 0 && (
