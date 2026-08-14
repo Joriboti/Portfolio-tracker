@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:seo": "npm run build && vitest run src/lib/prerendered-html.test.ts",
     "audit": "node scripts/audit-production.mjs",
+    "backfill:edgar": "node scripts/backfill-edgar.mjs",
     "gen:vercel": "node scripts/gen-vercel.mjs"
   },
   "dependencies": {

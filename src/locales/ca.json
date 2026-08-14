@@ -183,11 +183,13 @@
       "payoutDate": "Proper pagament"
     },
     "pe": {
-      "title": "Com ha cotitzat els beneficis",
+      "trailingTitle": "Com ha cotitzat els beneficis",
+      "forwardTitle": "Com ha cotitzat l'any vinent",
       "trailing": "PER (12 mesos)",
       "forward": "PER previst",
       "marketMedian": "Mediana del mercat",
-      "note": "PER de cada setmana: preu dividit pel benefici per acció dels dotze mesos ja publicats en aquella data. Les setmanes amb pèrdues no es dibuixen.",
+      "note": "Preu de cada setmana dividit pel benefici per acció ja publicat en aquella data: quatre trimestres quan l'empresa els publica, i si no, el darrer exercici sencer. Les setmanes amb pèrdues no es dibuixen.",
+      "forwardNote": "Preu de cada setmana dividit pel benefici de l'exercici que encara tenia al davant. Aquells exercicis ja han passat, així que és el múltiple pagat contra la xifra que va acabar sortint: ningú no guarda què esperaven els analistes en aquell moment. El tram final fa servir el consens d'avui.",
       "medianOf": "Mediana sobre {{count}} empreses cobertes."
     },
     "charts": {

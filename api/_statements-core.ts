@@ -11,9 +11,10 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 // history accumulates with each weekly refresh and chart depth grows over time.
 //
 // Response also carries `panel` (live quoteSummary extras the stat panels need
-// beyond the shared Fundamentals shape) and `prices` (1y weekly closes for the
-// price chart). Both best-effort: any Yahoo failure degrades to null/[] — this
-// endpoint never 500s over a partial payload.
+// beyond the shared Fundamentals shape), `prices` (5y weekly closes for the
+// price and P/E charts) and `fx` (the weekly filing→quote rate, present only
+// for the ADRs where those differ). All best-effort: any Yahoo failure degrades
+// to null/[] — this endpoint never 500s over a partial payload.
 
 type ModuleOpts = { validateResult?: boolean };
 type TsRow = Record<string, unknown> & { date?: Date | string };
@@ -166,6 +167,7 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
           "financialData",
           "calendarEvents",
           "earningsTrend",
+          "price",
         ],
       },
       { validateResult: false },
@@ -174,6 +176,7 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
     const ks = qs.defaultKeyStatistics ?? {};
     const fd = qs.financialData ?? {};
     const ce = qs.calendarEvents ?? {};
+    const pr = qs.price ?? {};
     // earningsTrend.trend: rows keyed by period ("0q","+1q","0y","+1y").
     const trend = Array.isArray((qs.earningsTrend as Record<string, unknown>)?.trend)
       ? ((qs.earningsTrend as Record<string, unknown>).trend as Array<
@@ -184,6 +187,43 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
     const nextYearEps = num(
       (nextYear?.earningsEstimate as Record<string, unknown> | undefined)?.avg,
     );
+
+    // Consensus for the fiscal years not yet reported ("0y", "+1y"), which is
+    // what carries the forward-P/E line from the last reported year up to
+    // today.
+    //
+    // earningsTrend does not state its currency and is not consistent about
+    // it: TSM and SAP come back per quoted share in USD, ASML and NVO in the
+    // euros and kroner they file in — two Nasdaq-quoted European companies,
+    // opposite conventions. Rather than guess, measure. Yahoo's own forwardPE
+    // is price over the +1y estimate and it gets the conversion right, so the
+    // ratio between the two says what unit the estimates are in, and the same
+    // factor puts every one of them into the quote currency. No forwardPE to
+    // measure against means no estimates: a forward line ending at the last
+    // reported year is honest, one off by a factor of thirty is not.
+    const forwardPe = num(sd.forwardPE) ?? num(ks.forwardPE);
+    const price = num(pr.regularMarketPrice);
+    const estScale =
+      forwardPe != null && forwardPe > 0 && price != null && nextYearEps != null && nextYearEps > 0
+        ? price / forwardPe / nextYearEps
+        : null;
+    const annualEstimates =
+      estScale == null
+        ? []
+        : trend
+            .filter((t) => t.period === "0y" || t.period === "+1y")
+            .map((t) => ({
+              periodEnd: isoDate(t.endDate),
+              eps: num(
+                (t.earningsEstimate as Record<string, unknown> | undefined)?.avg,
+              ),
+            }))
+            .filter(
+              (e): e is { periodEnd: string; eps: number } =>
+                e.periodEnd != null && e.eps != null,
+            )
+            .map((e) => ({ periodEnd: e.periodEnd, eps: e.eps * estScale }))
+            .sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
     // Consensus for the upcoming quarters, feeding the dashed "estimate" bars on
     // the Revenue/EPS charts. Both forward rows are returned: whether "0q" is
     // still unreported or already filed depends on where in the earnings cycle
@@ -211,19 +251,25 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
       dividendDate: isoDate(ce.dividendDate) ?? isoDate(sd.exDividendDate),
       nextYearEps,
       estimates,
+      /** Already in the quote currency — see estScale above. */
+      annualEstimates,
       // The currency the statements below are actually filed in. Usually the
       // quote currency, but NOT for ADRs: TSM quotes in USD and reports in TWD,
       // TM in JPY, NVO in DKK. Anything comparing or converting these figures
       // has to read this rather than assume the quote currency.
       financialCurrency:
         typeof fd.financialCurrency === "string" ? fd.financialCurrency : null,
+      // The currency `prices` below are quoted in. Anything that divides a
+      // price by a per-share figure needs both: TSM's P/E was being drawn as
+      // 425 USD over 431 TWD — a plausible-looking 1.0× that meant nothing.
+      quoteCurrency: typeof pr.currency === "string" ? pr.currency : null,
     };
   } catch {
     return null;
   }
 }
 
-// 1y of weekly closes for the price chart. Live (not cached in Neon —
+// 5y of weekly closes for the price chart. Live (not cached in Neon —
 // historical_prices only covers portfolio tickers) but CDN-cached via the
 // response's s-maxage.
 async function fetchPrices(yahoo: YahooStatementsClient, ticker: string) {
@@ -241,6 +287,33 @@ async function fetchPrices(yahoo: YahooStatementsClient, ticker: string) {
     return (r.quotes ?? [])
       .map((q) => ({ date: isoDate(q.date), close: num(q.close) }))
       .filter((p): p is { date: string; close: number } => !!p.date && p.close != null);
+  } catch {
+    return [];
+  }
+}
+
+// Weekly {from}→{to} rate over the same five years as the prices, so a P/E
+// built from a filing-currency EPS and a quote-currency price is right at every
+// week rather than only at today's rate. Five years of EUR/USD spans 1.18 to
+// 1.05; pinning the whole history to the spot rate would tilt the line by a
+// tenth of its own range. Empty on any failure — the caller then declines to
+// draw a series it cannot state honestly.
+async function fetchFx(
+  yahoo: YahooStatementsClient,
+  from: string,
+  to: string,
+): Promise<Array<{ date: string; rate: number }>> {
+  try {
+    const period2 = new Date();
+    const period1 = new Date(period2.getTime() - 5 * 366 * 24 * 3600 * 1000);
+    const r = await yahoo.chart(
+      `${from}${to}=X`,
+      { period1, period2, interval: "1wk" },
+      { validateResult: false },
+    );
+    return (r.quotes ?? [])
+      .map((q) => ({ date: isoDate(q.date), rate: num(q.close) }))
+      .filter((p): p is { date: string; rate: number } => !!p.date && p.rate != null);
   } catch {
     return [];
   }
@@ -289,8 +362,18 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
   let cached: Array<{ period_end: string; period_type: string; data: StatementMetrics }> =
     [];
   // What a &backfill=edgar run actually did, echoed in the response so a bulk
-  // run can be checked without querying the database.
-  let backfilled: { inserted: number; enriched: number } | null = null;
+  // run can be checked without querying the database. `epsRatio` is the share
+  // ratio it measured (5 for a TSM-style ADS, null when unmeasurable) and
+  // `skipped` says why nothing was written, which is the difference between a
+  // ticker EDGAR has never heard of and one we declined to merge.
+  let backfilled: {
+    inserted: number;
+    enriched: number;
+    epsRatio: number | null;
+    skipped: string | null;
+  } | null = null;
+  let epsRatio: number | null = null;
+  let skipped: string | null = null;
   let newestFetch = 0;
   if (sql) {
     try {
@@ -364,9 +447,16 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
     }
   }
 
-  // Optional deep-history backfill from SEC EDGAR (US filers only). Explicit
-  // trigger (&backfill=edgar) — companyfacts is multi-MB, so it stays off the
-  // hot path.
+  // Panel extras + price series (parallel, both best-effort). Fetched before
+  // the backfill because the panel states the currency the filings are in,
+  // which decides whether EDGAR's rows may be merged with these at all.
+  const [panel, prices] = await Promise.all([
+    fetchPanel(yahoo, ticker),
+    fetchPrices(yahoo, ticker),
+  ]);
+
+  // Optional deep-history backfill from SEC EDGAR. Explicit trigger
+  // (&backfill=edgar) — companyfacts is multi-MB, so it stays off the hot path.
   //
   // Two jobs, and for a ticker we already cover the SECOND is the one that
   // matters. Yahoo's free window returns ~5 quarters of everything but only
@@ -383,13 +473,38 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
   // sources can't disagree on screen; it only turns nulls into numbers. The
   // ±20-day proximity guard still decides which row an EDGAR period belongs
   // to, so fiscal-vs-calendar drift updates the right quarter instead of
-  // minting a near-duplicate bar beside it. Non-US tickers / EDGAR errors
-  // degrade to a no-op.
+  // minting a near-duplicate bar beside it. Tickers absent from EDGAR / EDGAR
+  // errors degrade to a no-op.
+  //
+  // Two things are checked before a single row is written, because both would
+  // otherwise land as a step in the middle of a chart rather than as an error:
+  // the two sources must agree on the reporting currency, and EDGAR's
+  // per-ordinary-share EPS is restated per quoted share (Shell's ADS is two
+  // ordinary shares, TSM's is five).
   if (sql && req.query.backfill === "edgar") {
     try {
-      const { fetchEdgarStatements } = await import("./_edgar-core.js");
-      const edgar = await fetchEdgarStatements(ticker);
-      if (edgar && edgar.length > 0) {
+      const { epsShareRatio, fetchEdgarStatements, scaleEps } = await import(
+        "./_edgar-core.js"
+      );
+      const found = await fetchEdgarStatements(ticker);
+      const filingCcy = panel?.financialCurrency ?? null;
+      const currencyClash =
+        !!found && !!filingCcy && found.currency !== filingCcy;
+      if (currencyClash) skipped = `currency ${found!.currency} vs ${filingCcy}`;
+      const ratio = found
+        ? epsShareRatio(
+            found.rows,
+            cached.map((r) => ({
+              periodEnd: r.period_end,
+              periodType: r.period_type,
+              eps: r.data.eps,
+            })),
+          )
+        : null;
+      const edgar =
+        found && !currencyClash ? scaleEps(found.rows, ratio ?? 1) : [];
+      epsRatio = ratio;
+      if (edgar.length > 0) {
         // Rows that actually carry data. Yahoo occasionally leaves an all-null
         // placeholder row (odd report date, no usable metrics); those must NOT
         // claim an EDGAR period — it gets inserted properly instead.
@@ -462,7 +577,7 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
             /* one bad row must not sink the rest */
           }
         }
-        backfilled = { inserted, enriched };
+        backfilled = { inserted, enriched, epsRatio, skipped };
         if (inserted > 0 || enriched > 0) {
           try {
             const rows = await sql`
@@ -481,16 +596,21 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
           }
         }
       }
+      backfilled ??= { inserted: 0, enriched: 0, epsRatio, skipped };
     } catch {
       /* EDGAR module/network unavailable → Yahoo-only, no-op */
     }
   }
 
-  // Panel extras + price series (parallel, both best-effort).
-  const [panel, prices] = await Promise.all([
-    fetchPanel(yahoo, ticker),
-    fetchPrices(yahoo, ticker),
-  ]);
+  // The rate that turns a filing-currency EPS into the currency the price is
+  // quoted in. Only fetched when the two differ, which is the ADR case — TSM
+  // quotes in USD and reports in TWD, ASML in USD and EUR.
+  const filingCcy = panel?.financialCurrency ?? null;
+  const quoteCcy = panel?.quoteCurrency ?? null;
+  const fx =
+    filingCcy && quoteCcy && filingCcy !== quoteCcy
+      ? await fetchFx(yahoo, filingCcy, quoteCcy)
+      : [];
 
   const quarters = cached
     .filter((r) => r.period_type === "q")
@@ -507,6 +627,15 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
   res
     .status(200)
     .end(
-      JSON.stringify({ ok: true, ticker, backfilled, panel, prices, quarters, annual }),
+      JSON.stringify({
+        ok: true,
+        ticker,
+        backfilled,
+        panel,
+        prices,
+        fx,
+        quarters,
+        annual,
+      }),
     );
 }

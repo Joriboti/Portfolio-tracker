@@ -183,11 +183,13 @@
       "payoutDate": "Next payout"
     },
     "pe": {
-      "title": "What the market paid for its earnings",
+      "trailingTitle": "What the market paid for its earnings",
+      "forwardTitle": "What the market paid for the year ahead",
       "trailing": "P/E (TTM)",
       "forward": "Forward P/E",
       "marketMedian": "Market median",
-      "note": "Each week's P/E: price divided by the earnings per share already reported by that date. Loss-making weeks are not drawn.",
+      "note": "Each week's price divided by the earnings per share already reported by that date — four quarters where a company reports them, its last full year otherwise. Loss-making weeks are not drawn.",
+      "forwardNote": "Each week's price divided by the earnings of the year still ahead of it. Those years have since happened, so this is the multiple paid against the figure that landed: nobody records what analysts expected at the time. The most recent stretch uses today's consensus.",
       "medianOf": "Median across {{count}} covered companies."
     },
     "charts": {

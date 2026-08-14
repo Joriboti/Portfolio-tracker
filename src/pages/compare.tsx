@@ -31,7 +31,13 @@ import {
 } from "@/lib/statements";
 import { QuarterlyBars } from "@/components/QuarterlyBars";
 import { TimeSeriesChart } from "@/components/TimeSeriesChart";
-import { alignFrom, peSeries, rebase } from "@/lib/pe-history";
+import {
+  alignFrom,
+  epsPoints,
+  peSeries,
+  quoteConverter,
+  rebase,
+} from "@/lib/pe-history";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { useSeo } from "@/lib/seo";
 import { withLocale, localeFromPath, SITE_ORIGIN } from "@/lib/locale";
@@ -200,14 +206,19 @@ function CompareInner({ pair }: { pair: Pair }) {
     () => alignFrom(rebase(a.statements?.prices ?? []), rebase(b.statements?.prices ?? [])),
     [a.statements, b.statements],
   );
-  const [peA, peB] = useMemo(
-    () =>
-      alignFrom(
-        peSeries(a.statements?.prices ?? [], a.statements?.quarters ?? []),
-        peSeries(b.statements?.prices ?? [], b.statements?.quarters ?? []),
-      ),
-    [a.statements, b.statements],
-  );
+  // Each side converts its own earnings into its own quote currency before the
+  // division — a P/E is a pure number, so once both are ratios they compare
+  // directly and the page's B→A rate has no part in it.
+  const [peA, peB] = useMemo(() => {
+    const side = (s: Side) =>
+      peSeries(
+        s.statements?.prices ?? [],
+        s.statements?.quarters ?? [],
+        epsPoints(s.statements?.annual ?? []),
+        quoteConverter(s.statements, s.company?.currency),
+      );
+    return alignFrom(side(a), side(b));
+  }, [a, b]);
 
   const charts = converted
     ? ([

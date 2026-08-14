@@ -43,18 +43,36 @@ export type PanelExtras = {
   /** Ascending by periodEnd. Absent on older cached responses. */
   estimates?: QuarterEstimate[];
   /**
+   * Consensus EPS for the fiscal years not yet reported, ascending, already
+   * converted to the quote currency by the API (earningsTrend is not
+   * consistent about which currency it answers in). Absent on older cached
+   * responses; empty when it could not be normalised.
+   */
+  annualEstimates?: Array<{ periodEnd: string; eps: number }>;
+  /**
    * Currency the statements are filed in — not always the quote currency (TSM
    * quotes in USD but reports in TWD). Absent on older cached responses.
    */
   financialCurrency?: string | null;
+  /** Currency `prices` are quoted in. Absent on older cached responses. */
+  quoteCurrency?: string | null;
 };
 
 export type PricePoint = { date: string; close: number };
+
+/** One weekly filing-currency → quote-currency rate. */
+export type FxPoint = { date: string; rate: number };
 
 export type CompanyStatements = {
   ticker: string;
   panel: PanelExtras | null;
   prices: PricePoint[];
+  /**
+   * Weekly filing→quote rate, empty when the two currencies are the same.
+   * Absent on older cached responses, which is NOT the same as empty: an old
+   * payload for an ADR cannot be converted at all.
+   */
+  fx?: FxPoint[];
   quarters: StatementRow[];
   annual: StatementRow[];
 };

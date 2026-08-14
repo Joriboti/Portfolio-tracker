@@ -27,6 +27,56 @@ const Q_FRAME = /^CY(\d{4})Q([1-4])$/;
 const A_FRAME = /^CY(\d{4})$/;
 const QI_FRAME = /^CY(\d{4})Q([1-4])I$/;
 
+// Foreign private issuers file a 20-F under IFRS, so their facts live in
+// `ifrs-full` rather than `us-gaap` — TSM, NVO, SHEL and SAP between them had
+// not one readable fact while this list was the two US taxonomies. Order is
+// preference order for a concept name present in both (GrossProfit is).
+const NAMESPACES = ["us-gaap", "ifrs-full", "dei"] as const;
+
+function bags(facts: Facts): Facts[] {
+  return NAMESPACES.map((ns) => facts?.facts?.[ns]).filter(Boolean);
+}
+
+const CCY = /^[A-Z]{3}$/;
+
+/**
+ * The currency the filer actually reports in.
+ *
+ * Every unit in this file used to be the literal "USD", which silently
+ * excluded every filer that reports in anything else: ASML tags plain
+ * us-gaap concepts but in EUR, so the backfill found nothing for it and the
+ * chart fell back to Yahoo's five quarters.
+ *
+ * Picked by weight of evidence rather than from a single concept — a filer
+ * that also tags a convenience translation (TSM publishes both TWD and USD)
+ * must not be read half in one currency and half in the other. USD when
+ * nothing says otherwise.
+ */
+export function reportingCurrency(facts: Facts): string {
+  const counts = new Map<string, number>();
+  for (const bag of bags(facts)) {
+    for (const concept of Object.keys(bag)) {
+      const units = bag[concept]?.units;
+      if (!units) continue;
+      for (const u of Object.keys(units)) {
+        // "EUR" and "EUR/shares" are the same evidence about one filer.
+        const code = u.split("/")[0];
+        if (!CCY.test(code) || !Array.isArray(units[u])) continue;
+        counts.set(code, (counts.get(code) ?? 0) + units[u].length);
+      }
+    }
+  }
+  let best = "USD";
+  let bestN = 0;
+  for (const [code, n] of counts) {
+    if (n > bestN) {
+      best = code;
+      bestN = n;
+    }
+  }
+  return best;
+}
+
 type Facts = any;
 type FramedPoint = { start?: string; end: string; val: number };
 
@@ -46,7 +96,7 @@ function pickFramed(
   re: RegExp,
 ): Map<string, FramedPoint> {
   const byEnd = new Map<string, FramedPoint>();
-  const namespaces = [facts?.facts?.["us-gaap"], facts?.facts?.["dei"]];
+  const namespaces = bags(facts);
   for (const concept of concepts) {
     for (const bag of namespaces) {
       const arr = bag?.[concept]?.units?.[unit];
@@ -86,7 +136,7 @@ function durationFacts(
   concepts: string[],
   unit: string,
 ): FramedPoint[] {
-  const namespaces = [facts?.facts?.["us-gaap"], facts?.facts?.["dei"]];
+  const namespaces = bags(facts);
   for (const concept of concepts) {
     const best = new Map<string, { p: FramedPoint; filed: string }>();
     for (const bag of namespaces) {
@@ -206,15 +256,28 @@ function instantSeries(
   return out;
 }
 
+// Which XBRL unit a metric is measured in. Resolved against the filer's
+// reporting currency rather than written out, so one config serves a filer
+// reporting in USD, EUR or TWD.
+type UnitKind = "money" | "perShare" | "shares";
+
 type MetricCfg = {
   key: keyof StatementMetrics;
   concepts: string[];
-  unit?: string;
+  unit?: UnitKind;
   sign?: number;
 };
 
+function unitFor(kind: UnitKind, ccy: string): string {
+  if (kind === "shares") return "shares";
+  return kind === "perShare" ? `${ccy}/shares` : ccy;
+}
+
 // Additive flows (income statement + cash flow). Concept lists are ordered by
 // preference; the first that yields framed data wins (ASC 606 renamed several).
+// Each list runs us-gaap names first, then the ifrs-full names for the same
+// line — a filer tags one taxonomy or the other, never both, so appending the
+// IFRS spelling can only fill a period that would otherwise be empty.
 const FLOW: MetricCfg[] = [
   {
     key: "revenue",
@@ -222,10 +285,18 @@ const FLOW: MetricCfg[] = [
       "RevenueFromContractWithCustomerExcludingAssessedTax",
       "Revenues",
       "SalesRevenueNet",
+      "RevenueFromContractsWithCustomers",
+      "Revenue",
     ],
   },
-  { key: "netIncome", concepts: ["NetIncomeLoss"] },
-  { key: "operatingIncome", concepts: ["OperatingIncomeLoss"] },
+  {
+    key: "netIncome",
+    concepts: ["NetIncomeLoss", "ProfitLossAttributableToOwnersOfParent", "ProfitLoss"],
+  },
+  {
+    key: "operatingIncome",
+    concepts: ["OperatingIncomeLoss", "ProfitLossFromOperatingActivities"],
+  },
   { key: "grossProfit", concepts: ["GrossProfit"] },
   { key: "rnd", concepts: ["ResearchAndDevelopmentExpense"] },
   {
@@ -233,6 +304,7 @@ const FLOW: MetricCfg[] = [
     concepts: [
       "SellingGeneralAndAdministrativeExpense",
       "GeneralAndAdministrativeExpense",
+      "AdministrativeExpense",
     ],
   },
   {
@@ -240,6 +312,7 @@ const FLOW: MetricCfg[] = [
     concepts: [
       "NetCashProvidedByUsedInOperatingActivities",
       "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+      "CashFlowsFromUsedInOperatingActivities",
     ],
   },
   // Capex has no single concept: retailers tag productive assets, oil and gas
@@ -259,17 +332,44 @@ const FLOW: MetricCfg[] = [
       "PaymentsForCapitalImprovements",
       "PaymentsToAcquireMachineryAndEquipment",
       "PaymentsToAcquireOtherPropertyPlantAndEquipment",
+      "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+      "PurchaseOfPropertyPlantAndEquipmentIntangibleAssetsOtherThanGoodwillInvestmentPropertyAndOtherNoncurrentAssets",
     ],
     sign: -1,
   },
-  { key: "sbc", concepts: ["ShareBasedCompensation"] },
+  { key: "sbc", concepts: ["ShareBasedCompensation", "ShareBasedPaymentsExpense"] },
   {
     key: "dividendsPaid",
-    concepts: ["PaymentsOfDividendsCommonStock", "PaymentsOfDividends"],
+    concepts: [
+      "PaymentsOfDividendsCommonStock",
+      "PaymentsOfDividends",
+      "DividendsPaidClassifiedAsFinancingActivities",
+    ],
     sign: -1,
   },
-  { key: "buybacks", concepts: ["PaymentsForRepurchaseOfCommonStock"], sign: -1 },
-  { key: "eps", concepts: ["EarningsPerShareDiluted"], unit: "USD/shares" },
+  {
+    key: "buybacks",
+    concepts: [
+      "PaymentsForRepurchaseOfCommonStock",
+      "PaymentsToAcquireOrRedeemEntitysShares",
+    ],
+    sign: -1,
+  },
+  // Diluted first, basic only where a period has no diluted figure at all —
+  // the two differ by a percent or two, which is noise next to a missing year.
+  // SHEL tags only the continuing-operations variants.
+  {
+    key: "eps",
+    concepts: [
+      "EarningsPerShareDiluted",
+      "DilutedEarningsLossPerShare",
+      "DilutedEarningsLossPerShareFromContinuingOperations",
+      "EarningsPerShareBasic",
+      "BasicEarningsLossPerShare",
+      "BasicEarningsLossPerShareFromContinuingOperations",
+    ],
+    unit: "perShare",
+  },
 ];
 
 // Depreciation & amortisation, the one input EBITDA needs that isn't already a
@@ -280,6 +380,8 @@ const DNA_CONCEPTS = [
   "DepreciationDepletionAndAmortization",
   "DepreciationAmortizationAndAccretionNet",
   "DepreciationAndAmortization",
+  "DepreciationAmortisationAndImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss",
+  "DepreciationAndAmortisationExpense",
 ];
 
 // EBIT the long way round, for the filers that present no operating-income
@@ -288,23 +390,35 @@ const DNA_CONCEPTS = [
 // plus tax plus interest is the same figure approached from the bottom of the
 // statement. All three are required: without the interest line this is not EBIT
 // and quietly pretending otherwise would understate the multiple.
-const TAX_CONCEPTS = ["IncomeTaxExpenseBenefit"];
+const TAX_CONCEPTS = [
+  "IncomeTaxExpenseBenefit",
+  "IncomeTaxExpenseContinuingOperations",
+];
 const INTEREST_CONCEPTS = [
   "InterestExpense",
   "InterestExpenseNonoperating",
   "InterestAndDebtExpense",
+  "FinanceCosts",
 ];
 
 // Instant balance-sheet snapshots (available every quarter, no derivation).
 // Debt is intentionally omitted (no single unambiguous XBRL concept; mixing a
 // derived debt with Yahoo's would risk a visible discontinuity).
 const INSTANT: MetricCfg[] = [
-  { key: "cash", concepts: ["CashAndCashEquivalentsAtCarryingValue"] },
+  {
+    key: "cash",
+    concepts: [
+      "CashAndCashEquivalentsAtCarryingValue",
+      "CashAndCashEquivalents",
+      "CashAndBankBalancesAtCentralBanks",
+    ],
+  },
   {
     key: "shares",
     concepts: [
       "CommonStockSharesOutstanding",
       "EntityCommonStockSharesOutstanding",
+      "NumberOfSharesOutstanding",
     ],
     unit: "shares",
   },
@@ -335,6 +449,7 @@ function emptyMetrics(): StatementMetrics {
 // Pure: parsed companyfacts JSON → statement rows (quarterly + annual) in the
 // shared StatementMetrics shape. No network — unit-tested against a fixture.
 export function extractStatements(facts: Facts): EdgarRow[] {
+  const ccy = reportingCurrency(facts);
   const qMetrics = new Map<string, StatementMetrics>();
   const aMetrics = new Map<string, StatementMetrics>();
   const ensure = (m: Map<string, StatementMetrics>, end: string) => {
@@ -347,7 +462,7 @@ export function extractStatements(facts: Facts): EdgarRow[] {
   };
 
   for (const cfg of FLOW) {
-    const unit = cfg.unit ?? "USD";
+    const unit = unitFor(cfg.unit ?? "money", ccy);
     const sign = cfg.sign ?? 1;
     for (const [end, v] of flowSeries(facts, cfg.concepts, unit, sign)) {
       ensure(qMetrics, end)[cfg.key] = v;
@@ -358,7 +473,7 @@ export function extractStatements(facts: Facts): EdgarRow[] {
   }
 
   for (const cfg of INSTANT) {
-    const unit = cfg.unit ?? "USD";
+    const unit = unitFor(cfg.unit ?? "money", ccy);
     const sign = cfg.sign ?? 1;
     const inst = instantSeries(facts, cfg.concepts, unit, sign);
     for (const [end, v] of inst) ensure(qMetrics, end)[cfg.key] = v;
@@ -372,12 +487,12 @@ export function extractStatements(facts: Facts): EdgarRow[] {
   // EBITDA = operating income + D&A. Yahoo only ever reports it for the ~5
   // quarters in its free window, so without this every company's EBITDA chart
   // is five bars deep no matter how much history the rest of the page has.
-  const dnaQ = flowSeries(facts, DNA_CONCEPTS, "USD", 1);
-  const dnaA = annualFlow(facts, DNA_CONCEPTS, "USD", 1);
-  const taxQ = flowSeries(facts, TAX_CONCEPTS, "USD", 1);
-  const taxA = annualFlow(facts, TAX_CONCEPTS, "USD", 1);
-  const intQ = flowSeries(facts, INTEREST_CONCEPTS, "USD", 1);
-  const intA = annualFlow(facts, INTEREST_CONCEPTS, "USD", 1);
+  const dnaQ = flowSeries(facts, DNA_CONCEPTS, ccy, 1);
+  const dnaA = annualFlow(facts, DNA_CONCEPTS, ccy, 1);
+  const taxQ = flowSeries(facts, TAX_CONCEPTS, ccy, 1);
+  const taxA = annualFlow(facts, TAX_CONCEPTS, ccy, 1);
+  const intQ = flowSeries(facts, INTEREST_CONCEPTS, ccy, 1);
+  const intA = annualFlow(facts, INTEREST_CONCEPTS, ccy, 1);
   for (const [m, dna, tax, int] of [
     [qMetrics, dnaQ, taxQ, intQ],
     [aMetrics, dnaA, taxA, intA],
@@ -410,6 +525,72 @@ export function extractStatements(facts: Facts): EdgarRow[] {
   return [...rows(qMetrics, "q"), ...rows(aMetrics, "a")];
 }
 
+/* ─────────────── reconciling EDGAR's shares with Yahoo's ─────────────── */
+
+// ADR ratios are small whole numbers or their reciprocals. A measured ratio
+// near one of these is that ratio; the rest of the distance is restatement and
+// basic-vs-diluted noise, which snapping removes rather than baking in.
+const ADR_RATIOS = [
+  1 / 12, 1 / 10, 1 / 8, 1 / 6, 1 / 5, 1 / 4, 1 / 3, 1 / 2,
+  1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20,
+];
+
+const MATCH_MS = 20 * 24 * 3600 * 1000;
+
+/**
+ * How many ordinary shares one quoted share stands for, measured against the
+ * rows already on file.
+ *
+ * EDGAR reports per ORDINARY share; Yahoo reports per quoted share, and for an
+ * ADR those are not the same thing — Shell's ADS is two ordinary shares, TSM's
+ * is five. Merging the two sources unscaled puts a 5× cliff in the middle of
+ * the P/E history at the exact week the deep history takes over.
+ *
+ * Measured rather than looked up: no free feed publishes ADR ratios, but every
+ * ticker with a Yahoo row and an EDGAR row for the same period states it
+ * directly. Returns null when there is nothing to measure against or the
+ * samples disagree — an unscaled series is a smaller lie than a wrongly
+ * scaled one.
+ */
+export function epsShareRatio(
+  edgarRows: EdgarRow[],
+  existing: Array<{ periodEnd: string; periodType: string; eps: number | null }>,
+): number | null {
+  const samples: number[] = [];
+  for (const row of edgarRows) {
+    const e = row.metrics.eps;
+    // Near-zero EPS makes the ratio explode; a loss year can differ in sign
+    // between a continuing-operations figure and a total one.
+    if (e == null || Math.abs(e) < 0.05) continue;
+    const t = Date.parse(row.periodEnd);
+    for (const other of existing) {
+      if (other.periodType !== row.periodType || other.eps == null) continue;
+      if (Math.abs(Date.parse(other.periodEnd) - t) > MATCH_MS) continue;
+      const r = other.eps / e;
+      if (r > 0) samples.push(r);
+      break;
+    }
+  }
+  if (samples.length === 0) return null;
+  samples.sort((a, b) => a - b);
+  const mid = samples[Math.floor(samples.length / 2)];
+  // One period disagreeing with the others means we are not measuring a share
+  // ratio at all — a changed accounting basis, say — so measure nothing.
+  if (samples.some((s) => Math.abs(s - mid) > 0.1 * mid)) return null;
+  const snapped = ADR_RATIOS.find((r) => Math.abs(mid - r) <= 0.05 * r);
+  return snapped ?? mid;
+}
+
+/** EDGAR rows restated per quoted share. Returns the input when ratio is 1. */
+export function scaleEps(rows: EdgarRow[], ratio: number): EdgarRow[] {
+  if (ratio === 1) return rows;
+  return rows.map((r) =>
+    r.metrics.eps == null
+      ? r
+      : { ...r, metrics: { ...r.metrics, eps: r.metrics.eps * ratio } },
+  );
+}
+
 // SEC asks for a descriptive User-Agent with contact info; requests without one
 // are 403'd. Ticker→CIK map is fetched once and cached for the warm function.
 const SEC_UA = "TrimmTrack research bot (+https://www.trimmtrack.com)";
@@ -423,7 +604,10 @@ const CIK_OVERRIDES: Record<string, string> = {
 };
 
 async function resolveCik(ticker: string): Promise<string | null> {
-  // Market-suffixed symbols (SAN.MC, MC.PA…) are non-US listings → not on EDGAR.
+  // Market-suffixed symbols (SAN.MC, MC.PA…) are listed only on their home
+  // exchange and file nothing with the SEC. An ADR of the same company (SAN,
+  // MC…) usually does — but that is a different symbol with a different price
+  // series, so resolving one to the other here is not ours to do.
   if (ticker.includes(".")) return null;
   const override = CIK_OVERRIDES[ticker.toUpperCase()];
   if (override) return override;
@@ -448,11 +632,17 @@ async function resolveCik(ticker: string): Promise<string | null> {
   return cikMap[ticker.toUpperCase()] ?? null;
 }
 
-// Network entry point: ticker → deep-history rows, or null when the ticker is
-// not a US filer / EDGAR is unavailable. Never throws.
+// Network entry point: ticker → deep-history rows and the currency they are
+// stated in, or null when the ticker files nothing with the SEC / EDGAR is
+// unavailable. Never throws.
+//
+// The currency is part of the answer, not a detail: these rows are merged into
+// the same table as Yahoo's, and a 20-F filer reporting in EUR beside Yahoo
+// figures in USD would put a silent 15% step in the middle of every chart. The
+// caller compares the two before writing anything.
 export async function fetchEdgarStatements(
   ticker: string,
-): Promise<EdgarRow[] | null> {
+): Promise<{ currency: string; rows: EdgarRow[] } | null> {
   try {
     const cik = await resolveCik(ticker.trim().toUpperCase());
     if (!cik) return null;
@@ -463,7 +653,7 @@ export async function fetchEdgarStatements(
     if (!r.ok) return null;
     const facts = await r.json();
     const rows = extractStatements(facts);
-    return rows.length ? rows : null;
+    return rows.length ? { currency: reportingCurrency(facts), rows } : null;
   } catch {
     return null;
   }

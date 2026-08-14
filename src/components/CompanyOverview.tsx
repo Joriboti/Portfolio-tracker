@@ -6,7 +6,14 @@ import {
   type LiveCompany,
   type MarketMedianPe,
 } from "@/lib/api";
-import { peSeries } from "@/lib/pe-history";
+import {
+  epsPoints,
+  forwardEpsPoints,
+  forwardPeSeries,
+  peSeries,
+  quoteConverter,
+  type Point,
+} from "@/lib/pe-history";
 import { TimeSeriesChart } from "@/components/TimeSeriesChart";
 import {
   annualLabel,
@@ -197,13 +204,7 @@ export function CompanyOverview({ company }: { company: LiveCompany }) {
       </div>
 
       {/* ───────── Rating: what the market pays for these earnings ───────── */}
-      {data && (
-        <PeChart
-          data={data}
-          marketPe={marketPe}
-          forwardPe={company.fundamentals.forwardPe ?? null}
-        />
-      )}
+      {data && <PeCharts data={data} marketPe={marketPe} quoteCcy={ccy} />}
 
       {/* ───────── Charts grid ───────── */}
       {loading && (
@@ -429,61 +430,103 @@ function ChartModal({ cfg, onClose }: { cfg: ChartCfg; onClose: () => void }) {
   );
 }
 
-/* ───────────────────────── rating (P/E) chart ───────────────────────── */
+/* ───────────────────────── rating (P/E) charts ───────────────────────── */
 
-// The company's own trailing P/E week by week, against two flat benchmarks:
-// the median of the companies this site covers, and the company's forward
-// multiple.
+// Two charts, not one line and two dashes. What a company has been paying to
+// own and what it will be paying if next year arrives are different questions,
+// and stacking the second on the first as a flat benchmark answered neither:
+// the forward multiple sat as a dash across a curve drawn on a different
+// basis, and both were squeezed onto one axis.
 //
-// Forward P/E is a single number, not a series, and drawing it as one would be
-// a lie: nobody stores the history of what analysts USED to expect, so a
-// "forward P/E over time" curve could only ever be today's estimate projected
-// backwards. As a line it says the one true thing — where the rating sits if
-// next year's consensus earnings arrive.
-function PeChart({
+// Each is read against the same benchmark measured the same way — the median
+// trailing multiple of the companies this site covers, and their median
+// forward one.
+function PeCharts({
   data,
   marketPe,
-  forwardPe,
+  quoteCcy,
 }: {
   data: CompanyStatements;
   marketPe: MarketMedianPe | null;
-  forwardPe: number | null;
+  quoteCcy: string | null;
 }) {
   const { t } = useTranslation();
-  const points = useMemo(
-    () => peSeries(data.prices, data.quarters),
-    [data.prices, data.quarters],
+  const { trailing, forward } = useMemo(() => {
+    const annual = epsPoints(data.annual);
+    // An ADR's earnings are filed in one currency and its price quoted in
+    // another, so neither series can be divided out until they agree.
+    const toQuote = quoteConverter(data, quoteCcy);
+    return {
+      trailing: peSeries(data.prices, data.quarters, annual, toQuote),
+      forward: forwardPeSeries(
+        data.prices,
+        forwardEpsPoints(annual, data.panel?.annualEstimates ?? []),
+        toQuote,
+      ),
+    };
+  }, [data, quoteCcy]);
+
+  if (trailing.length < 2 && forward.length < 2) return null;
+
+  const medianOf = marketPe?.n
+    ? ` ${t("company.pe.medianOf", { count: marketPe.n })}`
+    : "";
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <PeCard
+        title={t("company.pe.trailingTitle")}
+        name={t("company.pe.trailing")}
+        color="#d1550f"
+        points={trailing}
+        median={marketPe?.trailingPe ?? null}
+        medianLabel={t("company.pe.marketMedian")}
+        note={t("company.pe.note") + medianOf}
+      />
+      <PeCard
+        title={t("company.pe.forwardTitle")}
+        name={t("company.pe.forward")}
+        color="#0ea5e9"
+        points={forward}
+        median={marketPe?.forwardPe ?? null}
+        medianLabel={t("company.pe.marketMedian")}
+        note={t("company.pe.forwardNote") + medianOf}
+      />
+    </div>
   );
+}
+
+function PeCard({
+  title,
+  name,
+  color,
+  points,
+  median,
+  medianLabel,
+  note,
+}: {
+  title: string;
+  name: string;
+  color: string;
+  points: Point[];
+  median: number | null;
+  medianLabel: string;
+  note: string;
+}) {
   if (points.length < 2) return null;
-
-  const refLines = [];
-  if (marketPe?.trailingPe != null) {
-    refLines.push({
-      label: t("company.pe.marketMedian"),
-      value: marketPe.trailingPe,
-      color: "#64748b",
-    });
-  }
-  if (forwardPe != null && forwardPe > 0) {
-    refLines.push({
-      label: t("company.pe.forward"),
-      value: forwardPe,
-      color: "#0ea5e9",
-    });
-  }
-
   return (
     <div className="space-y-1">
       <TimeSeriesChart
-        title={t("company.pe.title")}
-        series={[{ name: t("company.pe.trailing"), color: "#d1550f", points }]}
-        refLines={refLines}
+        title={title}
+        series={[{ name, color, points }]}
+        refLines={
+          median != null
+            ? [{ label: medianLabel, value: median, color: "#64748b" }]
+            : []
+        }
         format={(v) => `${v.toFixed(1)}×`}
       />
-      <p className="text-[11px] text-slate-400">
-        {t("company.pe.note")}
-        {marketPe?.n ? ` ${t("company.pe.medianOf", { count: marketPe.n })}` : ""}
-      </p>
+      <p className="text-[11px] text-slate-400">{note}</p>
     </div>
   );
 }

@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { extractStatements, type EdgarRow } from "./_edgar-core";
+import {
+  epsShareRatio,
+  extractStatements,
+  reportingCurrency,
+  scaleEps,
+  type EdgarRow,
+} from "./_edgar-core";
 
 // A minimal companyfacts fixture reproducing the real SEC pattern: a fiscal
 // year (annual frame) whose fiscal Q4 3-month period is NOT filed and must be
@@ -195,5 +201,113 @@ describe("extractStatements", () => {
 
   it("leaves debt null — no single unambiguous XBRL concept for it", () => {
     expect(q("2023-03-31")?.totalDebt).toBeNull();
+  });
+});
+
+// A 20-F filer: IFRS concepts, a non-USD unit, and annual frames only. Every
+// one of these was invisible while the reader was pinned to us-gaap and "USD",
+// which is why TSM, NVO, SHEL and SAP had five quarters of history between
+// them and a P/E chart six months wide.
+const ifrsFacts = {
+  facts: {
+    "ifrs-full": {
+      Revenue: {
+        units: {
+          TWD: [
+            { start: "2023-01-01", end: "2023-12-31", val: 2100, frame: "CY2023" },
+            { start: "2024-01-01", end: "2024-12-31", val: 2890, frame: "CY2024" },
+          ],
+        },
+      },
+      ProfitLoss: {
+        units: {
+          TWD: [{ start: "2024-01-01", end: "2024-12-31", val: 1170, frame: "CY2024" }],
+        },
+      },
+      DilutedEarningsLossPerShare: {
+        units: {
+          // The convenience translation the filer also publishes. It must not
+          // be read as the reporting currency, or half the statement arrives
+          // in one currency and half in another.
+          "USD/shares": [
+            { start: "2024-01-01", end: "2024-12-31", val: 1.36, frame: "CY2024" },
+          ],
+          "TWD/shares": [
+            { start: "2023-01-01", end: "2023-12-31", val: 32.85, frame: "CY2023" },
+            { start: "2024-01-01", end: "2024-12-31", val: 44.67, frame: "CY2024" },
+          ],
+        },
+      },
+    },
+    dei: {},
+  },
+};
+
+describe("IFRS filers", () => {
+  it("reads the currency the filer actually reports in", () => {
+    expect(reportingCurrency(ifrsFacts)).toBe("TWD");
+    expect(reportingCurrency(facts)).toBe("USD");
+  });
+
+  it("extracts annual IFRS rows in that currency", () => {
+    const rows = extractStatements(ifrsFacts);
+    const y24 = rows.find((r) => r.periodType === "a" && r.periodEnd === "2024-12-31");
+    expect(y24?.metrics.revenue).toBe(2890);
+    expect(y24?.metrics.netIncome).toBe(1170);
+    // 44.67 (TWD/shares), never 1.36 (the USD convenience figure).
+    expect(y24?.metrics.eps).toBe(44.67);
+  });
+});
+
+describe("epsShareRatio", () => {
+  const edgar = extractStatements(ifrsFacts);
+  const yahoo = (eps: Record<string, number>) =>
+    Object.entries(eps).map(([periodEnd, v]) => ({
+      periodEnd,
+      periodType: "a",
+      eps: v,
+    }));
+
+  it("measures the ADS ratio from the periods both sources cover", () => {
+    // Yahoo states TSM per ADS: five ordinary shares.
+    expect(
+      epsShareRatio(edgar, yahoo({ "2023-12-31": 161.7, "2024-12-31": 226.25 })),
+    ).toBe(5);
+  });
+
+  it("snaps to the exact ratio rather than carrying restatement noise", () => {
+    // 226.25/44.67 = 5.065 on its own; the ADS ratio is a whole number.
+    expect(epsShareRatio(edgar, yahoo({ "2024-12-31": 226.25 }))).toBe(5);
+  });
+
+  it("reads an ordinary-share listing as 1", () => {
+    expect(epsShareRatio(edgar, yahoo({ "2024-12-31": 44.67 }))).toBe(1);
+  });
+
+  it("matches a fiscal year end a few days off the calendar one", () => {
+    expect(epsShareRatio(edgar, yahoo({ "2024-12-28": 223.35 }))).toBe(5);
+  });
+
+  it("measures nothing when the periods disagree", () => {
+    // Not a share ratio: 2x on one year and 5x on the next is a changed basis.
+    expect(
+      epsShareRatio(edgar, yahoo({ "2023-12-31": 65.7, "2024-12-31": 223.35 })),
+    ).toBeNull();
+  });
+
+  it("measures nothing with no overlap at all", () => {
+    expect(epsShareRatio(edgar, yahoo({ "2019-12-31": 100 }))).toBeNull();
+    expect(epsShareRatio(edgar, [])).toBeNull();
+  });
+
+  it("restates only EPS — revenue is a company total, not a per-share figure", () => {
+    const scaled = scaleEps(edgar, 5);
+    const y24 = scaled.find((r) => r.periodType === "a" && r.periodEnd === "2024-12-31");
+    expect(y24?.metrics.eps).toBeCloseTo(223.35, 6);
+    expect(y24?.metrics.revenue).toBe(2890);
+    // The originals are untouched, so a caller can retry with another ratio.
+    expect(
+      edgar.find((r) => r.periodType === "a" && r.periodEnd === "2024-12-31")?.metrics.eps,
+    ).toBe(44.67);
   });
 });
