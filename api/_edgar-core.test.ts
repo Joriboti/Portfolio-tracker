@@ -20,11 +20,27 @@ const facts = {
           ],
         },
       },
+      // Cash flow as filers actually report it: cumulative from the fiscal
+      // year start, and only the first 3-month period carries a frame.
       NetCashProvidedByUsedInOperatingActivities: {
-        units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 40, frame: "CY2023Q1" }] },
+        units: {
+          USD: [
+            { start: "2023-01-01", end: "2023-03-31", val: 40, frame: "CY2023Q1" },
+            { start: "2023-01-01", end: "2023-06-30", val: 95 },
+            { start: "2023-01-01", end: "2023-09-30", val: 160 },
+            // A restatement of the 9-month figure, filed later: it must win.
+            { start: "2023-01-01", end: "2023-09-30", val: 150, filed: "2024-02-01" },
+            { start: "2023-01-01", end: "2023-12-31", val: 210, filed: "2024-02-01" },
+          ],
+        },
       },
       PaymentsToAcquirePropertyPlantAndEquipment: {
-        units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 5, frame: "CY2023Q1" }] },
+        units: {
+          USD: [
+            { start: "2023-01-01", end: "2023-03-31", val: 5, frame: "CY2023Q1" },
+            { start: "2023-01-01", end: "2023-06-30", val: 11 },
+          ],
+        },
       },
       EarningsPerShareDiluted: {
         units: { "USD/shares": [{ start: "2023-01-01", end: "2023-03-31", val: 1.5, frame: "CY2023Q1" }] },
@@ -85,6 +101,22 @@ describe("extractStatements", () => {
     expect(q("2023-03-31")?.capex).toBe(-5);
     expect(q("2023-03-31")?.ocf).toBe(40);
     expect(q("2023-03-31")?.fcf).toBe(35);
+  });
+
+  it("recovers the quarters inside a year-to-date chain", () => {
+    // The SEC frames only the first 3-month cash-flow period, so without this
+    // a company gets one cash-flow quarter per year. 95 − 40 = 55.
+    expect(q("2023-06-30")?.ocf).toBe(55);
+    // 9-month restated to 150 (later `filed` wins over the original 160),
+    // so Q3 = 150 − 95 and Q4 = 210 − 150.
+    expect(q("2023-09-30")?.ocf).toBe(55);
+    expect(q("2023-12-31")?.ocf).toBe(60);
+    // Derived capex keeps the outflow sign, and fcf follows from both.
+    expect(q("2023-06-30")?.capex).toBe(-6);
+    expect(q("2023-06-30")?.fcf).toBe(49);
+    // A quarter whose chain gives nothing stays null rather than guessing.
+    expect(q("2023-09-30")?.capex).toBeNull();
+    expect(q("2023-09-30")?.fcf).toBeNull();
   });
 
   it("reads diluted EPS from the USD/shares unit", () => {

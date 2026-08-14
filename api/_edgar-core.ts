@@ -62,7 +62,98 @@ function pickFramed(
   return byEnd;
 }
 
-// Framed 3-month quarters + the derived fiscal Q4 (annual − 3 inner quarters).
+const DAY = 24 * 3600 * 1000;
+
+/** 3, 6, 9 or 12 if the span is that many months (±5 days), else null. */
+function periodMonths(start: string, end: string): 3 | 6 | 9 | 12 | null {
+  const days = (Date.parse(end) - Date.parse(start)) / DAY;
+  if (days > 84 && days < 97) return 3;
+  if (days > 176 && days < 189) return 6;
+  if (days > 268 && days < 281) return 9;
+  if (days > 359 && days < 372) return 12;
+  return null;
+}
+
+/**
+ * Every duration fact for the first concept that has any, deduped on
+ * (start, end) keeping the most recently FILED value so a restatement wins.
+ *
+ * Unlike pickFramed this keeps the UNFRAMED points, which is the whole point:
+ * see ytdQuarters.
+ */
+function durationFacts(
+  facts: Facts,
+  concepts: string[],
+  unit: string,
+): FramedPoint[] {
+  const namespaces = [facts?.facts?.["us-gaap"], facts?.facts?.["dei"]];
+  for (const concept of concepts) {
+    const best = new Map<string, { p: FramedPoint; filed: string }>();
+    for (const bag of namespaces) {
+      const arr = bag?.[concept]?.units?.[unit];
+      if (!Array.isArray(arr)) continue;
+      for (const p of arr) {
+        if (typeof p.val !== "number" || !p.start || !p.end) continue;
+        const key = `${p.start}|${p.end}`;
+        const filed = String(p.filed ?? "");
+        const cur = best.get(key);
+        if (!cur || filed > cur.filed) {
+          best.set(key, { p: { start: p.start, end: p.end, val: p.val }, filed });
+        }
+      }
+    }
+    if (best.size > 0) return [...best.values()].map((b) => b.p);
+  }
+  return [];
+}
+
+/**
+ * Quarters recovered from year-to-date chains.
+ *
+ * Cash-flow and several income-statement items are filed CUMULATIVELY from the
+ * fiscal year start — 3, then 6, then 9, then 12 months — and the SEC only
+ * frames the first of those as a calendar quarter. Reading framed points alone
+ * therefore yields ONE cash-flow quarter per year: Apple had 140 quarters on
+ * file and operating cash flow on 22 of them, which is what put the holes in
+ * the free-cash-flow chart.
+ *
+ * Facts sharing a `start` are one YTD chain, so consecutive differences along
+ * it are the individual quarters. Only spans that really are 3/6/9/12 months
+ * take part, and a 3-month gap between the two ends is required before a
+ * difference is trusted — an interrupted chain yields nothing rather than a
+ * wrong bar.
+ */
+function ytdQuarters(dur: FramedPoint[], sign: number): Map<string, number> {
+  const out = new Map<string, number>();
+  const byStart = new Map<string, FramedPoint[]>();
+  for (const d of dur) {
+    const list = byStart.get(d.start!);
+    if (list) list.push(d);
+    else byStart.set(d.start!, [d]);
+  }
+  for (const chain of byStart.values()) {
+    chain.sort((x, y) => x.end.localeCompare(y.end));
+    let prev: FramedPoint | null = null;
+    for (const cur of chain) {
+      const months = periodMonths(cur.start!, cur.end);
+      if (months == null) {
+        prev = null;
+        continue;
+      }
+      if (months === 3) {
+        out.set(cur.end, cur.val * sign);
+      } else if (prev && periodMonths(prev.end, cur.end) === 3) {
+        out.set(cur.end, (cur.val - prev.val) * sign);
+      }
+      prev = cur;
+    }
+  }
+  return out;
+}
+
+// Framed 3-month quarters, then the YTD-derived ones, then the derived fiscal
+// Q4 (annual − 3 inner quarters). Framed values are authoritative — the SEC has
+// already deduped them across filings — so they are never overwritten.
 function flowSeries(
   facts: Facts,
   concepts: string[],
@@ -73,13 +164,16 @@ function flowSeries(
   const a = pickFramed(facts, concepts, unit, A_FRAME);
   const out = new Map<string, number>();
   for (const [end, p] of q) out.set(end, p.val * sign);
+  for (const [end, v] of ytdQuarters(durationFacts(facts, concepts, unit), sign)) {
+    if (!out.has(end)) out.set(end, v);
+  }
   for (const ap of a.values()) {
     if (!ap.start || out.has(ap.end)) continue;
-    const inside = [...q.values()].filter(
-      (x) => x.end > ap.start! && x.end <= ap.end,
+    const inside = [...out.entries()].filter(
+      ([end]) => end > ap.start! && end <= ap.end,
     );
     if (inside.length === 3) {
-      const sum = inside.reduce((t, x) => t + x.val * sign, 0);
+      const sum = inside.reduce((t, [, v]) => t + v, 0);
       out.set(ap.end, ap.val * sign - sum);
     }
   }
