@@ -159,6 +159,16 @@ const FLOW: MetricCfg[] = [
   { key: "eps", concepts: ["EarningsPerShareDiluted"], unit: "USD/shares" },
 ];
 
+// Depreciation & amortisation, the one input EBITDA needs that isn't already a
+// metric of its own. Kept out of FLOW because we don't store D&A — it exists
+// only to turn operating income into EBITDA below. Concepts in preference
+// order: filers use whichever of these their cash-flow statement is built on.
+const DNA_CONCEPTS = [
+  "DepreciationDepletionAndAmortization",
+  "DepreciationAmortizationAndAccretionNet",
+  "DepreciationAndAmortization",
+];
+
 // Instant balance-sheet snapshots (available every quarter, no derivation).
 // Debt is intentionally omitted (no single unambiguous XBRL concept; mixing a
 // derived debt with Yahoo's would risk a visible discontinuity).
@@ -233,9 +243,19 @@ export function extractStatements(facts: Facts): EdgarRow[] {
     }
   }
 
-  for (const m of [qMetrics, aMetrics]) {
-    for (const met of m.values()) {
+  // EBITDA = operating income + D&A. Yahoo only ever reports it for the ~5
+  // quarters in its free window, so without this every company's EBITDA chart
+  // is five bars deep no matter how much history the rest of the page has.
+  const dnaQ = flowSeries(facts, DNA_CONCEPTS, "USD", 1);
+  const dnaA = annualFlow(facts, DNA_CONCEPTS, "USD", 1);
+  for (const [m, dna] of [
+    [qMetrics, dnaQ],
+    [aMetrics, dnaA],
+  ] as const) {
+    for (const [end, met] of m.entries()) {
       if (met.ocf != null && met.capex != null) met.fcf = met.ocf + met.capex;
+      const d = dna.get(end);
+      if (met.operatingIncome != null && d != null) met.ebitda = met.operatingIncome + d;
     }
   }
 

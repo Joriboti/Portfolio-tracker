@@ -196,7 +196,7 @@ function CompareInner({ pair }: { pair: Pair }) {
         ["company.charts.fcf", chart("fcf"), money],
         ["company.charts.eps", chart("eps"), perShare],
         ["company.charts.ebitda", chart("ebitda"), money],
-        ["company.charts.shares", chart("shares"), (v: number) => formatCompact(v)],
+        // Shares outstanding is deliberately absent — see CompanyOverview.
       ] as const)
     : [];
 

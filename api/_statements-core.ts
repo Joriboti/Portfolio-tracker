@@ -285,6 +285,9 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
   // Cached rows + freshness.
   let cached: Array<{ period_end: string; period_type: string; data: StatementMetrics }> =
     [];
+  // What a &backfill=edgar run actually did, echoed in the response so a bulk
+  // run can be checked without querying the database.
+  let backfilled: { inserted: number; enriched: number } | null = null;
   let newestFetch = 0;
   if (sql) {
     try {
@@ -358,39 +361,93 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
     }
   }
 
-  // Optional one-shot deep-history backfill from SEC EDGAR (US filers only).
-  // Explicit trigger (&backfill=edgar) — companyfacts is multi-MB, so it stays
-  // off the hot path and is run once per ticker (rows persist forever). Only
-  // fills periods Yahoo doesn't already cover: a ±20-day proximity guard drops
-  // any EDGAR period near an existing one, avoiding fiscal-vs-calendar
-  // near-duplicate bars at the boundary; ON CONFLICT DO NOTHING never
-  // overwrites Yahoo data. Non-US tickers / EDGAR errors degrade to a no-op.
+  // Optional deep-history backfill from SEC EDGAR (US filers only). Explicit
+  // trigger (&backfill=edgar) — companyfacts is multi-MB, so it stays off the
+  // hot path.
+  //
+  // Two jobs, and for a ticker we already cover the SECOND is the one that
+  // matters. Yahoo's free window returns ~5 quarters of everything but only
+  // ever carried a few metrics deep, so a long-covered ticker ends up with a
+  // full row per quarter back to 2006 where all but revenue/EPS/net income are
+  // null — Apple had 138 quarters and free cash flow on 17 of them. An
+  // insert-only backfill could never repair that: every EDGAR period was
+  // "near" an existing row, so every one of them was skipped.
+  //
+  //   • INSERT periods we have no row for at all (the original job).
+  //   • ENRICH the row we do have, filling ONLY the metrics that are null.
+  //
+  // Enrichment never overwrites a value Yahoo already reported, so the two
+  // sources can't disagree on screen; it only turns nulls into numbers. The
+  // ±20-day proximity guard still decides which row an EDGAR period belongs
+  // to, so fiscal-vs-calendar drift updates the right quarter instead of
+  // minting a near-duplicate bar beside it. Non-US tickers / EDGAR errors
+  // degrade to a no-op.
   if (sql && req.query.backfill === "edgar") {
     try {
       const { fetchEdgarStatements } = await import("./_edgar-core.js");
       const edgar = await fetchEdgarStatements(ticker);
       if (edgar && edgar.length > 0) {
-        // Proximity set = existing periods that actually carry data. Yahoo
-        // occasionally leaves an all-null placeholder row (odd report date, no
-        // usable metrics); those must NOT block EDGAR from filling that period.
+        // Rows that actually carry data. Yahoo occasionally leaves an all-null
+        // placeholder row (odd report date, no usable metrics); those must NOT
+        // claim an EDGAR period — it gets inserted properly instead.
         const hasData = (m: StatementMetrics) =>
           Object.values(m).some((v) => v != null);
-        const existing: Record<string, number[]> = { q: [], a: [] };
+        type Existing = { end: string; ms: number; data: StatementMetrics };
+        const existing: Record<string, Existing[]> = { q: [], a: [] };
         for (const r of cached) {
           if (!hasData(r.data)) continue;
-          (existing[r.period_type] ?? (existing[r.period_type] = [])).push(
-            Date.parse(r.period_end),
-          );
+          (existing[r.period_type] ?? (existing[r.period_type] = [])).push({
+            end: r.period_end,
+            ms: Date.parse(r.period_end),
+            data: r.data,
+          });
         }
-        const near = (isoDay: string, type: string) => {
+        // The closest existing row within the guard, or null.
+        const nearest = (isoDay: string, type: string): Existing | null => {
           const d = Date.parse(isoDay);
-          return (existing[type] ?? []).some(
-            (m) => Math.abs(m - d) < 20 * 24 * 3600 * 1000,
-          );
+          let best: Existing | null = null;
+          let bestDist = 20 * 24 * 3600 * 1000;
+          for (const r of existing[type] ?? []) {
+            const dist = Math.abs(r.ms - d);
+            if (dist < bestDist) {
+              best = r;
+              bestDist = dist;
+            }
+          }
+          return best;
         };
         let inserted = 0;
+        let enriched = 0;
         for (const row of edgar) {
-          if (near(row.periodEnd, row.periodType)) continue;
+          const hit = nearest(row.periodEnd, row.periodType);
+          if (hit) {
+            const merged = { ...hit.data };
+            let filled = 0;
+            for (const [k, v] of Object.entries(row.metrics)) {
+              const key = k as keyof StatementMetrics;
+              if (v != null && merged[key] == null) {
+                merged[key] = v;
+                filled++;
+              }
+            }
+            if (filled === 0) continue;
+            try {
+              await sql`
+                UPDATE financial_statements
+                SET data = ${JSON.stringify(merged)}::jsonb, fetched_at = NOW()
+                WHERE ticker = ${ticker}
+                  AND period_end = ${hit.end}
+                  AND period_type = ${row.periodType}
+              `;
+              // Keep the in-memory row in step so a later EDGAR period that
+              // lands on the same row doesn't re-fill what we just wrote.
+              hit.data = merged;
+              enriched++;
+            } catch {
+              /* one bad row must not sink the rest */
+            }
+            continue;
+          }
           try {
             await sql`
               INSERT INTO financial_statements (ticker, period_end, period_type, data, fetched_at)
@@ -402,7 +459,8 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
             /* one bad row must not sink the rest */
           }
         }
-        if (inserted > 0) {
+        backfilled = { inserted, enriched };
+        if (inserted > 0 || enriched > 0) {
           try {
             const rows = await sql`
               SELECT period_end::text AS period_end, period_type, data
@@ -443,5 +501,9 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
     "Cache-Control",
     "public, s-maxage=21600, stale-while-revalidate=86400",
   );
-  res.status(200).end(JSON.stringify({ ok: true, ticker, panel, prices, quarters, annual }));
+  res
+    .status(200)
+    .end(
+      JSON.stringify({ ok: true, ticker, backfilled, panel, prices, quarters, annual }),
+    );
 }

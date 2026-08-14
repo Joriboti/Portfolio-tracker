@@ -40,6 +40,19 @@ const facts = {
       CommonStockSharesOutstanding: {
         units: { shares: [{ end: "2023-09-30", val: 1000, frame: "CY2023Q3I" }] },
       },
+      OperatingIncomeLoss: {
+        units: {
+          USD: [
+            { start: "2023-01-01", end: "2023-03-31", val: 12, frame: "CY2023Q1" },
+            { start: "2023-04-01", end: "2023-06-30", val: 14, frame: "CY2023Q2" },
+          ],
+        },
+      },
+      DepreciationDepletionAndAmortization: {
+        units: {
+          USD: [{ start: "2023-01-01", end: "2023-03-31", val: 3, frame: "CY2023Q1" }],
+        },
+      },
     },
     dei: {},
   },
@@ -78,6 +91,15 @@ describe("extractStatements", () => {
     expect(q("2023-03-31")?.eps).toBe(1.5);
   });
 
+  it("derives EBITDA from operating income + D&A, and only where both exist", () => {
+    // Yahoo only carries EBITDA for its ~5-quarter window, so this derivation
+    // is the entire depth of the EBITDA charts.
+    expect(q("2023-03-31")?.ebitda).toBe(15);
+    // Q2 has operating income but no D&A point: no half-computed EBITDA.
+    expect(q("2023-06-30")?.operatingIncome).toBe(14);
+    expect(q("2023-06-30")?.ebitda).toBeNull();
+  });
+
   it("maps instant balance items per quarter and at the fiscal year end", () => {
     expect(q("2023-12-31")?.cash).toBe(55);
     expect(q("2023-09-30")?.cash).toBe(50);
@@ -87,8 +109,7 @@ describe("extractStatements", () => {
     expect(a("2023-09-30")?.revenue).toBe(100);
   });
 
-  it("leaves omitted metrics (debt, ebitda) null", () => {
+  it("leaves debt null — no single unambiguous XBRL concept for it", () => {
     expect(q("2023-03-31")?.totalDebt).toBeNull();
-    expect(q("2023-03-31")?.ebitda).toBeNull();
   });
 });

@@ -235,7 +235,6 @@ function ChartsGrid({
   };
 
   const money = (v: number) => formatCompact(v, ccy);
-  const plain = (v: number) => formatCompact(v);
   const perShare = (v: number) => v.toFixed(2);
 
   // Analyst consensus for the quarter in progress, drawn as a ghost bar after
@@ -310,7 +309,11 @@ function ChartsGrid({
       [PALETTE.dividends, PALETTE.buybacks],
       true,
     ),
-    single("company.charts.shares", "shares", PALETTE.shares, plain),
+    // No shares-outstanding chart. The series mixes two different things —
+    // Yahoo reports a diluted weighted average for the period, EDGAR's
+    // cover-page count is the shares issued on the filing date — so the bars
+    // stepped up and down over history and read as wrong wherever the two
+    // sources met. Buybacks (below) tell the same story from one source.
     single("company.charts.sbc", "sbc", PALETTE.sbc),
     duo(
       "company.charts.expenses",
