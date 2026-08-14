@@ -123,6 +123,58 @@ describe("extractStatements", () => {
     expect(q("2023-03-31")?.eps).toBe(1.5);
   });
 
+  it("builds EBITDA from the bottom up when no operating subtotal is tagged", () => {
+    // Chevron and Lilly present no OperatingIncomeLoss at all: net income +
+    // tax + interest + D&A is the same figure reached from the other end.
+    const noSubtotal = {
+      facts: {
+        "us-gaap": {
+          NetIncomeLoss: {
+            units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 10, frame: "CY2023Q1" }] },
+          },
+          IncomeTaxExpenseBenefit: {
+            units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 3, frame: "CY2023Q1" }] },
+          },
+          InterestExpense: {
+            units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 2, frame: "CY2023Q1" }] },
+          },
+          DepreciationDepletionAndAmortization: {
+            units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 4, frame: "CY2023Q1" }] },
+          },
+        },
+        dei: {},
+      },
+    };
+    const rows = extractStatements(noSubtotal);
+    const met = rows.find((r: EdgarRow) => r.periodType === "q" && r.periodEnd === "2023-03-31")?.metrics;
+    expect(met?.ebitda).toBe(19); // 10 + 3 + 2 + 4
+  });
+
+  it("will not build EBITDA from an incomplete bottom-up", () => {
+    // No interest line: this is not EBIT, so it stays null rather than
+    // understating the figure and flattering the multiple.
+    const noInterest = {
+      facts: {
+        "us-gaap": {
+          NetIncomeLoss: {
+            units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 10, frame: "CY2023Q1" }] },
+          },
+          IncomeTaxExpenseBenefit: {
+            units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 3, frame: "CY2023Q1" }] },
+          },
+          DepreciationDepletionAndAmortization: {
+            units: { USD: [{ start: "2023-01-01", end: "2023-03-31", val: 4, frame: "CY2023Q1" }] },
+          },
+        },
+        dei: {},
+      },
+    };
+    const rows = extractStatements(noInterest);
+    expect(
+      rows.find((r: EdgarRow) => r.periodType === "q" && r.periodEnd === "2023-03-31")?.metrics.ebitda,
+    ).toBeNull();
+  });
+
   it("derives EBITDA from operating income + D&A, and only where both exist", () => {
     // Yahoo only carries EBITDA for its ~5-quarter window, so this derivation
     // is the entire depth of the EBITDA charts.

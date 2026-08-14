@@ -242,7 +242,26 @@ const FLOW: MetricCfg[] = [
       "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
     ],
   },
-  { key: "capex", concepts: ["PaymentsToAcquirePropertyPlantAndEquipment"], sign: -1 },
+  // Capex has no single concept: retailers tag productive assets, oil and gas
+  // tag exploration and development, telecoms and utilities their own. With
+  // only the first of these, ten of the largest US companies on the site had
+  // 70 quarters of operating cash flow and 5 of free cash flow — the whole
+  // series was being lost on the capex half of ocf + capex. First list that
+  // yields data wins, so a company is never a mix of two definitions.
+  {
+    key: "capex",
+    concepts: [
+      "PaymentsToAcquirePropertyPlantAndEquipment",
+      "PaymentsToAcquireProductiveAssets",
+      "PaymentsToAcquirePropertyPlantAndEquipmentAndIntangibleAssets",
+      "PaymentsToExploreAndDevelopOilAndGasProperties",
+      "PaymentsToAcquireOilAndGasProperty",
+      "PaymentsForCapitalImprovements",
+      "PaymentsToAcquireMachineryAndEquipment",
+      "PaymentsToAcquireOtherPropertyPlantAndEquipment",
+    ],
+    sign: -1,
+  },
   { key: "sbc", concepts: ["ShareBasedCompensation"] },
   {
     key: "dividendsPaid",
@@ -261,6 +280,19 @@ const DNA_CONCEPTS = [
   "DepreciationDepletionAndAmortization",
   "DepreciationAmortizationAndAccretionNet",
   "DepreciationAndAmortization",
+];
+
+// EBIT the long way round, for the filers that present no operating-income
+// subtotal at all — oil and gas, pharma and the banks among them, which is why
+// Chevron and Lilly had 70+ quarters of cash flow and 5 of EBITDA. Net income
+// plus tax plus interest is the same figure approached from the bottom of the
+// statement. All three are required: without the interest line this is not EBIT
+// and quietly pretending otherwise would understate the multiple.
+const TAX_CONCEPTS = ["IncomeTaxExpenseBenefit"];
+const INTEREST_CONCEPTS = [
+  "InterestExpense",
+  "InterestExpenseNonoperating",
+  "InterestAndDebtExpense",
 ];
 
 // Instant balance-sheet snapshots (available every quarter, no derivation).
@@ -342,14 +374,31 @@ export function extractStatements(facts: Facts): EdgarRow[] {
   // is five bars deep no matter how much history the rest of the page has.
   const dnaQ = flowSeries(facts, DNA_CONCEPTS, "USD", 1);
   const dnaA = annualFlow(facts, DNA_CONCEPTS, "USD", 1);
-  for (const [m, dna] of [
-    [qMetrics, dnaQ],
-    [aMetrics, dnaA],
+  const taxQ = flowSeries(facts, TAX_CONCEPTS, "USD", 1);
+  const taxA = annualFlow(facts, TAX_CONCEPTS, "USD", 1);
+  const intQ = flowSeries(facts, INTEREST_CONCEPTS, "USD", 1);
+  const intA = annualFlow(facts, INTEREST_CONCEPTS, "USD", 1);
+  for (const [m, dna, tax, int] of [
+    [qMetrics, dnaQ, taxQ, intQ],
+    [aMetrics, dnaA, taxA, intA],
   ] as const) {
     for (const [end, met] of m.entries()) {
       if (met.ocf != null && met.capex != null) met.fcf = met.ocf + met.capex;
       const d = dna.get(end);
-      if (met.operatingIncome != null && d != null) met.ebitda = met.operatingIncome + d;
+      if (d == null) continue;
+      // Operating income when the filer tags it — one line, no assumptions.
+      // Otherwise build EBIT from the bottom up. A company either tags the
+      // subtotal or it doesn't, consistently, so this never mixes the two
+      // definitions inside one company's history.
+      if (met.operatingIncome != null) {
+        met.ebitda = met.operatingIncome + d;
+        continue;
+      }
+      const taxV = tax.get(end);
+      const intV = int.get(end);
+      if (met.netIncome != null && taxV != null && intV != null) {
+        met.ebitda = met.netIncome + taxV + intV + d;
+      }
     }
   }
 
