@@ -309,9 +309,27 @@ export async function refreshFundamentals(
 ): Promise<FundamentalsRefreshStats> {
   await ensureFundamentalsTable(sql);
 
-  const rows = (await sql`
-    SELECT DISTINCT ticker FROM transactions
-  `) as Array<{ ticker: string }>;
+  // Everything the site covers, not just what someone happens to hold: the
+  // portfolios, plus every company we keep financial statements for (the
+  // curated /explore universe). Holdings alone left the fundamentals table at
+  // 33 rows, which was fine while it only fed the dashboard — but the P/E
+  // benchmark on the company pages is a median over this table, and a median
+  // of "whatever these users own" is not the market.
+  // financial_statements is created lazily by the company pages, so a database
+  // that has never served one would make the UNION throw and take the whole
+  // refresh with it.
+  let rows: Array<{ ticker: string }>;
+  try {
+    rows = (await sql`
+      SELECT DISTINCT ticker FROM transactions
+      UNION
+      SELECT DISTINCT ticker FROM financial_statements
+    `) as Array<{ ticker: string }>;
+  } catch {
+    rows = (await sql`
+      SELECT DISTINCT ticker FROM transactions
+    `) as Array<{ ticker: string }>;
+  }
 
   // original broker name → (stored key, yahoo symbol), deduped by stored key.
   const work = new Map<string, { yahoo: string; crypto: boolean }>();
