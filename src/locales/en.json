@@ -182,8 +182,16 @@
       "payoutRatio": "Payout ratio",
       "payoutDate": "Next payout"
     },
+    "pe": {
+      "title": "What the market paid for its earnings",
+      "trailing": "P/E (TTM)",
+      "forward": "Forward P/E",
+      "marketMedian": "Market median",
+      "note": "Each week's P/E: price divided by the earnings per share already reported by that date. Loss-making weeks are not drawn.",
+      "medianOf": "Median across {{count}} covered companies."
+    },
     "charts": {
-      "price": "Price (1 year)",
+      "price": "Price (5 years)",
       "revenue": "Revenue",
       "ebitda": "EBITDA",
       "netIncome": "Net income",
@@ -212,6 +220,9 @@
     "tableTitle": "{{a}} vs {{b}}: key metrics",
     "chartsTitle": "Compared over time",
     "othersTitle": "Other comparisons",
+    "priceActionTitle": "Price, rebased to 100",
+    "peHistoryTitle": "P/E (TTM)",
+    "priceActionNote": "Both curves start at 100 on the same day, so this compares returns rather than prices. Each week's P/E is the price divided by the earnings per share already reported by that date; loss-making weeks are not drawn.",
     "hubTitle": "Compare two companies",
     "hubLead": "Put two companies side by side: valuation, margins, growth, cash, debt and dividends, with the quarterly history of both.",
     "hubPairsTitle": "Featured comparisons",

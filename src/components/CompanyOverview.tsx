@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getStatements, type LiveCompany } from "@/lib/api";
+import {
+  getMarketMedianPe,
+  getStatements,
+  type LiveCompany,
+  type MarketMedianPe,
+} from "@/lib/api";
+import { peSeries } from "@/lib/pe-history";
+import { TimeSeriesChart } from "@/components/TimeSeriesChart";
 import {
   annualLabel,
   cashFlowPanel,
@@ -47,6 +54,19 @@ export function CompanyOverview({ company }: { company: LiveCompany }) {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [period, setPeriod] = useState<"q" | "a">("q");
+  // The market benchmark for the rating chart. Best-effort and cached for a
+  // day at the CDN, so it costs nothing per view and its absence only removes
+  // a dashed line.
+  const [marketPe, setMarketPe] = useState<MarketMedianPe | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void getMarketMedianPe().then((m) => {
+      if (!cancelled) setMarketPe(m);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -175,6 +195,15 @@ export function CompanyOverview({ company }: { company: LiveCompany }) {
           <PriceChart prices={data.prices} title={t("company.charts.price")} ccy={ccy} />
         )}
       </div>
+
+      {/* ───────── Rating: what the market pays for these earnings ───────── */}
+      {data && (
+        <PeChart
+          data={data}
+          marketPe={marketPe}
+          forwardPe={company.fundamentals.forwardPe ?? null}
+        />
+      )}
 
       {/* ───────── Charts grid ───────── */}
       {loading && (
@@ -396,6 +425,65 @@ function ChartModal({ cfg, onClose }: { cfg: ChartCfg; onClose: () => void }) {
         </button>
         <QuarterlyBars {...cfg} />
       </div>
+    </div>
+  );
+}
+
+/* ───────────────────────── rating (P/E) chart ───────────────────────── */
+
+// The company's own trailing P/E week by week, against two flat benchmarks:
+// the median of the companies this site covers, and the company's forward
+// multiple.
+//
+// Forward P/E is a single number, not a series, and drawing it as one would be
+// a lie: nobody stores the history of what analysts USED to expect, so a
+// "forward P/E over time" curve could only ever be today's estimate projected
+// backwards. As a line it says the one true thing — where the rating sits if
+// next year's consensus earnings arrive.
+function PeChart({
+  data,
+  marketPe,
+  forwardPe,
+}: {
+  data: CompanyStatements;
+  marketPe: MarketMedianPe | null;
+  forwardPe: number | null;
+}) {
+  const { t } = useTranslation();
+  const points = useMemo(
+    () => peSeries(data.prices, data.quarters),
+    [data.prices, data.quarters],
+  );
+  if (points.length < 2) return null;
+
+  const refLines = [];
+  if (marketPe?.trailingPe != null) {
+    refLines.push({
+      label: t("company.pe.marketMedian"),
+      value: marketPe.trailingPe,
+      color: "#64748b",
+    });
+  }
+  if (forwardPe != null && forwardPe > 0) {
+    refLines.push({
+      label: t("company.pe.forward"),
+      value: forwardPe,
+      color: "#0ea5e9",
+    });
+  }
+
+  return (
+    <div className="space-y-1">
+      <TimeSeriesChart
+        title={t("company.pe.title")}
+        series={[{ name: t("company.pe.trailing"), color: "#d1550f", points }]}
+        refLines={refLines}
+        format={(v) => `${v.toFixed(1)}×`}
+      />
+      <p className="text-[11px] text-slate-400">
+        {t("company.pe.note")}
+        {marketPe?.n ? ` ${t("company.pe.medianOf", { count: marketPe.n })}` : ""}
+      </p>
     </div>
   );
 }

@@ -182,8 +182,16 @@
       "payoutRatio": "Ràtio de payout",
       "payoutDate": "Proper pagament"
     },
+    "pe": {
+      "title": "Com ha cotitzat els beneficis",
+      "trailing": "PER (12 mesos)",
+      "forward": "PER previst",
+      "marketMedian": "Mediana del mercat",
+      "note": "PER de cada setmana: preu dividit pel benefici per acció dels dotze mesos ja publicats en aquella data. Les setmanes amb pèrdues no es dibuixen.",
+      "medianOf": "Mediana sobre {{count}} empreses cobertes."
+    },
     "charts": {
-      "price": "Preu (1 any)",
+      "price": "Preu (5 anys)",
       "revenue": "Ingressos",
       "ebitda": "EBITDA",
       "netIncome": "Benefici net",
@@ -212,6 +220,9 @@
     "tableTitle": "{{a}} vs {{b}}: mètriques clau",
     "chartsTitle": "Evolució comparada",
     "othersTitle": "Altres comparatives",
+    "priceActionTitle": "Preu, base 100",
+    "peHistoryTitle": "PER (12 mesos)",
+    "priceActionNote": "Les dues corbes arrenquen a 100 el mateix dia, així es comparen rendiments i no preus. El PER de cada setmana és el preu dividit pel benefici per acció ja publicat en aquella data; les setmanes amb pèrdues no es dibuixen.",
     "hubTitle": "Compara dues empreses",
     "hubLead": "Posa dues companyies costat a costat: valoració, marges, creixement, caixa, deute i dividends, amb l'històric trimestral de totes dues.",
     "hubPairsTitle": "Comparatives destacades",

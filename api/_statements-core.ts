@@ -228,8 +228,11 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
 // response's s-maxage.
 async function fetchPrices(yahoo: YahooStatementsClient, ticker: string) {
   try {
+    // Five years, not one. Weekly closes are cheap (~260 points) and the P/E
+    // history is drawn from this series — a single year of it shows a company's
+    // rating without enough of its own past to say whether that rating is high.
     const period2 = new Date();
-    const period1 = new Date(period2.getTime() - 366 * 24 * 3600 * 1000);
+    const period1 = new Date(period2.getTime() - 5 * 366 * 24 * 3600 * 1000);
     const r = await yahoo.chart(
       ticker,
       { period1, period2, interval: "1wk" },

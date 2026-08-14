@@ -30,6 +30,8 @@ import {
   type StatementMetrics,
 } from "@/lib/statements";
 import { QuarterlyBars } from "@/components/QuarterlyBars";
+import { TimeSeriesChart } from "@/components/TimeSeriesChart";
+import { alignFrom, peSeries, rebase } from "@/lib/pe-history";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { useSeo } from "@/lib/seo";
 import { withLocale, localeFromPath, SITE_ORIGIN } from "@/lib/locale";
@@ -189,6 +191,24 @@ function CompareInner({ pair }: { pair: Pair }) {
   const money = (v: number) => formatCompact(v, ccyA);
   const perShare = (v: number) => v.toFixed(2);
 
+  // Price action and rating history. Both are drawn from data the page has
+  // already fetched — the statements payload carries five years of weekly
+  // closes — so they cost no extra round-trip. Rebasing to 100 is what lets a
+  // $8 stock and an $800 one share an axis; the P/E series is reconstructed
+  // week by week from the EPS reported by that week (see pe-history).
+  const [priceA, priceB] = useMemo(
+    () => alignFrom(rebase(a.statements?.prices ?? []), rebase(b.statements?.prices ?? [])),
+    [a.statements, b.statements],
+  );
+  const [peA, peB] = useMemo(
+    () =>
+      alignFrom(
+        peSeries(a.statements?.prices ?? [], a.statements?.quarters ?? []),
+        peSeries(b.statements?.prices ?? [], b.statements?.quarters ?? []),
+      ),
+    [a.statements, b.statements],
+  );
+
   const charts = converted
     ? ([
         ["company.charts.revenue", chart("revenue"), money],
@@ -229,6 +249,30 @@ function CompareInner({ pair }: { pair: Pair }) {
             ccyA={ccyA}
             ccyB={ccyB}
           />
+
+          {/* Price action + rating: currency-free, so unlike the absolute
+              figures below they never wait on an FX rate. */}
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <TimeSeriesChart
+              title={t("compare.priceActionTitle")}
+              series={[
+                { name: nameA, color: COLOR_A, points: priceA },
+                { name: nameB, color: COLOR_B, points: priceB },
+              ]}
+              format={(v) => `${Math.round(v)}`}
+            />
+            <TimeSeriesChart
+              title={t("compare.peHistoryTitle")}
+              series={[
+                { name: nameA, color: COLOR_A, points: peA },
+                { name: nameB, color: COLOR_B, points: peB },
+              ]}
+              format={(v) => `${v.toFixed(1)}×`}
+            />
+          </section>
+          {(priceA.length > 1 || peA.length > 1) && (
+            <p className="text-[11px] text-slate-400">{t("compare.priceActionNote")}</p>
+          )}
 
           {charts.length > 0 && (
             <section className="space-y-3">

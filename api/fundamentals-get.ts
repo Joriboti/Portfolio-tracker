@@ -249,6 +249,48 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
   res.status(200).end(JSON.stringify({ ok: true, ...stats, elapsed: `${elapsed}s` }));
 }
 
+// Median trailing / forward P/E over the covered companies. Read-only, public
+// and identical for everyone, so it is CDN-cached for a day: it moves with the
+// weekly fundamentals refresh, not with page views.
+async function handleMedianPe(res: VercelResponse) {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    res.status(200).end(JSON.stringify({ trailingPe: null, forwardPe: null, n: 0 }));
+    return;
+  }
+  try {
+    const mod = await import("@neondatabase/serverless");
+    const sql = mod.neon(dbUrl);
+    const rows = await sql`
+      SELECT
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY trailing_pe) AS "trailingPe",
+        COUNT(trailing_pe) AS n
+      FROM fundamentals
+      WHERE trailing_pe > 0 AND trailing_pe < 200
+    `;
+    const fwd = await sql`
+      SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY forward_pe) AS "forwardPe"
+      FROM fundamentals
+      WHERE forward_pe > 0 AND forward_pe < 200
+    `;
+    const numOrNull = (v: unknown) => {
+      const n = typeof v === "number" ? v : parseFloat(String(v ?? ""));
+      return Number.isFinite(n) ? n : null;
+    };
+    res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
+    res.status(200).end(
+      JSON.stringify({
+        trailingPe: numOrNull(rows[0]?.trailingPe),
+        forwardPe: numOrNull(fwd[0]?.forwardPe),
+        n: Number(rows[0]?.n ?? 0),
+      }),
+    );
+  } catch {
+    // No table yet / query failure → the chart just draws without the line.
+    res.status(200).end(JSON.stringify({ trailingPe: null, forwardPe: null, n: 0 }));
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     res.setHeader("Content-Type", "application/json");
@@ -278,6 +320,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Live full-fundamentals mode (Explore page) — no DB needed.
     if (req.query.quote != null) {
       await handleLiveCompany(req, res);
+      return;
+    }
+
+    // Market-median P/E mode: the reference line on the company P/E chart.
+    // The "market" is exactly the companies this site already carries figures
+    // for — a median over the fundamentals table, not a number typed into the
+    // source. Extremes are trimmed because a company earning near zero prints
+    // a P/E in the thousands and would drag a mean; the median barely notices,
+    // but the trim also keeps `n` honest about what was actually counted.
+    if (req.query.median != null) {
+      await handleMedianPe(res);
       return;
     }
 

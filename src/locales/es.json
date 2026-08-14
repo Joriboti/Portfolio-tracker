@@ -182,8 +182,16 @@
       "payoutRatio": "Ratio de payout",
       "payoutDate": "Próximo pago"
     },
+    "pe": {
+      "title": "Cómo ha cotizado sus beneficios",
+      "trailing": "PER (12 meses)",
+      "forward": "PER previsto",
+      "marketMedian": "Mediana del mercado",
+      "note": "PER de cada semana: precio dividido por el beneficio por acción de los doce meses ya publicados en esa fecha. Las semanas con pérdidas no se dibujan.",
+      "medianOf": "Mediana sobre {{count}} empresas cubiertas."
+    },
     "charts": {
-      "price": "Precio (1 año)",
+      "price": "Precio (5 años)",
       "revenue": "Ingresos",
       "ebitda": "EBITDA",
       "netIncome": "Beneficio neto",
@@ -212,6 +220,9 @@
     "tableTitle": "{{a}} vs {{b}}: métricas clave",
     "chartsTitle": "Evolución comparada",
     "othersTitle": "Otras comparativas",
+    "priceActionTitle": "Precio, base 100",
+    "peHistoryTitle": "PER (12 meses)",
+    "priceActionNote": "Ambas curvas arrancan en 100 el mismo día, así se comparan rentabilidades y no precios. El PER de cada semana es el precio dividido por el beneficio por acción ya publicado en esa fecha; las semanas con pérdidas no se dibujan.",
     "hubTitle": "Compara dos empresas",
     "hubLead": "Pon dos compañías lado a lado: valoración, márgenes, crecimiento, caja, deuda y dividendos, con el histórico trimestral de ambas.",
     "hubPairsTitle": "Comparativas destacadas",
