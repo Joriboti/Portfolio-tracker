@@ -27,6 +27,28 @@ import {
 const MAX_LOOKUPS = 40;
 const CONCURRENCY = 5;
 
+// Ceiling for the dashboard-portfolio fetch. It normally answers in ~3s; past
+// this the panel stops spinning and offers a retry instead of hanging.
+const LOAD_TIMEOUT_MS = 20_000;
+
+// Reject if `p` hasn't settled in `ms`. The underlying request is left to
+// finish on its own — nothing reads it once the race is lost.
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("timeout")), ms);
+    p.then(
+      (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(timer);
+        reject(e);
+      },
+    );
+  });
+}
+
 const REGION_COLORS: Record<Region, string> = {
   US: "#e0762a",
   Europe: "#3b6ea5",
@@ -142,60 +164,78 @@ export function PortfolioXray() {
     setTab(next);
   }
 
-  // Fetch the dashboard portfolio on first visit to the tab: the account's
-  // imported Excel when signed in, otherwise the anonymous trial.
+  // Fetch the dashboard portfolio while the tab is open: the account's imported
+  // Excel when signed in, otherwise the anonymous trial.
   //
-  // `saved.status` must NOT be a dependency and the fetch must NOT be torn down
-  // on tab changes: the effect sets the status to "loading" itself, so React
-  // would immediately clean up the very run that started the fetch and the
-  // response would be discarded — the panel spins forever. A ref keyed on the
-  // session identity guards against duplicate runs instead, and only unmounting
-  // stops the result from landing.
-  const mounted = useRef(true);
+  // The whole run is keyed on one primitive — the session identity while the
+  // tab is open — so the effect fires exactly once per (tab, user) pair and its
+  // cleanup fires only when that pair really changes or the component goes
+  // away. That matters more than it looks: an earlier version guarded the run
+  // with a `mounted` ref and a "already loaded this key" ref, and any remount
+  // in between starting the fetch and its response (React hides and re-runs a
+  // subtree that suspends after mount) dropped the result on the floor while
+  // the ref still said "loaded" — the panel then spun forever with no way out.
+  // Re-running the effect on remount is what makes this self-healing.
+  //
+  // Primitives only in the dependency list: the session object gets a fresh
+  // identity on most renders, and depending on it would restart the fetch on
+  // every one of them.
+  const userId = user?.id ?? null;
+  const requestKey = tab === "saved" ? (userId ?? "anon") : null;
+  // Bumping this re-runs the load with the same key (the retry button).
+  const [reloadNonce, setReloadNonce] = useState(0);
+  // Only a successful load is remembered, so toggling the tabs doesn't refetch
+  // while an error or an empty result always gets another chance.
+  const cache = useRef<{ key: string; state: SavedState } | null>(null);
   useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-  const loadedFor = useRef<string | null>(null);
-  useEffect(() => {
-    if (tab !== "saved") return;
-    const key = user?.id ?? "anon";
-    if (loadedFor.current === key) return;
-    loadedFor.current = key;
+    if (requestKey == null) return;
+    const hit = cache.current;
+    if (hit && hit.key === requestKey && hit.state.status === "ready") {
+      setSaved(hit.state);
+      return;
+    }
+    let stale = false;
     setSaved({ status: "loading" });
-    void (async () => {
-      if (user) {
-        try {
-          const d = await getPortfolio(user.id);
-          if (!mounted.current) return;
-          if (d.transactions.length > 0) {
-            setSaved({
-              status: "ready",
-              txns: d.transactions,
-              dividends: d.dividends,
-              interests: d.interests,
-              from: "account",
-            });
-            return;
-          }
-        } catch {
-          // Allow a retry the next time the tab is opened.
-          loadedFor.current = null;
-          if (mounted.current) setSaved({ status: "error" });
-          return;
-        }
-      }
+
+    const fromTrial = (): SavedState => {
       const trial = getTrialTxns();
-      if (!mounted.current) return;
-      setSaved(
-        trial.length > 0
-          ? { status: "ready", txns: trial, dividends: [], interests: [], from: "trial" }
-          : { status: "empty" },
-      );
+      return trial.length > 0
+        ? { status: "ready", txns: trial, dividends: [], interests: [], from: "trial" }
+        : { status: "empty" };
+    };
+
+    void (async () => {
+      let next: SavedState;
+      if (userId) {
+        try {
+          // A hung request must not strand the panel on the spinner: past the
+          // ceiling we show the error state, which offers a retry.
+          const d = await withTimeout(getPortfolio(userId), LOAD_TIMEOUT_MS);
+          next =
+            d.transactions.length > 0
+              ? {
+                  status: "ready",
+                  txns: d.transactions,
+                  dividends: d.dividends,
+                  interests: d.interests,
+                  from: "account",
+                }
+              : fromTrial();
+        } catch {
+          next = { status: "error" };
+        }
+      } else {
+        next = fromTrial();
+      }
+      if (stale) return;
+      if (next.status === "ready") cache.current = { key: requestKey, state: next };
+      setSaved(next);
     })();
-  }, [tab, user]);
+
+    return () => {
+      stale = true;
+    };
+  }, [requestKey, userId, reloadNonce]);
 
   // Preview of what the saved portfolio will analyse (open positions only).
   const savedPositions = useMemo(
@@ -395,6 +435,10 @@ export function PortfolioXray() {
           saved={saved}
           positions={savedPositions}
           onGenerate={onSavedSubmit}
+          onRetry={() => {
+            cache.current = null;
+            setReloadNonce((n) => n + 1);
+          }}
           onUseExcel={() => selectTab("excel")}
         />
       ) : tab === "excel" ? (
@@ -492,11 +536,13 @@ function SavedPanel({
   saved,
   positions,
   onGenerate,
+  onRetry,
   onUseExcel,
 }: {
   saved: SavedState;
   positions: Position[];
   onGenerate: () => void;
+  onRetry: () => void;
   onUseExcel: () => void;
 }) {
   const { t } = useTranslation();
@@ -514,9 +560,14 @@ function SavedPanel({
     return (
       <div className="py-6">
         <p className="text-sm text-rose-600">{t("xray.saved.error")}</p>
-        <button onClick={onUseExcel} className="mt-3 text-sm font-medium text-brand-700 hover:underline">
-          {t("xray.saved.useExcel")} →
-        </button>
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm font-medium text-brand-700">
+          <button onClick={onRetry} className="hover:underline">
+            {t("xray.tryAgain")}
+          </button>
+          <button onClick={onUseExcel} className="hover:underline">
+            {t("xray.saved.useExcel")} →
+          </button>
+        </div>
       </div>
     );
   }
