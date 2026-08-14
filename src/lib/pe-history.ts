@@ -264,6 +264,11 @@ export function rateLookup(
  * weekly rate when it doesn't, and nothing drawable when it doesn't and the
  * rate is missing.
  *
+ * Whether the currencies differ is decided HERE and not read off the presence
+ * of `fx`, because an empty `fx` means two different things depending on the
+ * answer — no conversion needed, or a conversion that could not be fetched.
+ * The API returns the same empty array for both.
+ *
  * `fallbackQuote` covers a payload cached before the API returned a quote
  * currency; the caller knows it from the company record.
  */
@@ -273,8 +278,9 @@ export function quoteConverter(
 ): (date: string) => number | null {
   const filing = statements?.panel?.financialCurrency ?? null;
   const quote = statements?.panel?.quoteCurrency ?? fallbackQuote ?? null;
-  const needsFx = !!filing && !!quote && filing !== quote;
-  return rateLookup(needsFx ? (statements?.fx ?? null) : []);
+  if (!filing || !quote || filing === quote) return SAME_CURRENCY;
+  const fx = statements?.fx;
+  return rateLookup(fx && fx.length > 0 ? fx : null);
 }
 
 /**

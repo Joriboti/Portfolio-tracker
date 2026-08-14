@@ -7,6 +7,7 @@ import {
   forwardPeSeries,
   median,
   peSeries,
+  quoteConverter,
   rateLookup,
   rebase,
   trailingEpsAt,
@@ -246,6 +247,39 @@ describe("rateLookup", () => {
   it("converts nothing when the currencies match, and refuses when unknown", () => {
     expect(rateLookup([])("2024-03-01")).toBe(1);
     expect(rateLookup(null)("2024-03-01")).toBeNull();
+  });
+});
+
+describe("quoteConverter", () => {
+  const panel = (financialCurrency: string, quoteCurrency: string) =>
+    ({ financialCurrency, quoteCurrency }) as never;
+
+  it("does nothing when the filing and quote currencies match", () => {
+    expect(quoteConverter({ panel: panel("USD", "USD"), fx: [] })("2024-01-01")).toBe(1);
+  });
+
+  it("uses the rate when they differ", () => {
+    const fx = [{ date: "2024-01-01", rate: 0.03 }];
+    expect(quoteConverter({ panel: panel("TWD", "USD"), fx })("2024-03-01")).toBe(0.03);
+  });
+
+  it("refuses to convert an ADR whose payload carries no usable rate", () => {
+    // Absent because the payload was cached before the API returned rates,
+    // and empty because the fetch failed, are the same answer here: there is
+    // nothing to convert with. Reading either as "no conversion needed" is
+    // what drew TSM's 425 USD over its 431 TWD and called it 1.0x — and it
+    // happened twice, once from an old cache and once from a client mapper
+    // that dropped the field.
+    const tsm = panel("TWD", "USD");
+    expect(quoteConverter({ panel: tsm, fx: undefined })("2024-03-01")).toBeNull();
+    expect(quoteConverter({ panel: tsm, fx: [] })("2024-03-01")).toBeNull();
+  });
+
+  it("falls back to the quote currency the caller knows", () => {
+    // Cached before the API reported one; the company record still has it.
+    const stale = { panel: { financialCurrency: "TWD" } as never, fx: [] };
+    expect(quoteConverter(stale, "TWD")("2024-03-01")).toBe(1);
+    expect(quoteConverter(stale, "USD")("2024-03-01")).toBeNull();
   });
 });
 

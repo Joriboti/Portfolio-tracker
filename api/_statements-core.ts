@@ -567,10 +567,18 @@ export async function handleStatements(req: VercelRequest, res: VercelResponse) 
             continue;
           }
           try {
+            // The conflict this hits is the all-null placeholder row Yahoo
+            // leaves for the oldest year it returns. `existing` skips those so
+            // they can't claim an EDGAR period for enrichment, which sent the
+            // period here instead — where DO NOTHING quietly dropped it,
+            // because the empty row is still a row. TSM lost 2021 that way.
+            // Overwrite a placeholder, never a row that says anything.
             await sql`
               INSERT INTO financial_statements (ticker, period_end, period_type, data, fetched_at)
               VALUES (${ticker}, ${row.periodEnd}, ${row.periodType}, ${JSON.stringify(row.metrics)}::jsonb, NOW())
-              ON CONFLICT (ticker, period_end, period_type) DO NOTHING
+              ON CONFLICT (ticker, period_end, period_type)
+              DO UPDATE SET data = EXCLUDED.data, fetched_at = NOW()
+              WHERE jsonb_strip_nulls(financial_statements.data) = '{}'::jsonb
             `;
             inserted++;
           } catch {

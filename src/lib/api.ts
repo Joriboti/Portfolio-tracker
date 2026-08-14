@@ -443,6 +443,13 @@ export async function getStatements(
     ticker: data.ticker,
     panel: data.panel ?? null,
     prices: data.prices ?? [],
+    // Left undefined rather than defaulted to []: for an ADR the two are
+    // opposite answers. An empty series says "same currency, nothing to
+    // convert"; absent says "these figures cannot be compared to this price
+    // yet", and the P/E charts draw nothing rather than a number thirty times
+    // out. Older cached payloads carry no `fx` at all, and that is the case
+    // this distinction exists for.
+    fx: data.fx,
     quarters: data.quarters ?? [],
     annual: data.annual ?? [],
   };
