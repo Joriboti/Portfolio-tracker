@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   COMPARE_PAIRS,
   alignSeries,
+  canonicalPair,
   companyName,
   convertValues,
   fxSymbol,
+  isCuratedPair,
   pairSlug,
   pairsFor,
   parsePairSlug,
@@ -42,29 +44,43 @@ describe("pair slugs", () => {
     expect(parsePairSlug("aapl-vs-msft")).toEqual({ a: "AAPL", b: "MSFT" });
   });
 
-  it("resolves the reversed slug to the curated direction", () => {
+  it("canonicalises a reversed curated slug to the curated direction", () => {
     // /explore/compare/msft-vs-aapl is the same page as aapl-vs-msft; the page
     // canonicalises so the two don't compete as duplicates.
-    expect(parsePairSlug("msft-vs-aapl")).toEqual({ a: "AAPL", b: "MSFT" });
+    expect(parsePairSlug("msft-vs-aapl")).toEqual({ a: "MSFT", b: "AAPL" });
+    expect(canonicalPair({ a: "MSFT", b: "AAPL" })).toEqual({ a: "AAPL", b: "MSFT" });
   });
 
   it("keeps symbols that contain a dash or a dot intact", () => {
     expect(pairSlug({ a: "BA", b: "AIR.PA" })).toBe("ba-vs-air.pa");
     expect(parsePairSlug("ba-vs-air.pa")).toEqual({ a: "BA", b: "AIR.PA" });
     expect(parsePairSlug("san.mc-vs-bbva.mc")).toEqual({ a: "SAN.MC", b: "BBVA.MC" });
+    expect(parsePairSlug("brk-b-vs-bf-b")).toEqual({ a: "BRK-B", b: "BF-B" });
   });
 
-  it("rejects anything not curated, so no unbounded thin pages exist", () => {
-    expect(parsePairSlug("aapl-vs-ko")).toBeNull();
+  it("accepts an uncurated pair but orders it alphabetically", () => {
+    // The picker can put any two companies side by side; only the curated ones
+    // are indexable, so a free pair still needs ONE spelling to live at.
+    expect(parsePairSlug("ko-vs-aapl")).toEqual({ a: "KO", b: "AAPL" });
+    expect(canonicalPair({ a: "KO", b: "AAPL" })).toEqual({ a: "AAPL", b: "KO" });
+    expect(canonicalPair({ a: "AAPL", b: "KO" })).toEqual({ a: "AAPL", b: "KO" });
+    expect(isCuratedPair({ a: "AAPL", b: "KO" })).toBe(false);
+    expect(isCuratedPair({ a: "MSFT", b: "AAPL" })).toBe(true);
+  });
+
+  it("rejects malformed slugs, so a stray path never becomes a page", () => {
     expect(parsePairSlug("garbage")).toBeNull();
     expect(parsePairSlug("aapl-vs-aapl")).toBeNull();
     expect(parsePairSlug("-vs-msft")).toBeNull();
     expect(parsePairSlug("")).toBeNull();
+    expect(parsePairSlug("aapl-vs-not a ticker")).toBeNull();
+    expect(parsePairSlug("aapl-vs-waytoolongsymbol")).toBeNull();
   });
 
   it("every curated pair round-trips through its own slug", () => {
     for (const p of COMPARE_PAIRS) {
       expect(parsePairSlug(pairSlug(p)), pairSlug(p)).toEqual(p);
+      expect(canonicalPair(p), pairSlug(p)).toEqual(p);
     }
   });
 

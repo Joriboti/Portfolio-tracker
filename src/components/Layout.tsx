@@ -222,6 +222,7 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
     { to: "/dashboard", label: t("nav.dashboard") },
     { to: "/upload", label: t("nav.upload") },
     { to: "/explore", label: t("nav.explore") },
+    { to: "/explore/compare", label: t("nav.compare") },
     { to: "/research", label: t("nav.research") },
   ];
   const groups = [

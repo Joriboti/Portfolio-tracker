@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { LocaleLink, useLocale } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { companyName, pairSlug, pairsFor } from "@/lib/compare";
+import { ComparePicker } from "@/components/ComparePicker";
 import { SITE_ORIGIN, localeUrl } from "@/lib/locale";
 import { shareOnX } from "@/lib/brand";
 import {
@@ -394,8 +395,31 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
       )}
 
       {routeTicker && <ComparisonLinks ticker={routeTicker} />}
+      {!routeTicker && <ComparePromo />}
       <PopularCompanies exclude={routeTicker} />
     </div>
+  );
+}
+
+// The head-to-head tool, on the page where someone is already looking up a
+// company. Together with the drawer entry this is what makes it reachable
+// without typing a /explore/compare/… URL by hand.
+function ComparePromo() {
+  const { t } = useTranslation();
+  return (
+    <section className="border-t border-slate-200 pt-6">
+      <h2 className="text-sm font-semibold text-slate-700">{t("compare.hubTitle")}</h2>
+      <p className="mt-1 text-sm text-slate-600">{t("compare.hubLead")}</p>
+      <div className="mt-3">
+        <ComparePicker />
+      </div>
+      <LocaleLink
+        to="/explore/compare"
+        className="mt-3 inline-block text-sm font-medium text-brand-700 hover:underline"
+      >
+        {t("compare.hubAll")} →
+      </LocaleLink>
+    </section>
   );
 }
 

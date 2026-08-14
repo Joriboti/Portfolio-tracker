@@ -11,13 +11,16 @@ import {
 import {
   COMPARE_PAIRS,
   alignSeries,
+  canonicalPair,
   companyName,
   convertValues,
   fxSymbol,
+  isCuratedPair,
   pairSlug,
   parsePairSlug,
   type Pair,
 } from "@/lib/compare";
+import { ComparePicker } from "@/components/ComparePicker";
 import {
   formatCompact,
   formatSignedPct,
@@ -46,17 +49,56 @@ export function ComparePage() {
   const locale = localeFromPath(useLocation().pathname);
   const parsed = slug ? parsePairSlug(slug) : null;
 
-  // An uncurated slug has no page; a reversed one redirects to the curated
-  // spelling so /msft-vs-aapl and /aapl-vs-msft never compete as duplicates.
-  // Both stay inside the current language.
-  if (!parsed) return <Navigate to={withLocale("/explore", locale)} replace />;
-  const canonical = pairSlug(parsed);
+  // A malformed slug has no page; any other spelling redirects to the one
+  // canonical direction so /msft-vs-aapl and /aapl-vs-msft never compete as
+  // duplicates. Both stay inside the current language.
+  if (!parsed) return <Navigate to={withLocale("/explore/compare", locale)} replace />;
+  const canonical = pairSlug(canonicalPair(parsed));
   if (slug !== canonical) {
     return (
       <Navigate to={withLocale(`/explore/compare/${canonical}`, locale)} replace />
     );
   }
-  return <CompareInner key={canonical} pair={parsed} />;
+  return <CompareInner key={canonical} pair={parsePairSlug(canonical)!} />;
+}
+
+// The hub the head-to-head pages hang off: pick any two companies, or take one
+// of the pairs that already has a page. Deliberately out of the sitemap and
+// noindex — every pair it lists is indexed on its own, so this is navigation.
+export function CompareHubPage() {
+  const { t } = useTranslation();
+  useSeo({
+    title: t("seo.compareHubTitle"),
+    description: t("seo.compareHubDesc"),
+    noindex: true,
+  });
+  return (
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-10">
+      <header className="space-y-2">
+        <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+          {t("compare.hubTitle")}
+        </h1>
+        <p className="text-sm text-slate-600">{t("compare.hubLead")}</p>
+      </header>
+      <ComparePicker />
+      <section className="border-t border-slate-200 pt-6">
+        <h2 className="text-sm font-semibold text-slate-700">
+          {t("compare.hubPairsTitle")}
+        </h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {COMPARE_PAIRS.map((p) => (
+            <LocaleLink
+              key={pairSlug(p)}
+              to={`/explore/compare/${pairSlug(p)}`}
+              className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 transition-colors hover:border-brand-300 hover:bg-brand-50"
+            >
+              {companyName(p.a)} vs {companyName(p.b)}
+            </LocaleLink>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function CompareInner({ pair }: { pair: Pair }) {
@@ -70,10 +112,16 @@ function CompareInner({ pair }: { pair: Pair }) {
   const nameA = companyName(pair.a);
   const nameB = companyName(pair.b);
 
+  // Any two symbols get a working page, but only the curated pairs are
+  // sitemapped, prerendered and given a build-time card — the rest would be an
+  // unbounded set of thin near-duplicates in search. Same deal as a searched-for
+  // ticker on /explore/:ticker.
+  const curated = isCuratedPair(pair);
   useSeo({
     title: t("seo.compareTitle", { a: nameA, b: nameB }),
     description: t("seo.compareDesc", { a: nameA, b: nameB }),
-    image: `${SITE_ORIGIN}/og/compare-${pairSlug(pair)}.png`,
+    image: curated ? `${SITE_ORIGIN}/og/compare-${pairSlug(pair)}.png` : undefined,
+    noindex: !curated,
   });
 
   useEffect(() => {
@@ -240,6 +288,15 @@ function CompareInner({ pair }: { pair: Pair }) {
           )}
         </>
       )}
+
+      <section className="border-t border-slate-200 pt-6">
+        <h2 className="text-sm font-semibold text-slate-700">
+          {t("compare.changeTitle")}
+        </h2>
+        <div className="mt-3">
+          <ComparePicker initialA={pair.a} initialB={pair.b} />
+        </div>
+      </section>
 
       <OtherComparisons current={pair} />
     </div>

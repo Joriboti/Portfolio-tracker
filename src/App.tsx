@@ -16,6 +16,7 @@ const DebugPage = lazy(() => import("@/pages/debug").then((m) => ({ default: m.D
 const UploadPage = lazy(() => import("@/pages/upload").then((m) => ({ default: m.UploadPage })));
 const ExplorePage = lazy(() => import("@/pages/explore").then((m) => ({ default: m.ExplorePage })));
 const ComparePage = lazy(() => import("@/pages/compare").then((m) => ({ default: m.ComparePage })));
+const CompareHubPage = lazy(() => import("@/pages/compare").then((m) => ({ default: m.CompareHubPage })));
 const ForecastPage = lazy(() => import("@/pages/forecast").then((m) => ({ default: m.ForecastPage })));
 const FifoCalculatorPage = lazy(() => import("@/pages/calculadora-fifo").then((m) => ({ default: m.FifoCalculatorPage })));
 const RadiografiaPage = lazy(() => import("@/pages/radiografia").then((m) => ({ default: m.RadiografiaPage })));
@@ -76,6 +77,11 @@ function publicRoutes(locale: Locale) {
     <Route key={k("explore")} path={at("/explore")} element={<ExplorePage />} />,
     // Three segments deep, so it never competes with /explore/:ticker.
     <Route key={k("compare")} path={at("/explore/compare/:pair")} element={<ComparePage />} />,
+    // The picker that leads into them. Not in routes.mjs on purpose: it is
+    // navigation, not a page to index, and every pair it lists is already
+    // sitemapped on its own. It still resolves — /explore/:rest* rewrites to
+    // the shell — so it needs no vercel.json entry either.
+    <Route key={k("compareHub")} path={at("/explore/compare")} element={<CompareHubPage />} />,
     <Route key={k("exploreTicker")} path={at("/explore/:ticker")} element={<ExplorePage />} />,
     <Route key={k("forecast")} path={at("/forecast")} element={<ForecastPage />} />,
     <Route key={k("fifo")} path={at(ROUTE_SLUGS.fifo[locale])} element={<FifoPageFor locale={locale} />} />,

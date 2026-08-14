@@ -33,14 +33,20 @@ export function pairSlug({ a, b }: Pair): string {
   return `${a.toLowerCase()}${SEP}${b.toLowerCase()}`;
 }
 
+// A plausible market symbol: letters, digits, and the dot/dash that suffix
+// exchanges (AIR.PA) and share classes (BRK-B). Narrow enough that "garbage" or
+// a stray path segment never becomes a page.
+const SYMBOL = /^[A-Z0-9]{1,8}([.-][A-Z0-9]{1,4})?$/;
+
 /**
- * "aapl-vs-msft" → { a: "AAPL", b: "MSFT" }, or null.
+ * "aapl-vs-msft" → { a: "AAPL", b: "MSFT" }, or null when the slug isn't two
+ * distinct, plausible symbols.
  *
- * Only curated pairs resolve: the page needs both sides to be tickers we
- * actually cover, and leaving it open would mint an unbounded number of thin,
- * near-duplicate URLs — exactly the programmatic-SEO pattern search engines
- * penalise. Order-insensitive, so /msft-vs-aapl finds the same pair (the page
- * canonicalises to the curated direction).
+ * Any pair parses, not just the curated ones — the picker lets a visitor put
+ * two companies of their own choosing side by side, exactly as /explore/:ticker
+ * resolves any symbol. What keeps the unbounded URL space out of search is
+ * indexing, not routing: only `isCuratedPair` pages are sitemapped,
+ * prerendered and indexable; everything else is a working page marked noindex.
  */
 export function parsePairSlug(slug: string): Pair | null {
   const i = slug.toLowerCase().indexOf(SEP);
@@ -48,13 +54,34 @@ export function parsePairSlug(slug: string): Pair | null {
   // Symbols can contain "-" (BRK-B), so split on the first separator only.
   const a = slug.slice(0, i).toUpperCase();
   const b = slug.slice(i + SEP.length).toUpperCase();
-  if (!a || !b || a === b) return null;
+  if (a === b || !SYMBOL.test(a) || !SYMBOL.test(b)) return null;
+  return { a, b };
+}
+
+/** The curated entry for these two symbols, in its curated direction. */
+export function curatedPair({ a, b }: Pair): Pair | null {
+  const [x, y] = [a.toUpperCase(), b.toUpperCase()];
   return (
     COMPARE_PAIRS.find(
-      (p) =>
-        (p.a === a && p.b === b) || (p.a === b && p.b === a),
+      (p) => (p.a === x && p.b === y) || (p.a === y && p.b === x),
     ) ?? null
   );
+}
+
+export function isCuratedPair(pair: Pair): boolean {
+  return curatedPair(pair) != null;
+}
+
+/**
+ * The one spelling of a pair that gets a page, so A-vs-B and B-vs-A never
+ * compete as duplicates: the curated direction when there is one, alphabetical
+ * otherwise. The page redirects anything else here.
+ */
+export function canonicalPair(pair: Pair): Pair {
+  const curated = curatedPair(pair);
+  if (curated) return curated;
+  const [a, b] = [pair.a.toUpperCase(), pair.b.toUpperCase()].sort();
+  return { a, b };
 }
 
 export type AlignedSeries = {
