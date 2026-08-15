@@ -425,10 +425,10 @@ function ForecastSection({
   );
   const [revenue, eps] = useMemo(
     () =>
-      alignReported(
+      alignReported([
         revenueForecast(data, period),
         epsForecast(data, period, toQuote),
-      ),
+      ]),
     [data, period, toQuote],
   );
 

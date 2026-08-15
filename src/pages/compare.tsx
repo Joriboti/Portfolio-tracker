@@ -30,6 +30,8 @@ import {
   type StatementMetrics,
 } from "@/lib/statements";
 import { QuarterlyBars } from "@/components/QuarterlyBars";
+import { ForecastChart } from "@/components/ForecastChart";
+import { alignReported, epsForecast, revenueForecast } from "@/lib/estimates";
 import { TimeSeriesChart } from "@/components/TimeSeriesChart";
 import {
   alignFrom,
@@ -116,6 +118,7 @@ function CompareInner({ pair }: { pair: Pair }) {
   const [fxRate, setFxRate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<"q" | "a">("q");
+  const [fcPeriod, setFcPeriod] = useState<"q" | "a">("q");
 
   const nameA = companyName(pair.a);
   const nameB = companyName(pair.b);
@@ -220,6 +223,32 @@ function CompareInner({ pair }: { pair: Pair }) {
     return alignFrom(side(a), side(b));
   }, [a, b]);
 
+  // What analysts expect of each side, on its own period toggle — the same
+  // separation the company page makes, and for the same reason: a reader
+  // flipping the history rarely means the forecast too.
+  //
+  // Deliberately NOT put through the page's B→A rate. Every other absolute
+  // figure here is converted so the two can share an axis, but these are four
+  // separate charts, each one company against its own past, and a converted
+  // revenue forecast would be the only number on the page that no analyst ever
+  // published. Each card states its own currency instead. Per-share figures
+  // never needed the rate anyway: each side converts into its own quote
+  // currency before anything is drawn.
+  const [revA, revB, epsA, epsB] = useMemo(() => {
+    const sa = a.statements;
+    const sb = b.statements;
+    const none: ReturnType<typeof revenueForecast> = [];
+    return alignReported([
+      sa ? revenueForecast(sa, fcPeriod) : none,
+      sb ? revenueForecast(sb, fcPeriod) : none,
+      sa ? epsForecast(sa, fcPeriod, quoteConverter(sa, a.company?.currency)) : none,
+      sb ? epsForecast(sb, fcPeriod, quoteConverter(sb, b.company?.currency)) : none,
+    ]);
+  }, [a, b, fcPeriod]);
+  const hasForecast = [revA, revB, epsA, epsB].some((s) =>
+    s.some((x) => x.estimate != null),
+  );
+
   const charts = converted
     ? ([
         ["company.charts.revenue", chart("revenue"), money],
@@ -283,6 +312,66 @@ function CompareInner({ pair }: { pair: Pair }) {
           </section>
           {(priceA.length > 1 || peA.length > 1) && (
             <p className="text-[11px] text-slate-400">{t("compare.priceActionNote")}</p>
+          )}
+
+          {hasForecast && (
+            <section className="space-y-3">
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-700">
+                    {t("company.forecast.title")}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    {t("company.forecast.subtitle")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {(["q", "a"] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setFcPeriod(p)}
+                      className={`rounded-full border px-3 py-1 text-xs ${
+                        fcPeriod === p
+                          ? "border-brand-300 bg-brand-50 font-medium text-brand-700"
+                          : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                      }`}
+                    >
+                      {t(p === "q" ? "company.toggle.quarterly" : "company.toggle.annual")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ForecastChart
+                  title={`${t("company.forecast.revenue")} · ${nameA}`}
+                  bars={revA}
+                  color={COLOR_A}
+                  format={(v) => formatCompact(v, ccyA)}
+                />
+                <ForecastChart
+                  title={`${t("company.forecast.revenue")} · ${nameB}`}
+                  bars={revB}
+                  color={COLOR_B}
+                  format={(v) => formatCompact(v, ccyB)}
+                />
+                <ForecastChart
+                  title={`${t("company.forecast.eps")} · ${nameA}`}
+                  bars={epsA}
+                  color={COLOR_A}
+                  format={perShare}
+                  note={t("company.forecast.adjusted")}
+                />
+                <ForecastChart
+                  title={`${t("company.forecast.eps")} · ${nameB}`}
+                  bars={epsB}
+                  color={COLOR_B}
+                  format={perShare}
+                  note={t("company.forecast.adjusted")}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400">{t("company.forecast.note")}</p>
+            </section>
           )}
 
           {charts.length > 0 && (

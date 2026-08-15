@@ -234,7 +234,7 @@ export function epsForecast(
 }
 
 /**
- * Two forecast series cut to the same number of reported periods.
+ * Forecast series cut to the same number of reported periods.
  *
  * Revenue can show eight quarters and EPS only four — the consensus dataset is
  * that shallow, and the deeper series cannot be borrowed for it without mixing
@@ -243,20 +243,22 @@ export function epsForecast(
  * the reader who wants the long revenue history has the statements grid right
  * below. The pair is worth more here than the depth.
  *
- * A series with nothing reported is left alone: it has no history to trim, and
- * cutting the other one to match would leave both empty.
+ * Takes a list rather than a pair because a head-to-head page draws four of
+ * these at once — two metrics for two companies — and trimming them pairwise
+ * would leave the grid ragged in a different way.
+ *
+ * A series with nothing reported is left alone and ignored when choosing the
+ * window: it has no history to trim, and letting it set the length would empty
+ * every other one.
  */
-export function alignReported(
-  a: ForecastBar[],
-  b: ForecastBar[],
-): [ForecastBar[], ForecastBar[]] {
+export function alignReported(series: ForecastBar[][]): ForecastBar[][] {
   const reportedCount = (bars: ForecastBar[]) =>
     bars.filter((x) => x.actual != null).length;
-  const na = reportedCount(a);
-  const nb = reportedCount(b);
-  if (na === 0 || nb === 0) return [a, b];
-  const keep = Math.min(na, nb);
-  return [a.slice(na - keep), b.slice(nb - keep)];
+  const counts = series.map(reportedCount);
+  const present = counts.filter((n) => n > 0);
+  if (present.length === 0) return series;
+  const keep = Math.min(...present);
+  return series.map((bars, i) => (counts[i] === 0 ? bars : bars.slice(counts[i] - keep)));
 }
 
 /** The first period still ahead, which is the one a reader is looking for. */

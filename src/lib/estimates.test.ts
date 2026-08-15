@@ -165,16 +165,34 @@ describe("alignReported", () => {
     estimates: [{ periodEnd: "2026-03-31", band: band(50) }],
   });
 
-  it("cuts the deeper series back to the shallower one's history", () => {
-    const [a, b] = alignReported(wide, narrow);
+  it("cuts the deeper series back to the shallowest one's history", () => {
+    const [a, b] = alignReported([wide, narrow]);
     expect(a.map((x) => x.label)).toEqual(["Q3 25", "Q4 25", "Q1 26"]);
     expect(b.map((x) => x.label)).toEqual(["Q3 25", "Q4 25", "Q1 26"]);
   });
 
   it("keeps every forecast period on both sides", () => {
-    const [a, b] = alignReported(wide, narrow);
+    const [a, b] = alignReported([wide, narrow]);
     expect(a.filter((x) => x.estimate != null)).toHaveLength(1);
     expect(b.filter((x) => x.estimate != null)).toHaveLength(1);
+  });
+
+  // A head-to-head page draws four at once; trimming them pairwise would leave
+  // the grid ragged in a different way.
+  it("puts four series on one window", () => {
+    const mid = buildForecast({
+      actuals: [
+        { periodEnd: "2025-06-30", value: 7 },
+        { periodEnd: "2025-09-30", value: 8 },
+        { periodEnd: "2025-12-31", value: 9 },
+      ],
+      estimates: [{ periodEnd: "2026-03-31", band: band(10) }],
+    });
+    const out = alignReported([wide, narrow, mid, wide]);
+    expect(out.map((s) => s.filter((x) => x.actual != null).length)).toEqual([2, 2, 2, 2]);
+    for (const s of out) {
+      expect(s[0].label).toBe("Q3 25");
+    }
   });
 
   it("leaves a series with nothing reported alone", () => {
@@ -182,7 +200,7 @@ describe("alignReported", () => {
       actuals: [],
       estimates: [{ periodEnd: "2026-03-31", band: band(5) }],
     });
-    const [a, b] = alignReported(wide, empty);
+    const [a, b] = alignReported([wide, empty]);
     expect(a).toEqual(wide);
     expect(b).toEqual(empty);
   });
