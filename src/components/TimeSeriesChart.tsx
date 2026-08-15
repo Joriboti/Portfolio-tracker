@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { axisLabel, niceTicks } from "@/lib/axis";
 
 // Hand-rolled SVG line chart (house style — no chart lib, like QuarterlyBars /
 // HistoryChart). Takes 1–2 dated series on a shared axis plus optional
@@ -27,6 +28,8 @@ const H = 150;
 const PAD_TOP = 16;
 const PAD_BOTTOM = 18;
 const PAD_X = 6;
+/** Left gutter for the value axis — see QuarterlyBars for why it earns it. */
+const AXIS_W = 30;
 /** Vertical room one reference label needs before the next can be written. */
 const LABEL_GAP = 9;
 
@@ -68,7 +71,7 @@ export function TimeSeriesChart({
   min -= pad;
   max += pad;
 
-  const x = (ms: number) => PAD_X + ((ms - t0) / tSpan) * (W - PAD_X * 2);
+  const x = (ms: number) => AXIS_W + ((ms - t0) / tSpan) * (W - AXIS_W - PAD_X);
   const y = (v: number) =>
     PAD_TOP + ((max - v) / (max - min || 1)) * (H - PAD_TOP - PAD_BOTTOM);
 
@@ -134,12 +137,34 @@ export function TimeSeriesChart({
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" role="img" aria-label={title}>
+        {/* value axis: a gridline per round number, labelled in the gutter */}
+        {niceTicks(min, max).map((v) => (
+          <g key={`tick-${v}`}>
+            <line
+              x1={AXIS_W}
+              x2={W - PAD_X}
+              y1={y(v)}
+              y2={y(v)}
+              stroke="#eef2f7"
+              strokeWidth={0.8}
+            />
+            <text
+              x={AXIS_W - 4}
+              y={y(v) + 2.6}
+              textAnchor="end"
+              fontSize={7.5}
+              fill="#b6c2d1"
+            >
+              {axisLabel(v)}
+            </text>
+          </g>
+        ))}
         {/* Benchmarks under the data — they are the backdrop it is read
             against, not part of it. */}
         {refLines.map((r) => (
           <line
             key={r.label}
-            x1={PAD_X}
+            x1={AXIS_W}
             x2={W - PAD_X}
             y1={y(r.value)}
             y2={y(r.value)}
@@ -172,10 +197,8 @@ export function TimeSeriesChart({
             {r.label} {format(r.value)}
           </text>
         ))}
-        <text x={PAD_X} y={9} fontSize={8.5} fill="#94a3b8">
-          {format(max)}
-        </text>
-        <text x={PAD_X} y={H - 6} fontSize={8.5} fill="#94a3b8">
+        {/* The scale is on the axis now; these two are the time span. */}
+        <text x={AXIS_W} y={H - 6} fontSize={8.5} fill="#94a3b8">
           {firstYear}
         </text>
         <text x={W - PAD_X} y={H - 6} textAnchor="end" fontSize={8.5} fill="#94a3b8">

@@ -223,7 +223,7 @@
       "yoy": "interanual",
       "adjusted": "beneficio ajustado",
       "note": "Consenso de analistas de Yahoo Finance. La barra discontinua es la media y el bigote va del analista más bajo al más alto. En los periodos ya publicados, la raya verde o roja marca lo que se esperaba: por debajo de la barra significa que la empresa superó las previsiones. El BPA se mide sobre beneficio ajustado, que es la base sobre la que los analistas hacen sus estimaciones y no coincide con el beneficio contable de los estados financieros.",
-      "projectionNote": "Los analistas solo publican cifras para el ejercicio en curso y el siguiente. Los años punteados no los publica nadie: son el último año de consenso llevado hacia adelante, el BPA a la tasa de crecimiento a largo plazo del consenso y los ingresos al ritmo que implican los dos años publicados. Por eso no llevan rango: el bigote es un desacuerdo real entre analistas y aquí no habría ninguno."
+      "projectionNote": "Los analistas solo publican cifras para el ejercicio en curso y el siguiente. Los años punteados no los publica nadie: son el último año de consenso llevado hacia adelante al ritmo de crecimiento que implican los dos años publicados. (Cuando hay tasa de crecimiento a largo plazo del consenso, el BPA la usa en su lugar, pero Yahoo hace tiempo que no la da.) Por eso no llevan rango: el bigote es un desacuerdo real entre analistas y aquí no habría ninguno. Cuanto más lejos, menos vale: el quinto año es aritmética, no una previsión."
     },
     "insights": {
       "title": "Análisis cualitativo",

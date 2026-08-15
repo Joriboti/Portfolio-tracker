@@ -13,8 +13,9 @@ export default {
           "Roboto",
           "sans-serif",
         ],
-        // Rounded display sans for headings — the brand's Capstone-style voice.
-        display: ['"Fredoka"', "ui-rounded", '"Segoe UI"', "system-ui", "sans-serif"],
+        // Display sans for headings. Satoshi: geometric, tight, no rounded
+        // terminals — the register a page of somebody's savings should be in.
+        display: ['"Satoshi"', '"Plus Jakarta Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
       },
       boxShadow: {
         card: "0 1px 2px rgba(122,86,32,0.05), 0 18px 42px -24px rgba(122,86,32,0.30)",

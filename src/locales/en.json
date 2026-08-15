@@ -223,7 +223,7 @@
       "yoy": "year on year",
       "adjusted": "adjusted earnings",
       "note": "Analyst consensus from Yahoo Finance. The dashed bar is the average and the whisker runs from the lowest analyst to the highest. On periods already reported, the green or red line marks what had been expected: below the bar means the company beat it. EPS is measured on an adjusted basis, which is what analysts forecast against and is not the accounting profit in the statements.",
-      "projectionNote": "Analysts publish figures for this fiscal year and the next one only. Nobody publishes the dotted years: they are the last consensus year carried forward — EPS at the consensus long-term growth rate, revenue at the pace the two published years imply. That is why they carry no range: a whisker is a real disagreement between analysts, and here there would be none."
+      "projectionNote": "Analysts publish figures for this fiscal year and the next one only. Nobody publishes the dotted years: they are the last consensus year carried forward at the growth the two published years imply. (Where a consensus long-term growth rate exists, EPS uses that instead — Yahoo stopped supplying it a while ago.) That is why they carry no range: a whisker is a real disagreement between analysts, and here there would be none. The further out, the less it is worth: year five is arithmetic, not a forecast."
     },
     "insights": {
       "title": "Qualitative analysis",

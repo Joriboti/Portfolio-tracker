@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { axisLabel, niceTicks, unitFrom } from "@/lib/axis";
 
 // Hand-rolled SVG bar chart for the company dashboard (house style — no chart
 // lib, like HistoryChart / DividendsCard). Supports 1–2 series, grouped or
@@ -17,6 +18,16 @@ const H = 130;
 const PAD_TOP = 14;
 const PAD_BOTTOM = 18;
 const PAD_X = 6;
+/**
+ * Left gutter for the value axis.
+ *
+ * These charts used to print one number — the top of the scale — in the corner,
+ * which told you the tallest bar and nothing about any other one. A bar two
+ * thirds as high could be two thirds of it or, on a scale that does not start
+ * at zero, very nearly all of it. Three labelled gridlines cost a strip of
+ * width and turn every bar into a figure you can read off.
+ */
+const AXIS_W = 34;
 
 export function QuarterlyBars({
   title,
@@ -90,7 +101,10 @@ export function QuarterlyBars({
   const y = (v: number) => PAD_TOP + ((max - v) / (max - min)) * plotH;
   const zeroY = y(0);
 
-  const slot = (W - PAD_X * 2) / n;
+  const x0Axis = AXIS_W;
+  const plotW = W - x0Axis - PAD_X;
+  const ticks = niceTicks(min, max);
+  const slot = plotW / n;
   const groupGap = Math.min(6, slot * 0.25);
   const groupW = slot - groupGap;
   const perBarW = stacked || series.length === 1 ? groupW : groupW / series.length;
@@ -153,10 +167,32 @@ export function QuarterlyBars({
         role="img"
         aria-label={title}
       >
-        {/* zero line */}
-        <line x1={PAD_X} x2={W - PAD_X} y1={zeroY} y2={zeroY} stroke="#e2e8f0" strokeWidth={1} />
+        {/* value axis: a gridline per round number, labelled in the gutter */}
+        {ticks.map((v) => (
+          <g key={`tick-${v}`}>
+            <line
+              x1={x0Axis}
+              x2={W - PAD_X}
+              y1={y(v)}
+              y2={y(v)}
+              stroke="#eef2f7"
+              strokeWidth={0.8}
+            />
+            <text
+              x={x0Axis - 4}
+              y={y(v) + 2.6}
+              textAnchor="end"
+              fontSize={7.5}
+              fill="#b6c2d1"
+            >
+              {axisLabel(v)}
+            </text>
+          </g>
+        ))}
+        {/* zero line, drawn over the grid — it is where the bars stand */}
+        <line x1={x0Axis} x2={W - PAD_X} y1={zeroY} y2={zeroY} stroke="#e2e8f0" strokeWidth={1} />
         {labels.map((label, i) => {
-          const x0 = PAD_X + i * slot + groupGap / 2;
+          const x0 = x0Axis + i * slot + groupGap / 2;
           let stackUp = 0;
           let stackDown = 0;
           return (
@@ -216,7 +252,7 @@ export function QuarterlyBars({
         {/* consensus ghost bar: outlined, never filled — reads as "not reported" */}
         {est &&
           (() => {
-            const x0 = PAD_X + labels.length * slot + groupGap / 2;
+            const x0 = x0Axis + labels.length * slot + groupGap / 2;
             const by = est.value >= 0 ? y(est.value) : zeroY;
             const bh = Math.abs(y(est.value) - zeroY);
             const color = series[0].color;
@@ -248,10 +284,12 @@ export function QuarterlyBars({
               </g>
             );
           })()}
-        {/* max marker */}
-        <text x={PAD_X} y={9} fontSize={8.5} fill="#94a3b8">
-          {format(max)}
-        </text>
+        {/* The unit the axis numbers are in, stated once. */}
+        {unitFrom(format) && (
+          <text x={2} y={8} fontSize={7.5} fill="#b6c2d1">
+            {unitFrom(format)}
+          </text>
+        )}
       </svg>
     </div>
   );

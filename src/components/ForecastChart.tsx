@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { nextEstimate, type ForecastBar } from "@/lib/estimates";
+import { axisLabel, niceTicks, unitFrom } from "@/lib/axis";
 import { formatSignedPct } from "@/lib/statements";
 
 // Hand-rolled SVG forecast chart (house style — no chart lib, like
@@ -24,6 +25,8 @@ const H = 158;
 const PAD_TOP = 16;
 const PAD_BOTTOM = 20;
 const PAD_X = 7;
+/** Left gutter for the value axis — see QuarterlyBars for why it earns it. */
+const AXIS_W = 36;
 
 export function ForecastChart({
   title,
@@ -70,10 +73,12 @@ export function ForecastChart({
   const plotH = H - PAD_TOP - PAD_BOTTOM;
   const y = (v: number) => PAD_TOP + ((max - v) / (max - min)) * plotH;
   const zeroY = y(0);
-  const slot = (W - PAD_X * 2) / n;
+  const ticks = niceTicks(min, max);
+  const plotW = W - AXIS_W - PAD_X;
+  const slot = plotW / n;
   const gap = Math.min(6, slot * 0.28);
   const barW = slot - gap;
-  const center = (i: number) => PAD_X + i * slot + slot / 2;
+  const center = (i: number) => AXIS_W + i * slot + slot / 2;
 
   const firstEstimate = bars.findIndex((b) => b.estimate != null);
   const step = Math.max(1, Math.ceil(n / 8));
@@ -136,8 +141,30 @@ export function ForecastChart({
         role="img"
         aria-label={title}
       >
+        {/* value axis: a gridline per round number, labelled in the gutter */}
+        {ticks.map((v) => (
+          <g key={`tick-${v}`}>
+            <line
+              x1={AXIS_W}
+              x2={W - PAD_X}
+              y1={y(v)}
+              y2={y(v)}
+              stroke="#eef2f7"
+              strokeWidth={0.8}
+            />
+            <text
+              x={AXIS_W - 4}
+              y={y(v) + 2.6}
+              textAnchor="end"
+              fontSize={7.5}
+              fill="#b6c2d1"
+            >
+              {axisLabel(v)}
+            </text>
+          </g>
+        ))}
         <line
-          x1={PAD_X}
+          x1={AXIS_W}
           x2={W - PAD_X}
           y1={zeroY}
           y2={zeroY}
@@ -148,8 +175,8 @@ export function ForecastChart({
         {/* where the record stops and the opinion starts */}
         {firstEstimate > 0 && (
           <line
-            x1={PAD_X + firstEstimate * slot}
-            x2={PAD_X + firstEstimate * slot}
+            x1={AXIS_W + firstEstimate * slot}
+            x2={AXIS_W + firstEstimate * slot}
             y1={PAD_TOP - 6}
             y2={H - PAD_BOTTOM + 4}
             stroke="#cbd5e1"
@@ -256,9 +283,12 @@ export function ForecastChart({
           );
         })}
 
-        <text x={PAD_X} y={9} fontSize={8.5} fill="#94a3b8">
-          {format(max)}
-        </text>
+        {/* The unit the axis numbers are in, stated once. */}
+        {unitFrom(format) && (
+          <text x={2} y={8} fontSize={7.5} fill="#b6c2d1">
+            {unitFrom(format)}
+          </text>
+        )}
       </svg>
 
       <p className="mt-0.5 text-[11px] text-slate-400">
