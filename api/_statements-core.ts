@@ -279,6 +279,14 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
       )
       .sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
 
+    // The long-term growth consensus ("+5y"), which is the only thing published
+    // about the years past the next one. Analysts put out a revenue and EPS
+    // number for this fiscal year and the following one and nothing further, so
+    // a five-year forecast chart cannot be drawn from estimates alone. This
+    // rate is what lets the display layer carry the last consensus year forward
+    // — clearly as a projection, never as a consensus.
+    const longTermGrowth = num(trend.find((t) => t.period === "+5y")?.growth);
+
     // What the last four quarters were expected to earn, and what they did.
     //
     // The reported EPS here is NOT the one in the statements above: consensus
@@ -317,7 +325,7 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
       estimates,
       /** Already in the quote currency — see estScale above. */
       annualEstimates,
-      forecast: { epsScale: estScale, periods, epsHistory },
+      forecast: { epsScale: estScale, longTermGrowth, periods, epsHistory },
       // The currency the statements below are actually filed in. Usually the
       // quote currency, but NOT for ADRs: TSM quotes in USD and reports in TWD,
       // TM in JPY, NVO in DKK. Anything comparing or converting these figures

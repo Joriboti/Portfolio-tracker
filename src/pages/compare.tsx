@@ -31,6 +31,7 @@ import {
 } from "@/lib/statements";
 import { QuarterlyBars } from "@/components/QuarterlyBars";
 import { ForecastChart } from "@/components/ForecastChart";
+import { ChartModal } from "@/components/ChartModal";
 import { alignReported, epsForecast, revenueForecast } from "@/lib/estimates";
 import { TimeSeriesChart } from "@/components/TimeSeriesChart";
 import {
@@ -51,6 +52,9 @@ import { withLocale, localeFromPath, SITE_ORIGIN } from "@/lib/locale";
 
 const COLOR_A = "#d1550f"; // brand-600
 const COLOR_B = "#0ea5e9";
+
+/** The four forecast cards, in the order they are laid out. */
+const FORECAST_CARDS = ["revA", "revB", "epsA", "epsB"] as const;
 
 type Side = { company: LiveCompany | null; statements: CompanyStatements | null };
 
@@ -119,6 +123,7 @@ function CompareInner({ pair }: { pair: Pair }) {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<"q" | "a">("q");
   const [fcPeriod, setFcPeriod] = useState<"q" | "a">("q");
+  const [fcOpen, setFcOpen] = useState<(typeof FORECAST_CARDS)[number] | null>(null);
 
   const nameA = companyName(pair.a);
   const nameB = companyName(pair.b);
@@ -249,6 +254,27 @@ function CompareInner({ pair }: { pair: Pair }) {
     s.some((x) => x.estimate != null),
   );
 
+  // One definition per card, rendered either in the grid (clickable) or in the
+  // modal (already big — no second zoom affordance).
+  const forecastCard = (which: (typeof FORECAST_CARDS)[number], onExpand?: () => void) => {
+    const cfg = {
+      revA: { bars: revA, color: COLOR_A, name: nameA, eps: false, ccy: ccyA },
+      revB: { bars: revB, color: COLOR_B, name: nameB, eps: false, ccy: ccyB },
+      epsA: { bars: epsA, color: COLOR_A, name: nameA, eps: true, ccy: ccyA },
+      epsB: { bars: epsB, color: COLOR_B, name: nameB, eps: true, ccy: ccyB },
+    }[which];
+    return (
+      <ForecastChart
+        title={`${t(cfg.eps ? "company.forecast.eps" : "company.forecast.revenue")} · ${cfg.name}`}
+        bars={cfg.bars}
+        color={cfg.color}
+        format={cfg.eps ? perShare : (v) => formatCompact(v, cfg.ccy)}
+        note={cfg.eps ? t("company.forecast.adjusted") : undefined}
+        onExpand={onExpand}
+      />
+    );
+  };
+
   const charts = converted
     ? ([
         ["company.charts.revenue", chart("revenue"), money],
@@ -343,34 +369,19 @@ function CompareInner({ pair }: { pair: Pair }) {
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <ForecastChart
-                  title={`${t("company.forecast.revenue")} · ${nameA}`}
-                  bars={revA}
-                  color={COLOR_A}
-                  format={(v) => formatCompact(v, ccyA)}
-                />
-                <ForecastChart
-                  title={`${t("company.forecast.revenue")} · ${nameB}`}
-                  bars={revB}
-                  color={COLOR_B}
-                  format={(v) => formatCompact(v, ccyB)}
-                />
-                <ForecastChart
-                  title={`${t("company.forecast.eps")} · ${nameA}`}
-                  bars={epsA}
-                  color={COLOR_A}
-                  format={perShare}
-                  note={t("company.forecast.adjusted")}
-                />
-                <ForecastChart
-                  title={`${t("company.forecast.eps")} · ${nameB}`}
-                  bars={epsB}
-                  color={COLOR_B}
-                  format={perShare}
-                  note={t("company.forecast.adjusted")}
-                />
+                {FORECAST_CARDS.map((k) => (
+                  <Fragment key={k}>{forecastCard(k, () => setFcOpen(k))}</Fragment>
+                ))}
               </div>
-              <p className="text-[11px] text-slate-400">{t("company.forecast.note")}</p>
+              <p className="text-[11px] text-slate-400">
+                {t("company.forecast.note")}
+                {fcPeriod === "a" && ` ${t("company.forecast.projectionNote")}`}
+              </p>
+              {fcOpen && (
+                <ChartModal onClose={() => setFcOpen(null)}>
+                  {forecastCard(fcOpen)}
+                </ChartModal>
+              )}
             </section>
           )}
 

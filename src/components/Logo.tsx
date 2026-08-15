@@ -116,6 +116,27 @@ export function PageLoading() {
   );
 }
 
+/**
+ * The same compass, sized for a wait INSIDE a page rather than instead of one.
+ *
+ * A section fetching its own data was showing a bare line of text while the
+ * route transition next to it showed the mark hunting for north, so the same
+ * wait looked like two different things depending on which one you triggered.
+ * No fade delay here: unlike a route change, these fetches are never fast
+ * enough for a spinner to flash in and straight back out.
+ */
+export function InlineLoading({ label }: { label: string }) {
+  return (
+    <div
+      className="flex items-center justify-center gap-2.5 py-8 text-sm text-slate-400"
+      role="status"
+    >
+      <Logo className="h-5 w-5" spinning label={label} />
+      <span>{label}</span>
+    </div>
+  );
+}
+
 /** TrimmTrack wordmark — serif logotype, two-tone with the brand accent. */
 export function Wordmark({
   className = "",

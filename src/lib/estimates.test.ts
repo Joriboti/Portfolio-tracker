@@ -239,8 +239,40 @@ describe("revenueForecast", () => {
 
   it("reads the annual rows against the annual consensus", () => {
     const bars = revenueForecast(data, "a");
-    expect(bars.map((b) => b.label)).toEqual(["2024", "2025", "2026", "2027"]);
-    expect(bars.map((b) => b.estimate?.avg ?? null)).toEqual([null, null, 430, 470]);
+    expect(bars.map((b) => b.label)).toEqual([
+      "2024",
+      "2025",
+      "2026",
+      "2027",
+      "2028",
+      "2029",
+      "2030",
+    ]);
+    const published = bars.filter((b) => b.estimate != null && !b.projected);
+    expect(published.map((b) => b.estimate!.avg)).toEqual([430, 470]);
+  });
+
+  // Analysts publish two years. A five-year chart needs three more, and those
+  // three must never be mistaken for the two.
+  it("carries revenue forward at the growth its published years imply", () => {
+    const bars = revenueForecast(data, "a");
+    const projected = bars.filter((b) => b.projected);
+    expect(projected).toHaveLength(3);
+    const g = 470 / 430 - 1;
+    expect(projected[0].estimate!.avg).toBeCloseTo(470 * (1 + g), 6);
+    expect(projected[2].estimate!.avg).toBeCloseTo(470 * (1 + g) ** 3, 6);
+  });
+
+  it("gives a projection no analyst range, because there is no disagreement", () => {
+    for (const b of revenueForecast(data, "a").filter((x) => x.projected)) {
+      expect(b.estimate!.low).toBeNull();
+      expect(b.estimate!.high).toBeNull();
+      expect(b.estimate!.analysts).toBeNull();
+    }
+  });
+
+  it("projects nothing onto the quarterly axis", () => {
+    expect(revenueForecast(data, "q").some((b) => b.projected)).toBe(false);
   });
 
   it("finds the next period ahead, which is the one a reader wants", () => {
@@ -308,9 +340,43 @@ describe("epsForecast", () => {
       annual: [row("2024-12-31", { eps: 8 }), row("2025-12-31", { eps: 9.5 })],
     });
     const bars = epsForecast(data, "a");
-    expect(bars.map((b) => b.label)).toEqual(["2024", "2025", "2026"]);
+    expect(bars.slice(0, 3).map((b) => b.label)).toEqual(["2024", "2025", "2026"]);
     expect(bars.every((b) => b.consensus == null)).toBe(true);
     expect(bars[2].estimate?.avg).toBe(11);
+    expect(bars[2].projected).toBeFalsy();
+  });
+
+  // EPS is carried forward on the long-term EARNINGS growth consensus, which
+  // is a different number from the pace revenue is expected to grow at.
+  it("carries EPS forward at the long-term growth consensus", () => {
+    const data = statements({
+      panel: {
+        ...panel,
+        forecast: { ...panel.forecast, longTermGrowth: 0.1 },
+      },
+      annual: [row("2025-12-31", { eps: 9.5 })],
+    });
+    const projected = epsForecast(data, "a").filter((b) => b.projected);
+    expect(projected).toHaveLength(4);
+    expect(projected[0].estimate!.avg).toBeCloseTo(11 * 1.1, 6);
+    expect(projected[3].estimate!.avg).toBeCloseTo(11 * 1.1 ** 4, 6);
+  });
+
+  it("refuses to compound a loss into a forecast", () => {
+    const data = statements({
+      panel: {
+        ...panel,
+        forecast: {
+          ...panel.forecast,
+          longTermGrowth: 0.1,
+          periods: [
+            { period: "0y", periodEnd: "2026-12-31", eps: band(-2), revenue: null },
+          ],
+        },
+      },
+      annual: [row("2025-12-31", { eps: -3 })],
+    });
+    expect(epsForecast(data, "a").some((b) => b.projected)).toBe(false);
   });
 
   it("converts an ADR's filings and scales its estimates into the quote currency", () => {

@@ -105,6 +105,15 @@ export function ForecastChart({
             />
             {t("company.forecast.estimate")}
           </span>
+          {bars.some((b) => b.projected) && (
+            <span className="flex items-center gap-1">
+              <span
+                className="inline-block h-2 w-2 rounded-[2px] border border-dotted opacity-50"
+                style={{ borderColor: color }}
+              />
+              {t("company.forecast.projection")}
+            </span>
+          )}
           {onExpand && (
             <button
               type="button"
@@ -156,6 +165,7 @@ export function ForecastChart({
           const by = value >= 0 ? y(value) : zeroY;
           const bh = Math.max(0.5, Math.abs(y(value) - zeroY));
           const forecast = b.actual == null;
+          const projected = !!b.projected;
           const beat = b.surprise != null && b.surprise >= 0;
           return (
             <g key={`${b.periodEnd}-${i}`}>
@@ -166,14 +176,19 @@ export function ForecastChart({
                 height={bh}
                 rx={1.5}
                 fill={color}
-                fillOpacity={forecast ? 0.14 : 0.9}
+                fillOpacity={projected ? 0.06 : forecast ? 0.14 : 0.9}
                 stroke={forecast ? color : "none"}
                 strokeWidth={forecast ? 1 : 0}
-                strokeDasharray={forecast ? "2 1.5" : undefined}
+                strokeOpacity={projected ? 0.45 : 1}
+                strokeDasharray={projected ? "1 2" : forecast ? "2 1.5" : undefined}
               >
                 <title>
                   {forecast
-                    ? `${b.label} · ${t("company.forecast.estimate")}: ${format(value)}${
+                    ? `${b.label} · ${t(
+                        projected
+                          ? "company.forecast.projection"
+                          : "company.forecast.estimate",
+                      )}: ${format(value)}${
                         b.estimate?.low != null && b.estimate?.high != null
                           ? ` (${format(b.estimate.low)} – ${format(b.estimate.high)})`
                           : ""
@@ -232,7 +247,7 @@ export function ForecastChart({
                   y={H - 6}
                   textAnchor="middle"
                   fontSize={8.5}
-                  fill={forecast ? "#cbd5e1" : "#94a3b8"}
+                  fill={projected ? "#e2e8f0" : forecast ? "#cbd5e1" : "#94a3b8"}
                 >
                   {b.label}
                 </text>

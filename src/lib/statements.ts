@@ -96,6 +96,13 @@ export type PanelExtras = {
      * currencies differ.
      */
     epsScale: number | null;
+    /**
+     * The "+5y" long-term growth consensus. Analysts publish figures for this
+     * fiscal year and the next one and nothing beyond, so this rate is the only
+     * published thing a longer forecast can be built on. Absent on older cached
+     * responses.
+     */
+    longTermGrowth?: number | null;
     periods: ForecastPeriod[];
     epsHistory: EpsSurpriseRow[];
   };

@@ -34,6 +34,13 @@ export type ForecastBar = {
   consensus: number | null;
   /** (actual − consensus) / |consensus|, or null when either side is missing. */
   surprise: number | null;
+  /**
+   * True when nobody published this figure: it is the last consensus year
+   * carried forward at a growth rate. Drawn differently and labelled
+   * differently — a projection is not an estimate, and the chart must not let
+   * the two be read as the same kind of claim.
+   */
+  projected?: boolean;
 };
 
 const DAY = 24 * 3600 * 1000;
@@ -61,7 +68,7 @@ function daysApart(a: string, b: string): number {
  */
 export function buildForecast(input: {
   actuals: Array<{ periodEnd: string; value: number }>;
-  estimates: Array<{ periodEnd: string; band: EstimateBand }>;
+  estimates: Array<{ periodEnd: string; band: EstimateBand; projected?: boolean }>;
   consensusHistory?: Array<{ periodEnd: string; estimate: number | null }>;
   annual?: boolean;
   /** Reported periods to keep, newest-first. Older ones are the trend chart's job. */
@@ -111,9 +118,74 @@ export function buildForecast(input: {
       estimate: e.band,
       consensus: null,
       surprise: null,
+      projected: e.projected,
     });
   }
   return bars;
+}
+
+/**
+ * How many fiscal years a forecast chart should reach. Analysts publish two;
+ * the rest are carried forward at the long-term rate, which is what makes the
+ * difference between the two kinds of bar worth drawing.
+ */
+const FORECAST_YEARS = 5;
+
+/** A year end shifted forward by n years, keeping month and day. */
+function plusYears(periodEnd: string, n: number): string {
+  const d = new Date(periodEnd);
+  d.setUTCFullYear(d.getUTCFullYear() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * The years past the published consensus, compounded off its last one.
+ *
+ * `rate` is the long-term growth consensus where there is one. Where there
+ * isn't, the growth the two published years imply between them is used
+ * instead — a company expected to go from 8 to 9 is not carried forward flat
+ * just because nobody wrote down a five-year number. Nothing is projected at
+ * all without one of the two, and never from a negative base: compounding a
+ * loss produces a curve that means nothing.
+ *
+ * No low/high on these. The spread on a consensus bar is a real disagreement
+ * between real analysts; inventing one here would dress a projection up as the
+ * thing it is standing in for.
+ */
+function projectYears(
+  published: Array<{ periodEnd: string; band: EstimateBand }>,
+  rate: number | null,
+): Array<{ periodEnd: string; band: EstimateBand }> {
+  if (published.length === 0) return [];
+  const sorted = [...published].sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
+  const last = sorted[sorted.length - 1];
+  if (last.band.avg <= 0) return [];
+
+  let g = rate;
+  if (g == null && sorted.length >= 2) {
+    const prev = sorted[sorted.length - 2].band.avg;
+    if (prev > 0) g = last.band.avg / prev - 1;
+  }
+  if (g == null || !Number.isFinite(g)) return [];
+  // A projection is a shape, not a forecast of a boom. Rates outside this band
+  // compound into figures nobody would defend by year five.
+  g = Math.max(-0.5, Math.min(0.6, g));
+
+  const out: Array<{ periodEnd: string; band: EstimateBand }> = [];
+  const need = FORECAST_YEARS - sorted.length;
+  for (let i = 1; i <= need; i++) {
+    out.push({
+      periodEnd: plusYears(last.periodEnd, i),
+      band: {
+        avg: last.band.avg * Math.pow(1 + g, i),
+        low: null,
+        high: null,
+        analysts: null,
+        growth: g,
+      },
+    });
+  }
+  return out;
 }
 
 /** The trend rows for one period type, as the builder wants them. */
@@ -164,9 +236,19 @@ export function revenueForecast(
   period: "q" | "a",
 ): ForecastBar[] {
   const annual = period === "a";
+  const published = bands(data, annual, "revenue");
   return buildForecast({
     actuals: reported(annual ? data.annual : data.quarters, "revenue"),
-    estimates: bands(data, annual, "revenue"),
+    // Revenue is carried forward on the growth its own two consensus years
+    // imply, not on the long-term rate — that one is an EARNINGS growth
+    // consensus, and a company can grow its profits faster than its sales for
+    // years on end.
+    estimates: annual
+      ? [
+          ...published,
+          ...projectYears(published, null).map((p) => ({ ...p, projected: true })),
+        ]
+      : published,
     annual,
   });
 }
@@ -226,9 +308,15 @@ export function epsForecast(
     if (rate == null) continue;
     actuals.push({ periodEnd: r.periodEnd, value: eps * rate });
   }
+  const published = bands(data, true, "eps", scale);
   return buildForecast({
     actuals,
-    estimates: bands(data, true, "eps", scale),
+    estimates: [
+      ...published,
+      ...projectYears(published, data.panel?.forecast?.longTermGrowth ?? null).map(
+        (p) => ({ ...p, projected: true }),
+      ),
+    ],
     annual: true,
   });
 }

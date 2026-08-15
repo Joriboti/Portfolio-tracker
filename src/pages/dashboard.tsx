@@ -41,6 +41,7 @@ import { HistoryChart } from "@/components/HistoryChart";
 import { ScenarioValuation } from "@/components/ScenarioValuation";
 import { CompanyOverview } from "@/components/CompanyOverview";
 import { CompanyLogo } from "@/components/CompanyLogo";
+import { PageLoading } from "@/components/Logo";
 import { PortfolioVerifier } from "@/components/PortfolioVerifier";
 import { TickerRenameDialog } from "@/components/TickerRenameDialog";
 
@@ -367,11 +368,7 @@ function DashboardInner() {
     setRemoved((prev) => prev.slice(0, -1));
   }
 
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-10">{t("common.loading")}</div>
-    );
-  }
+  if (loading) return <PageLoading />;
 
   if (error) {
     return (
@@ -667,7 +664,6 @@ function DashboardInner() {
 }
 
 export function DashboardPage() {
-  const { t } = useTranslation();
   const { user, isPending } = useUser();
   const [carrying, setCarrying] = useState(false);
 
@@ -686,13 +682,11 @@ export function DashboardPage() {
       });
   }, [user]);
 
-  if (isPending || carrying) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-10 text-slate-500">
-        {t("common.loading")}
-      </div>
-    );
-  }
+  // The wait a refresh actually lands on: the session has to be fetched again
+  // before we know whether this is the real dashboard or the trial one. It
+  // showed a bare line of text while a route change one click away showed the
+  // compass, so the same wait looked like two different things.
+  if (isPending || carrying) return <PageLoading />;
   // No account → the public trial dashboard. Signed in → the real thing.
   return user ? <DashboardInner /> : <TrialDashboard />;
 }

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 // Hand-rolled SVG line chart (house style — no chart lib, like QuarterlyBars /
 // HistoryChart). Takes 1–2 dated series on a shared axis plus optional
 // horizontal reference lines, which is what the P/E charts need: a company's
@@ -34,13 +36,18 @@ export function TimeSeriesChart({
   refLines = [],
   format,
   legend = true,
+  onExpand,
 }: {
   title: string;
   series: LineSeries[];
   refLines?: RefLine[];
   format: (v: number) => string;
   legend?: boolean;
+  /** When set, a ⤢ button appears and clicking the card enlarges it. */
+  onExpand?: () => void;
 }) {
+  const { t } = useTranslation();
+  const expandLabel = t("company.expandChart");
   const withData = series.filter((s) => s.points.length > 1);
   if (withData.length === 0) return null;
 
@@ -93,12 +100,15 @@ export function TimeSeriesChart({
   }
 
   return (
-    <div className="card">
+    <div
+      className={`card ${onExpand ? "cursor-zoom-in transition-shadow hover:shadow-card-hover" : ""}`}
+      onClick={onExpand}
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h3 className="text-sm font-medium text-slate-700">{title}</h3>
-        {legend && (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {withData.map((s) => (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {legend &&
+            withData.map((s) => (
               <span key={s.name} className="flex items-center gap-1.5 text-[11px] text-slate-500">
                 <span className="h-2 w-2 rounded-sm" style={{ background: s.color }} />
                 {s.name}
@@ -107,8 +117,20 @@ export function TimeSeriesChart({
                 </span>
               </span>
             ))}
-          </div>
-        )}
+          {onExpand && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onExpand();
+              }}
+              className="text-[10px] text-slate-300 hover:text-brand-600"
+              aria-label={expandLabel}
+            >
+              ⤢
+            </button>
+          )}
+        </div>
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" role="img" aria-label={title}>

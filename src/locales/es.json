@@ -187,11 +187,11 @@
       "forwardTitle": "Cómo ha cotizado el año que viene",
       "trailing": "PER (12 meses)",
       "forward": "PER previsto",
-      "marketMedian": "Mediana del mercado",
+      "ownMean": "Media propia",
       "ownMedian": "Mediana propia",
       "note": "Precio de cada semana dividido por el beneficio por acción ya publicado en esa fecha: cuatro trimestres cuando la empresa los publica y, si no, el último ejercicio completo. Las semanas con pérdidas no se dibujan.",
       "forwardNote": "Precio de cada semana dividido por el beneficio del ejercicio que aún tenía por delante. Esos ejercicios ya han pasado, así que es el múltiplo pagado contra la cifra que acabó saliendo: nadie guarda lo que esperaban los analistas entonces. El tramo final usa el consenso de hoy.",
-      "medianOf": "Mediana sobre {{count}} empresas cubiertas."
+      "centresNote": "Las dos líneas son de la misma empresa: la mediana es donde ha cotizado la mitad de las semanas, y la media donde la arrastran los extremos. Cuando la media queda muy por encima de la mediana significa que las valoraciones altas fueron puntuales, no habituales."
     },
     "charts": {
       "price": "Precio (5 años)",
@@ -216,12 +216,14 @@
       "eps": "BPA previsto",
       "reported": "Publicado",
       "estimate": "Estimación",
+      "projection": "Proyección",
       "expected": "se esperaba",
       "analysts": "Consenso de {{count}} analistas para {{period}}",
       "consensusOn": "Consenso para {{period}}",
       "yoy": "interanual",
       "adjusted": "beneficio ajustado",
-      "note": "Consenso de analistas de Yahoo Finance. La barra discontinua es la media y el bigote va del analista más bajo al más alto. En los periodos ya publicados, la raya verde o roja marca lo que se esperaba: por debajo de la barra significa que la empresa superó las previsiones. El BPA se mide sobre beneficio ajustado, que es la base sobre la que los analistas hacen sus estimaciones y no coincide con el beneficio contable de los estados financieros."
+      "note": "Consenso de analistas de Yahoo Finance. La barra discontinua es la media y el bigote va del analista más bajo al más alto. En los periodos ya publicados, la raya verde o roja marca lo que se esperaba: por debajo de la barra significa que la empresa superó las previsiones. El BPA se mide sobre beneficio ajustado, que es la base sobre la que los analistas hacen sus estimaciones y no coincide con el beneficio contable de los estados financieros.",
+      "projectionNote": "Los analistas solo publican cifras para el ejercicio en curso y el siguiente. Los años punteados no los publica nadie: son el último año de consenso llevado hacia adelante, el BPA a la tasa de crecimiento a largo plazo del consenso y los ingresos al ritmo que implican los dos años publicados. Por eso no llevan rango: el bigote es un desacuerdo real entre analistas y aquí no habría ninguno."
     },
     "insights": {
       "title": "Análisis cualitativo",

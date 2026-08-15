@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  getMarketMedianPe,
-  getStatements,
-  type LiveCompany,
-  type MarketMedianPe,
-} from "@/lib/api";
+import { getStatements, type LiveCompany } from "@/lib/api";
 import {
   epsPoints,
   forwardEpsPoints,
@@ -33,6 +28,8 @@ import { QuarterlyBars, type BarSeries } from "@/components/QuarterlyBars";
 import { ForecastChart } from "@/components/ForecastChart";
 import { alignReported, epsForecast, revenueForecast } from "@/lib/estimates";
 import { CompanyInsights } from "@/components/CompanyInsights";
+import { ChartModal } from "@/components/ChartModal";
+import { InlineLoading } from "@/components/Logo";
 
 // "Resum" tab of /explore/:ticker — Qualtrim-style company overview: stat
 // panels (Valuation / Cash Flow / Margins & Growth / Balance / Dividend) over
@@ -64,19 +61,6 @@ export function CompanyOverview({ company }: { company: LiveCompany }) {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [period, setPeriod] = useState<"q" | "a">("q");
-  // The market benchmark for the rating chart. Best-effort and cached for a
-  // day at the CDN, so it costs nothing per view and its absence only removes
-  // a dashed line.
-  const [marketPe, setMarketPe] = useState<MarketMedianPe | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    void getMarketMedianPe().then((m) => {
-      if (!cancelled) setMarketPe(m);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -207,15 +191,13 @@ export function CompanyOverview({ company }: { company: LiveCompany }) {
       </div>
 
       {/* ───────── Rating: what the market pays for these earnings ───────── */}
-      {data && <PeCharts data={data} marketPe={marketPe} quoteCcy={ccy} />}
+      {data && <PeCharts data={data} quoteCcy={ccy} />}
 
       {/* ───────── What analysts expect next ───────── */}
       {data && <ForecastSection data={data} quoteCcy={ccy} />}
 
       {/* ───────── Charts grid ───────── */}
-      {loading && (
-        <p className="text-sm text-slate-500">{t("company.loading")}</p>
-      )}
+      {loading && <InlineLoading label={t("company.loading")} />}
       {!loading && failed && (
         <p className="text-sm text-slate-500">{t("company.noData")}</p>
       )}
@@ -495,7 +477,10 @@ function ForecastSection({
         {chart("revenue", () => setExpanded("revenue"))}
         {chart("eps", () => setExpanded("eps"))}
       </div>
-      <p className="text-[11px] text-slate-400">{t("company.forecast.note")}</p>
+      <p className="text-[11px] text-slate-400">
+        {t("company.forecast.note")}
+        {period === "a" && ` ${t("company.forecast.projectionNote")}`}
+      </p>
 
       {expanded && (
         <ChartModal onClose={() => setExpanded(null)}>{chart(expanded)}</ChartModal>
@@ -503,8 +488,6 @@ function ForecastSection({
     </section>
   );
 }
-
-/* ───────────────────────── expand-chart modal ───────────────────────── */
 
 type ChartCfg = {
   title: string;
@@ -516,44 +499,6 @@ type ChartCfg = {
   estimateLabel?: string;
 };
 
-function ChartModal({
-  children,
-  onClose,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
-  const { t } = useTranslation();
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="relative w-full max-w-3xl">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute -top-9 right-0 text-2xl leading-none text-white/80 hover:text-white"
-          aria-label={t("common.close")}
-        >
-          &times;
-        </button>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 /* ───────────────────────── rating (P/E) charts ───────────────────────── */
 
 // Two charts, not one line and two dashes. What a company has been paying to
@@ -562,19 +507,21 @@ function ChartModal({
 // the forward multiple sat as a dash across a curve drawn on a different
 // basis, and both were squeezed onto one axis.
 //
-// Each is read against the same benchmark measured the same way — the median
-// trailing multiple of the companies this site covers, and their median
-// forward one.
+// Each is read against the company's OWN history — its median multiple and its
+// mean one — and against nothing else. The market's median used to sit on
+// these cards too and has been taken off: "dear compared with everything else"
+// is a different question from "dear compared with how this company is usually
+// priced", and on a chart of one company's own five years it was the only line
+// that came from somewhere else.
 function PeCharts({
   data,
-  marketPe,
   quoteCcy,
 }: {
   data: CompanyStatements;
-  marketPe: MarketMedianPe | null;
   quoteCcy: string | null;
 }) {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState<React.ReactNode>(null);
   const { trailing, forward } = useMemo(() => {
     const annual = epsPoints(data.annual);
     // An ADR's earnings are filed in one currency and its price quoted in
@@ -592,70 +539,78 @@ function PeCharts({
 
   if (trailing.length < 2 && forward.length < 2) return null;
 
-  const medianOf = marketPe?.n
-    ? ` ${t("company.pe.medianOf", { count: marketPe.n })}`
-    : "";
-
-  return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+  const card = (which: "trailing" | "forward", onExpand?: () => void) =>
+    which === "trailing" ? (
       <PeCard
         title={t("company.pe.trailingTitle")}
         name={t("company.pe.trailing")}
         color="#d1550f"
         points={trailing}
-        marketMedian={marketPe?.trailingPe ?? null}
-        note={t("company.pe.note") + medianOf}
+        note={`${t("company.pe.note")} ${t("company.pe.centresNote")}`}
+        onExpand={onExpand}
       />
+    ) : (
       <PeCard
         title={t("company.pe.forwardTitle")}
         name={t("company.pe.forward")}
         color="#0ea5e9"
         points={forward}
-        marketMedian={marketPe?.forwardPe ?? null}
-        note={t("company.pe.forwardNote") + medianOf}
+        note={`${t("company.pe.forwardNote")} ${t("company.pe.centresNote")}`}
+        onExpand={onExpand}
       />
+    );
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {card("trailing", () => setExpanded(card("trailing")))}
+      {card("forward", () => setExpanded(card("forward")))}
+      {expanded && (
+        <ChartModal onClose={() => setExpanded(null)}>{expanded}</ChartModal>
+      )}
     </div>
   );
 }
 
-// One rating chart against two benchmarks, which answer different questions.
-// The market's median says whether the company is dear compared to everything
-// else; its own says whether it is dear compared to how it has usually been
-// priced — and for a company that has always traded at 40x, only the second
-// one means anything.
+// One rating chart against the company's own two centres, which say different
+// things about the same five years.
 //
-// Median rather than mean, for the same reason the market benchmark is one: a
-// single quarter of collapsed earnings prints a 100x week (SAP did, in 2025)
-// and drags an average somewhere no week actually was.
+// The median is where the company has usually traded: half its weeks above,
+// half below, and one quarter of collapsed earnings printing a 100x week (SAP
+// had one in 2025) moves it by nothing. The mean is where those weeks pull the
+// average to, so the gap between the two IS the story — a mean far above the
+// median says the high ratings were extreme rather than common, and a company
+// sitting between them is priced normally by one measure and dearly by the
+// other. Drawn together, they bracket the range worth arguing about.
 function PeCard({
   title,
   name,
   color,
   points,
-  marketMedian,
   note,
+  onExpand,
 }: {
   title: string;
   name: string;
   color: string;
   points: Point[];
-  marketMedian: number | null;
   note: string;
+  onExpand?: () => void;
 }) {
   const { t } = useTranslation();
-  const own = useMemo(() => median(points.map((p) => p.value)), [points]);
+  const values = points.map((p) => p.value);
+  const own = useMemo(() => median(values), [points]);
+  const avg = useMemo(
+    () => (values.length ? values.reduce((s, v) => s + v, 0) / values.length : null),
+    [points],
+  );
   if (points.length < 2) return null;
 
   const refLines = [];
   if (own != null) {
     refLines.push({ label: t("company.pe.ownMedian"), value: own, color });
   }
-  if (marketMedian != null) {
-    refLines.push({
-      label: t("company.pe.marketMedian"),
-      value: marketMedian,
-      color: "#64748b",
-    });
+  if (avg != null) {
+    refLines.push({ label: t("company.pe.ownMean"), value: avg, color: "#64748b" });
   }
 
   return (
@@ -665,8 +620,12 @@ function PeCard({
         series={[{ name, color, points }]}
         refLines={refLines}
         format={(v) => `${v.toFixed(1)}×`}
+        onExpand={onExpand}
       />
-      <p className="text-[11px] text-slate-400">{note}</p>
+      {/* The note sits outside the card, so in the modal it would be grey text
+          on a dark overlay. Enlarged, the chart is the thing being read and the
+          note is still on the page behind it. */}
+      {onExpand && <p className="text-[11px] text-slate-400">{note}</p>}
     </div>
   );
 }

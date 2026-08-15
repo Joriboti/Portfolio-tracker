@@ -187,11 +187,11 @@
       "forwardTitle": "Com ha cotitzat l'any vinent",
       "trailing": "PER (12 mesos)",
       "forward": "PER previst",
-      "marketMedian": "Mediana del mercat",
       "ownMedian": "Mediana pròpia",
+      "ownMean": "Mitjana pròpia",
       "note": "Preu de cada setmana dividit pel benefici per acció ja publicat en aquella data: quatre trimestres quan l'empresa els publica, i si no, el darrer exercici sencer. Les setmanes amb pèrdues no es dibuixen.",
       "forwardNote": "Preu de cada setmana dividit pel benefici de l'exercici que encara tenia al davant. Aquells exercicis ja han passat, així que és el múltiple pagat contra la xifra que va acabar sortint: ningú no guarda què esperaven els analistes en aquell moment. El tram final fa servir el consens d'avui.",
-      "medianOf": "Mediana sobre {{count}} empreses cobertes."
+      "centresNote": "Les dues línies són de la mateixa empresa: la mediana és on ha cotitzat la meitat de les setmanes, i la mitjana on l'arrosseguen els extrems. Quan la mitjana queda molt per sobre de la mediana vol dir que les valoracions altes van ser puntuals, no habituals."
     },
     "charts": {
       "price": "Preu (5 anys)",
@@ -216,12 +216,14 @@
       "eps": "BPA previst",
       "reported": "Publicat",
       "estimate": "Estimació",
+      "projection": "Projecció",
       "expected": "s'esperava",
       "analysts": "Consens de {{count}} analistes per a {{period}}",
       "consensusOn": "Consens per a {{period}}",
       "yoy": "interanual",
       "adjusted": "benefici ajustat",
-      "note": "Consens d'analistes de Yahoo Finance. La barra discontínua és la mitjana i el bigoti va de l'analista més baix al més alt. Als períodes ja publicats, la ratlla verda o vermella marca què s'esperava: per sota de la barra vol dir que l'empresa va superar les previsions. El BPA es mesura sobre benefici ajustat, que és la base sobre la qual els analistes fan les seves estimacions i no coincideix amb el benefici comptable dels estats financers."
+      "note": "Consens d'analistes de Yahoo Finance. La barra discontínua és la mitjana i el bigoti va de l'analista més baix al més alt. Als períodes ja publicats, la ratlla verda o vermella marca què s'esperava: per sota de la barra vol dir que l'empresa va superar les previsions. El BPA es mesura sobre benefici ajustat, que és la base sobre la qual els analistes fan les seves estimacions i no coincideix amb el benefici comptable dels estats financers.",
+      "projectionNote": "Els analistes només publiquen xifres per a l'exercici en curs i el següent. Els anys puntejats no els publica ningú: són l'últim any de consens portat endavant, el BPA a la taxa de creixement a llarg termini del consens i els ingressos al ritme que impliquen els dos anys publicats. Per això no porten rang: el bigoti és un desacord real entre analistes i aquí no n'hi hauria cap."
     },
     "insights": {
       "title": "Anàlisi qualitativa",

@@ -499,28 +499,11 @@ export type SotpLiveQuote = {
 // per requested sub-holding ticker; a bad symbol comes back with null figures.
 // Served by fundamentals-get's `?live=` mode (folded in to stay under the
 // Hobby plan's serverless-function limit).
-export type MarketMedianPe = {
-  trailingPe: number | null;
-  forwardPe: number | null;
-  /** How many companies the median was taken over. */
-  n: number;
-};
-
-// Median P/E across the companies this site carries figures for — the
-// benchmark line on the rating charts. Never throws: without it the chart
-// simply draws no reference line.
-export async function getMarketMedianPe(): Promise<MarketMedianPe> {
-  try {
-    const d = await jsonFetch<MarketMedianPe>("/api/fundamentals-get?median=1");
-    return {
-      trailingPe: num(d.trailingPe),
-      forwardPe: num(d.forwardPe),
-      n: Number(d.n ?? 0),
-    };
-  } catch {
-    return { trailingPe: null, forwardPe: null, n: 0 };
-  }
-}
+// No client for `?median=1` any more. The rating charts used to draw the
+// median multiple across every company this site covers as a second benchmark;
+// they now read each company against its own median and its own mean, which is
+// the question those charts are actually asked. The API mode stays — it is one
+// branch of an existing function and costs nothing unused.
 
 export async function getSotpQuotes(
   tickers: string[],
