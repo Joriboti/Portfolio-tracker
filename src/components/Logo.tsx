@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { useTranslation } from "react-i18next";
 
 /**
  * TrimmTrack logo mark — a compass. "Track" (follow / navigate your portfolio)
@@ -6,15 +7,28 @@ import { useId } from "react";
  * 8-point rose and a bold needle whose north half carries the brand orange.
  * Drawn transparent so it sits on any light surface (header, hero, auth);
  * the dark app-icon tile lives in `public/favicon.svg`.
+ *
+ * `spinning` turns the rose and needle inside a bezel that stays where it is —
+ * the loading state, see <PageLoading>. The artwork is not duplicated for it:
+ * a second copy would drift from this one the first time the mark is touched.
  */
-export function Logo({ className = "h-8 w-8" }: { className?: string }) {
+export function Logo({
+  className = "h-8 w-8",
+  spinning = false,
+  label = "TrimmTrack",
+}: {
+  className?: string;
+  spinning?: boolean;
+  /** Overridden by the loader, which is announcing a wait, not a brand. */
+  label?: string;
+}) {
   const id = useId();
   return (
     <svg
       viewBox="0 0 32 32"
       className={className}
       role="img"
-      aria-label="TrimmTrack"
+      aria-label={label}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -55,21 +69,50 @@ export function Logo({ className = "h-8 w-8" }: { className?: string }) {
         opacity="0.32"
       />
 
-      {/* Bronze 8-point compass rose (4 long + 4 short points). */}
-      <path
-        d="M16 5 L16.61 14.52 L19.89 12.11 L17.48 15.39 L27 16 L17.48 16.61 L19.89 19.89 L16.61 17.48 L16 27 L15.39 17.48 L12.11 19.89 L14.52 16.61 L5 16 L14.52 15.39 L12.11 12.11 L15.39 14.52 Z"
-        fill={`url(#${id}-bronze)`}
-      />
+      <g className={spinning ? "compass-rose" : undefined}>
+        {/* Bronze 8-point compass rose (4 long + 4 short points). */}
+        <path
+          d="M16 5 L16.61 14.52 L19.89 12.11 L17.48 15.39 L27 16 L17.48 16.61 L19.89 19.89 L16.61 17.48 L16 27 L15.39 17.48 L12.11 19.89 L14.52 16.61 L5 16 L14.52 15.39 L12.11 12.11 L15.39 14.52 Z"
+          fill={`url(#${id}-bronze)`}
+        />
 
-      {/* North needle (orange) over south needle (ink). */}
-      <path d="M16 4.6 L18.4 16 L13.6 16 Z" fill={`url(#${id}-needle)`} />
-      <path d="M16 27.4 L18.4 16 L13.6 16 Z" fill="#201915" />
+        {/* North needle (orange) over south needle (ink). */}
+        <path d="M16 4.6 L18.4 16 L13.6 16 Z" fill={`url(#${id}-needle)`} />
+        <path d="M16 27.4 L18.4 16 L13.6 16 Z" fill="#201915" />
+      </g>
 
-      {/* Pivot. */}
+      {/* Pivot — outside the turning group; it is the point turned about. */}
       <circle cx="16" cy="16" r="2" fill="#201915" />
       <circle cx="16" cy="16" r="1.05" fill={`url(#${id}-needle)`} />
       <circle cx="15.6" cy="15.6" r="0.35" fill="#fff" opacity="0.85" />
     </svg>
+  );
+}
+
+/**
+ * What a page shows while its code is still arriving: the compass, hunting.
+ *
+ * It replaces an empty div, which said nothing on a slow connection — the
+ * header stayed and the body went blank, which reads as broken rather than as
+ * loading. Fading in after a third of a second keeps it out of the way of the
+ * fast case: most routes are prerendered and never wait long enough to show
+ * this at all.
+ *
+ * `aria-live` is deliberately absent. The label on the mark is enough for a
+ * screen reader that lands here, and announcing every route change would be
+ * noise.
+ */
+export function PageLoading() {
+  const { t } = useTranslation();
+  const label = t("common.loading");
+  return (
+    <div
+      className="page-loading mx-auto flex max-w-6xl items-center justify-center gap-3 px-4 py-20 text-sm text-slate-400"
+      role="status"
+    >
+      <Logo className="h-7 w-7" spinning label={label} />
+      <span>{label}</span>
+    </div>
   );
 }
 

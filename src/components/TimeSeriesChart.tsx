@@ -25,6 +25,8 @@ const H = 150;
 const PAD_TOP = 16;
 const PAD_BOTTOM = 18;
 const PAD_X = 6;
+/** Vertical room one reference label needs before the next can be written. */
+const LABEL_GAP = 9;
 
 export function TimeSeriesChart({
   title,
@@ -74,6 +76,22 @@ export function TimeSeriesChart({
   const firstYear = new Date(t0).getFullYear();
   const lastYear = new Date(t1).getFullYear();
 
+  // Reference labels sit at the right end of their own line, so two benchmarks
+  // that happen to land at a similar multiple print on top of each other —
+  // which is exactly when both matter, a company trading at its own median and
+  // the market's at once. Nudge each down until it clears the one above. The
+  // line itself never moves; only where its label is written.
+  const labelYs: number[] = [];
+  const ordered = refLines
+    .map((r, i) => ({ r, i, y: y(r.value) - 3 }))
+    .sort((a, b) => a.y - b.y);
+  let floor = -Infinity;
+  for (const item of ordered) {
+    const at = Math.max(item.y, floor + LABEL_GAP);
+    labelYs[item.i] = at;
+    floor = at;
+  }
+
   return (
     <div className="card">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
@@ -94,25 +112,43 @@ export function TimeSeriesChart({
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" role="img" aria-label={title}>
+        {/* Benchmarks under the data — they are the backdrop it is read
+            against, not part of it. */}
         {refLines.map((r) => (
-          <g key={r.label}>
-            <line
-              x1={PAD_X}
-              x2={W - PAD_X}
-              y1={y(r.value)}
-              y2={y(r.value)}
-              stroke={r.color}
-              strokeWidth={1}
-              strokeDasharray="3 3"
-              opacity={0.75}
-            />
-            <text x={W - PAD_X} y={y(r.value) - 3} textAnchor="end" fontSize={7.5} fill={r.color}>
-              {r.label} {format(r.value)}
-            </text>
-          </g>
+          <line
+            key={r.label}
+            x1={PAD_X}
+            x2={W - PAD_X}
+            y1={y(r.value)}
+            y2={y(r.value)}
+            stroke={r.color}
+            strokeWidth={1}
+            strokeDasharray="3 3"
+            opacity={0.75}
+          />
         ))}
         {withData.map((s) => (
           <path key={s.name} d={path(s)} fill="none" stroke={s.color} strokeWidth={1.6} />
+        ))}
+        {/* Their labels over it, outlined in the card's own colour. A
+            company's own median runs through the middle of its data by
+            construction, so its label lands on the series every time; drawn
+            underneath, it was unreadable. */}
+        {refLines.map((r, i) => (
+          <text
+            key={r.label}
+            x={W - PAD_X}
+            y={labelYs[i]}
+            textAnchor="end"
+            fontSize={7.5}
+            fill={r.color}
+            stroke="#fffdf8"
+            strokeWidth={2.4}
+            strokeLinejoin="round"
+            style={{ paintOrder: "stroke" }}
+          >
+            {r.label} {format(r.value)}
+          </text>
         ))}
         <text x={PAD_X} y={9} fontSize={8.5} fill="#94a3b8">
           {format(max)}

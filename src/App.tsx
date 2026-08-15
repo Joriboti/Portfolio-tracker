@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { Layout } from "@/components/Layout";
+import { PageLoading } from "@/components/Logo";
 import { AuthGuard } from "@/components/AuthGuard";
 import { LOCALES, ROUTE_SLUGS, withLocale, type Locale } from "@/lib/locale";
 
@@ -131,7 +132,7 @@ export default function App() {
   return (
     <>
     <Analytics />
-    <Suspense fallback={<div className="mx-auto max-w-6xl px-4 py-10 text-slate-400" />}>
+    <Suspense fallback={<PageLoading />}>
     <Routes>
       <Route element={<Layout />}>
         {/* App / auth routes stay unprefixed: they're behind auth or a trial and

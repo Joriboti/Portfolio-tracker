@@ -188,6 +188,7 @@
       "trailing": "P/E (TTM)",
       "forward": "Forward P/E",
       "marketMedian": "Market median",
+      "ownMedian": "Its own median",
       "note": "Each week's price divided by the earnings per share already reported by that date — four quarters where a company reports them, its last full year otherwise. Loss-making weeks are not drawn.",
       "forwardNote": "Each week's price divided by the earnings of the year still ahead of it. Those years have since happened, so this is the multiple paid against the figure that landed: nobody records what analysts expected at the time. The most recent stretch uses today's consensus.",
       "medianOf": "Median across {{count}} covered companies."

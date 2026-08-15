@@ -61,3 +61,54 @@
     border-bottom: 1px solid #f4ebda;
   }
 }
+
+/* ── the compass hunting for north, while a page loads ────────────────── */
+
+/*
+ * Only the rose and the needle turn; the bezel stays put, which is what a
+ * compass in your hand actually does and what makes it read as one rather
+ * than as a logo someone spun. `view-box` puts the origin in the viewBox's
+ * own coordinates, so 16 16 is the pivot the needle is drawn around.
+ *
+ * Eased rather than linear: it sweeps, slows near the top and goes round
+ * again, instead of grinding at a constant speed like a loading gif.
+ */
+.compass-rose {
+  transform-box: view-box;
+  transform-origin: 16px 16px;
+  animation: compass-sweep 1.9s cubic-bezier(0.55, 0, 0.45, 1) infinite;
+}
+
+@keyframes compass-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * Held back for a moment so a page that arrives quickly — most of them, the
+ * routes are prerendered — never flashes a spinner on its way in. Only a wait
+ * long enough to wonder about gets an answer.
+ */
+.page-loading {
+  animation: page-loading-in 0.25s ease-out 0.35s both;
+}
+
+@keyframes page-loading-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compass-rose {
+    animation: none;
+  }
+  .page-loading {
+    animation-duration: 0.01ms;
+    animation-delay: 0.35s;
+  }
+}

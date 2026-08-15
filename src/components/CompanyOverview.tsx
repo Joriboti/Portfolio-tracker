@@ -10,6 +10,7 @@ import {
   epsPoints,
   forwardEpsPoints,
   forwardPeSeries,
+  median,
   peSeries,
   quoteConverter,
   type Point,
@@ -479,8 +480,7 @@ function PeCharts({
         name={t("company.pe.trailing")}
         color="#d1550f"
         points={trailing}
-        median={marketPe?.trailingPe ?? null}
-        medianLabel={t("company.pe.marketMedian")}
+        marketMedian={marketPe?.trailingPe ?? null}
         note={t("company.pe.note") + medianOf}
       />
       <PeCard
@@ -488,42 +488,59 @@ function PeCharts({
         name={t("company.pe.forward")}
         color="#0ea5e9"
         points={forward}
-        median={marketPe?.forwardPe ?? null}
-        medianLabel={t("company.pe.marketMedian")}
+        marketMedian={marketPe?.forwardPe ?? null}
         note={t("company.pe.forwardNote") + medianOf}
       />
     </div>
   );
 }
 
+// One rating chart against two benchmarks, which answer different questions.
+// The market's median says whether the company is dear compared to everything
+// else; its own says whether it is dear compared to how it has usually been
+// priced — and for a company that has always traded at 40x, only the second
+// one means anything.
+//
+// Median rather than mean, for the same reason the market benchmark is one: a
+// single quarter of collapsed earnings prints a 100x week (SAP did, in 2025)
+// and drags an average somewhere no week actually was.
 function PeCard({
   title,
   name,
   color,
   points,
-  median,
-  medianLabel,
+  marketMedian,
   note,
 }: {
   title: string;
   name: string;
   color: string;
   points: Point[];
-  median: number | null;
-  medianLabel: string;
+  marketMedian: number | null;
   note: string;
 }) {
+  const { t } = useTranslation();
+  const own = useMemo(() => median(points.map((p) => p.value)), [points]);
   if (points.length < 2) return null;
+
+  const refLines = [];
+  if (own != null) {
+    refLines.push({ label: t("company.pe.ownMedian"), value: own, color });
+  }
+  if (marketMedian != null) {
+    refLines.push({
+      label: t("company.pe.marketMedian"),
+      value: marketMedian,
+      color: "#64748b",
+    });
+  }
+
   return (
     <div className="space-y-1">
       <TimeSeriesChart
         title={title}
         series={[{ name, color, points }]}
-        refLines={
-          median != null
-            ? [{ label: medianLabel, value: median, color: "#64748b" }]
-            : []
-        }
+        refLines={refLines}
         format={(v) => `${v.toFixed(1)}×`}
       />
       <p className="text-[11px] text-slate-400">{note}</p>

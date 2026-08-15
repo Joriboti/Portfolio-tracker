@@ -188,6 +188,7 @@
       "trailing": "PER (12 meses)",
       "forward": "PER previsto",
       "marketMedian": "Mediana del mercado",
+      "ownMedian": "Mediana propia",
       "note": "Precio de cada semana dividido por el beneficio por acción ya publicado en esa fecha: cuatro trimestres cuando la empresa los publica y, si no, el último ejercicio completo. Las semanas con pérdidas no se dibujan.",
       "forwardNote": "Precio de cada semana dividido por el beneficio del ejercicio que aún tenía por delante. Esos ejercicios ya han pasado, así que es el múltiplo pagado contra la cifra que acabó saliendo: nadie guarda lo que esperaban los analistas entonces. El tramo final usa el consenso de hoy.",
       "medianOf": "Mediana sobre {{count}} empresas cubiertas."
