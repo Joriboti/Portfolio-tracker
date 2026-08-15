@@ -167,6 +167,7 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
           "financialData",
           "calendarEvents",
           "earningsTrend",
+          "earningsHistory",
           "price",
         ],
       },
@@ -242,6 +243,69 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
           e.periodEnd != null && (e.eps != null || e.revenue != null),
       )
       .sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
+
+    // The consensus in full, for the forecast charts: not just the average but
+    // the range analysts span and how many of them there are. A single average
+    // is a forecast presented as a fact; the low-to-high whisker is what makes
+    // it read as an opinion with a width, which is what it is.
+    const band = (o: unknown) => {
+      const r = (o ?? {}) as Record<string, unknown>;
+      const avg = num(r.avg);
+      if (avg == null) return null;
+      return {
+        avg,
+        low: num(r.low),
+        high: num(r.high),
+        analysts: num(r.numberOfAnalysts),
+        growth: num(r.growth),
+      };
+    };
+    const FORECAST_PERIODS = ["0q", "+1q", "0y", "+1y"];
+    const periods = trend
+      .filter((t) => FORECAST_PERIODS.includes(String(t.period)))
+      .map((t) => ({
+        period: String(t.period),
+        periodEnd: isoDate(t.endDate),
+        eps: band(t.earningsEstimate),
+        revenue: band(t.revenueEstimate),
+      }))
+      .filter(
+        (p): p is {
+          period: string;
+          periodEnd: string;
+          eps: ReturnType<typeof band>;
+          revenue: ReturnType<typeof band>;
+        } => p.periodEnd != null && (p.eps != null || p.revenue != null),
+      )
+      .sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
+
+    // What the last four quarters were expected to earn, and what they did.
+    //
+    // The reported EPS here is NOT the one in the statements above: consensus
+    // is quoted on an adjusted basis and Yahoo answers it in kind, while the
+    // income statement reports GAAP. Drawing an adjusted estimate against a
+    // GAAP bar invents misses that never happened — Alphabet's Q3 2025 was
+    // 2.87 adjusted and 2.12 reported — so the beat/miss markers are drawn
+    // against THIS actual, from the same dataset as the estimate beside it.
+    const history = Array.isArray(
+      (qs.earningsHistory as Record<string, unknown>)?.history,
+    )
+      ? ((qs.earningsHistory as Record<string, unknown>).history as Array<
+          Record<string, unknown>
+        >)
+      : [];
+    const epsHistory = history
+      .map((h) => ({
+        periodEnd: isoDate(h.quarter),
+        actual: num(h.epsActual),
+        estimate: num(h.epsEstimate),
+      }))
+      .filter(
+        (h): h is { periodEnd: string; actual: number; estimate: number | null } =>
+          h.periodEnd != null && h.actual != null,
+      )
+      .sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
+
     return {
       priceToSales: num(sd.priceToSalesTrailing12Months),
       evToEbitda: num(ks.enterpriseToEbitda),
@@ -253,6 +317,7 @@ async function fetchPanel(yahoo: YahooStatementsClient, ticker: string) {
       estimates,
       /** Already in the quote currency — see estScale above. */
       annualEstimates,
+      forecast: { epsScale: estScale, periods, epsHistory },
       // The currency the statements below are actually filed in. Usually the
       // quote currency, but NOT for ADRs: TSM quotes in USD and reports in TWD,
       // TM in JPY, NVO in DKK. Anything comparing or converting these figures

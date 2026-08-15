@@ -209,6 +209,20 @@
       "expenses": "Gastos operativos",
       "estimate": "estimación"
     },
+    "forecast": {
+      "title": "Qué esperan los analistas",
+      "subtitle": "Consenso de ingresos y de beneficio por acción para los periodos que aún no se han publicado.",
+      "revenue": "Ingresos previstos",
+      "eps": "BPA previsto",
+      "reported": "Publicado",
+      "estimate": "Estimación",
+      "expected": "se esperaba",
+      "analysts": "Consenso de {{count}} analistas para {{period}}",
+      "consensusOn": "Consenso para {{period}}",
+      "yoy": "interanual",
+      "adjusted": "beneficio ajustado",
+      "note": "Consenso de analistas de Yahoo Finance. La barra discontinua es la media y el bigote va del analista más bajo al más alto. En los periodos ya publicados, la raya verde o roja marca lo que se esperaba: por debajo de la barra significa que la empresa superó las previsiones. El BPA se mide sobre beneficio ajustado, que es la base sobre la que los analistas hacen sus estimaciones y no coincide con el beneficio contable de los estados financieros."
+    },
     "insights": {
       "title": "Análisis cualitativo",
       "pros": "Ventajas competitivas",

@@ -32,6 +32,40 @@ export type QuarterEstimate = {
   revenue: number | null;
 };
 
+/**
+ * One consensus figure with the spread behind it: what analysts expect on
+ * average, the lowest and highest of them, how many there are, and the growth
+ * the average implies against the same period a year earlier.
+ */
+export type EstimateBand = {
+  avg: number;
+  low: number | null;
+  high: number | null;
+  analysts: number | null;
+  growth: number | null;
+};
+
+/** One un-reported period of the earningsTrend table ("0q"/"+1q"/"0y"/"+1y"). */
+export type ForecastPeriod = {
+  period: string;
+  periodEnd: string;
+  eps: EstimateBand | null;
+  revenue: EstimateBand | null;
+};
+
+/**
+ * A quarter that has already reported, on the consensus basis.
+ *
+ * `actual` is Yahoo's earningsHistory figure, not the income statement's — the
+ * two are different numbers (adjusted vs GAAP) and only this one may be
+ * compared with the estimate beside it.
+ */
+export type EpsSurpriseRow = {
+  periodEnd: string;
+  actual: number;
+  estimate: number | null;
+};
+
 export type PanelExtras = {
   priceToSales: number | null;
   evToEbitda: number | null;
@@ -49,6 +83,22 @@ export type PanelExtras = {
    * responses; empty when it could not be normalised.
    */
   annualEstimates?: Array<{ periodEnd: string; eps: number }>;
+  /**
+   * The full analyst consensus behind the forecast charts. Absent on older
+   * cached responses, which is why every consumer treats it as optional rather
+   * than empty.
+   */
+  forecast?: {
+    /**
+     * Multiply a trend EPS by this to get one quoted share's worth in the
+     * quote currency. Null when it could not be measured — see the API's
+     * estScale note. Only meaningful for the ADRs whose filing and quote
+     * currencies differ.
+     */
+    epsScale: number | null;
+    periods: ForecastPeriod[];
+    epsHistory: EpsSurpriseRow[];
+  };
   /**
    * Currency the statements are filed in — not always the quote currency (TSM
    * quotes in USD but reports in TWD). Absent on older cached responses.

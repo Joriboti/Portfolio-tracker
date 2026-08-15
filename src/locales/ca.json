@@ -209,6 +209,20 @@
       "expenses": "Despeses operatives",
       "estimate": "estimació"
     },
+    "forecast": {
+      "title": "Què esperen els analistes",
+      "subtitle": "Consens d'ingressos i de benefici per acció per als períodes que encara no s'han publicat.",
+      "revenue": "Ingressos previstos",
+      "eps": "BPA previst",
+      "reported": "Publicat",
+      "estimate": "Estimació",
+      "expected": "s'esperava",
+      "analysts": "Consens de {{count}} analistes per a {{period}}",
+      "consensusOn": "Consens per a {{period}}",
+      "yoy": "interanual",
+      "adjusted": "benefici ajustat",
+      "note": "Consens d'analistes de Yahoo Finance. La barra discontínua és la mitjana i el bigoti va de l'analista més baix al més alt. Als períodes ja publicats, la ratlla verda o vermella marca què s'esperava: per sota de la barra vol dir que l'empresa va superar les previsions. El BPA es mesura sobre benefici ajustat, que és la base sobre la qual els analistes fan les seves estimacions i no coincideix amb el benefici comptable dels estats financers."
+    },
     "insights": {
       "title": "Anàlisi qualitativa",
       "pros": "Avantatges competitius",

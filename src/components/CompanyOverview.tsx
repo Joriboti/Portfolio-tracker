@@ -30,6 +30,8 @@ import {
   type StatementMetrics,
 } from "@/lib/statements";
 import { QuarterlyBars, type BarSeries } from "@/components/QuarterlyBars";
+import { ForecastChart } from "@/components/ForecastChart";
+import { alignReported, epsForecast, revenueForecast } from "@/lib/estimates";
 import { CompanyInsights } from "@/components/CompanyInsights";
 
 // "Resum" tab of /explore/:ticker — Qualtrim-style company overview: stat
@@ -207,6 +209,9 @@ export function CompanyOverview({ company }: { company: LiveCompany }) {
       {/* ───────── Rating: what the market pays for these earnings ───────── */}
       {data && <PeCharts data={data} marketPe={marketPe} quoteCcy={ccy} />}
 
+      {/* ───────── What analysts expect next ───────── */}
+      {data && <ForecastSection data={data} quoteCcy={ccy} />}
+
       {/* ───────── Charts grid ───────── */}
       {loading && (
         <p className="text-sm text-slate-500">{t("company.loading")}</p>
@@ -325,7 +330,12 @@ function ChartsGrid({
     single("company.charts.ebitda", "ebitda", PALETTE.ebitda),
     single("company.charts.netIncome", "netIncome", PALETTE.netIncome),
     single("company.charts.fcf", "fcf", PALETTE.fcf),
-    single("company.charts.eps", "eps", PALETTE.eps, perShare, false, estimateFor("eps")),
+    // No consensus bar on EPS, unlike revenue above. Analysts forecast an
+    // adjusted figure and this chart draws the reported one, so the ghost bar
+    // was the only place on the page where the two bases sat side by side as
+    // if they were comparable. The forecast section higher up now shows that
+    // consensus against Yahoo's own adjusted actuals, where it means something.
+    single("company.charts.eps", "eps", PALETTE.eps, perShare),
     duo(
       "company.charts.cashDebt",
       cashDebt,
@@ -381,9 +391,116 @@ function ChartsGrid({
       <p className="text-[11px] text-slate-400">{t("company.depthNote")}</p>
 
       {expanded && (
-        <ChartModal cfg={expanded} onClose={() => setExpanded(null)} />
+        <ChartModal onClose={() => setExpanded(null)}>
+          <QuarterlyBars {...expanded} />
+        </ChartModal>
       )}
     </div>
+  );
+}
+
+/* ───────────────────────── forecast (analyst consensus) ───────────────────────── */
+
+// What the company is expected to do next, drawn the way the terminals draw
+// it: the reported periods and the forecast ones on one axis, the consensus
+// range on the forecast bars, and — where both figures come from the same
+// dataset — what each reported quarter had been expected to earn.
+//
+// Its own period toggle, separate from the statements grid below. The two
+// answer different questions and a reader flipping one rarely means the other.
+function ForecastSection({
+  data,
+  quoteCcy,
+}: {
+  data: CompanyStatements;
+  quoteCcy: string | null;
+}) {
+  const { t } = useTranslation();
+  const [period, setPeriod] = useState<"q" | "a">("q");
+  const [expanded, setExpanded] = useState<"revenue" | "eps" | null>(null);
+
+  const toQuote = useMemo(
+    () => quoteConverter(data, quoteCcy),
+    [data, quoteCcy],
+  );
+  const [revenue, eps] = useMemo(
+    () =>
+      alignReported(
+        revenueForecast(data, period),
+        epsForecast(data, period, toQuote),
+      ),
+    [data, period, toQuote],
+  );
+
+  // Revenue is a company-level total in the currency it files in; EPS has been
+  // put into the currency the share trades in, which for an ADR is a different
+  // one. Each chart says which it is rather than the page claiming one.
+  const filingCcy = data.panel?.financialCurrency ?? quoteCcy;
+  const money = (v: number) => formatCompact(v, filingCcy);
+  const perShare = (v: number) => v.toFixed(2);
+
+  const hasForecast = (bars: typeof revenue) => bars.some((b) => b.estimate != null);
+  if (!hasForecast(revenue) && !hasForecast(eps)) return null;
+
+  // One definition per chart, rendered either in the grid (clickable) or in
+  // the modal (already big — no second zoom affordance).
+  const chart = (which: "revenue" | "eps", onExpand?: () => void) =>
+    which === "revenue" ? (
+      <ForecastChart
+        title={t("company.forecast.revenue")}
+        bars={revenue}
+        color={PALETTE.revenue}
+        format={money}
+        onExpand={onExpand}
+      />
+    ) : (
+      <ForecastChart
+        title={t("company.forecast.eps")}
+        bars={eps}
+        color={PALETTE.eps}
+        format={perShare}
+        note={t("company.forecast.adjusted")}
+        onExpand={onExpand}
+      />
+    );
+
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-800">
+            {t("company.forecast.title")}
+          </h3>
+          <p className="text-xs text-slate-500">{t("company.forecast.subtitle")}</p>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {(["q", "a"] as const).map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPeriod(p)}
+              className={`rounded-full border px-3 py-1 text-xs ${
+                period === p
+                  ? "border-brand-300 bg-brand-50 font-medium text-brand-700"
+                  : "border-slate-200 text-slate-500 hover:bg-slate-50"
+              }`}
+            >
+              {t(p === "q" ? "company.toggle.quarterly" : "company.toggle.annual")}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {chart("revenue", () => setExpanded("revenue"))}
+        {chart("eps", () => setExpanded("eps"))}
+      </div>
+      <p className="text-[11px] text-slate-400">{t("company.forecast.note")}</p>
+
+      {expanded && (
+        <ChartModal onClose={() => setExpanded(null)}>{chart(expanded)}</ChartModal>
+      )}
+    </section>
   );
 }
 
@@ -399,7 +516,13 @@ type ChartCfg = {
   estimateLabel?: string;
 };
 
-function ChartModal({ cfg, onClose }: { cfg: ChartCfg; onClose: () => void }) {
+function ChartModal({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
   const { t } = useTranslation();
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -425,7 +548,7 @@ function ChartModal({ cfg, onClose }: { cfg: ChartCfg; onClose: () => void }) {
         >
           &times;
         </button>
-        <QuarterlyBars {...cfg} />
+        {children}
       </div>
     </div>
   );

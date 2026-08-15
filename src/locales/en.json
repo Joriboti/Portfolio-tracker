@@ -209,6 +209,20 @@
       "expenses": "Operating expenses",
       "estimate": "estimate"
     },
+    "forecast": {
+      "title": "What analysts expect",
+      "subtitle": "Consensus revenue and earnings per share for the periods not yet reported.",
+      "revenue": "Revenue forecast",
+      "eps": "EPS forecast",
+      "reported": "Reported",
+      "estimate": "Estimate",
+      "expected": "expected",
+      "analysts": "Consensus of {{count}} analysts for {{period}}",
+      "consensusOn": "Consensus for {{period}}",
+      "yoy": "year on year",
+      "adjusted": "adjusted earnings",
+      "note": "Analyst consensus from Yahoo Finance. The dashed bar is the average and the whisker runs from the lowest analyst to the highest. On periods already reported, the green or red line marks what had been expected: below the bar means the company beat it. EPS is measured on an adjusted basis, which is what analysts forecast against and is not the accounting profit in the statements."
+    },
     "insights": {
       "title": "Qualitative analysis",
       "pros": "Competitive advantages",
