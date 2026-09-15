@@ -2,6 +2,8 @@
 // `?statements=` API payload into chart series and panel figures. No API or
 // React here — covered by statements.test.ts.
 
+import { formatLargeMoney } from "./money";
+
 export type StatementMetrics = {
   revenue: number | null;
   ebitda: number | null;
@@ -254,26 +256,12 @@ export function yoyLatest(
 }
 
 /**
- * Compact money label for big figures ("$379.60b", "31,23 kM€" per locale).
- * Falls back to a plain compact number when Intl rejects the currency code.
+ * Compact money label for big figures: "4.81 T USD", "31.23 B EUR". One
+ * formatter for market cap, EV, revenue, income, cash and debt — see
+ * `formatLargeMoney` for the scale rules (short scale, never "B" past 10^12).
  */
 export function formatCompact(value: number, currency?: string | null): string {
-  const opts: Intl.NumberFormatOptions = {
-    notation: "compact",
-    maximumFractionDigits: 2,
-  };
-  try {
-    if (currency) {
-      return new Intl.NumberFormat(undefined, {
-        ...opts,
-        style: "currency",
-        currency,
-      }).format(value);
-    }
-  } catch {
-    /* unknown currency code → plain number below */
-  }
-  return new Intl.NumberFormat(undefined, opts).format(value);
+  return formatLargeMoney(value, currency ?? null);
 }
 
 /** Percent with sign, 2 decimals: 0.0518 → "+5,18 %" (locale-aware). */

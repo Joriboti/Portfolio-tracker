@@ -6,7 +6,15 @@ import {
   type LinkProps,
   type NavLinkProps,
 } from "react-router-dom";
-import { localeFromPath, withLocale, type Locale } from "@/lib/locale";
+import { useTranslation } from "react-i18next";
+import {
+  LOCALES,
+  isLocalizable,
+  localeFromPath,
+  stripLocale,
+  withLocale,
+  type Locale,
+} from "@/lib/locale";
 
 // Locale-preserving replacements for react-router's <Link>/<NavLink>.
 //
@@ -21,9 +29,19 @@ import { localeFromPath, withLocale, type Locale } from "@/lib/locale";
 // /verify) are passed through unchanged by withLocale — writing
 // <LocaleLink to="/dashboard"> is correct and stays "/dashboard".
 
-/** The locale of the page currently rendered, read from the URL. */
+/**
+ * The locale of the page currently rendered, read from the URL. On the
+ * language-neutral app pages (/dashboard, /upload, …) the URL carries no
+ * locale, so the UI language stands in: otherwise every link out of the
+ * English dashboard pointed at the Catalan tree.
+ */
 export function useLocale(): Locale {
   const { pathname } = useLocation();
+  const { i18n } = useTranslation();
+  if (!isLocalizable(stripLocale(pathname))) {
+    const ui = i18n.language?.slice(0, 2);
+    if (ui && (LOCALES as readonly string[]).includes(ui)) return ui as Locale;
+  }
   return localeFromPath(pathname);
 }
 

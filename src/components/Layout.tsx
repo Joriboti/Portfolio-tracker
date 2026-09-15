@@ -7,7 +7,7 @@ import { Logo, Wordmark } from "./Logo";
 import { useUser } from "@/hooks/useUser";
 import { authClient } from "@/lib/auth";
 import i18n from "@/lib/i18n";
-import { ROUTE_SLUGS, stripLocale } from "@/lib/locale";
+import { ROUTE_SLUGS, isLocalizable, stripLocale, withLocale } from "@/lib/locale";
 import { X_HANDLE, X_URL } from "@/lib/brand";
 
 // Keep the active i18next language in sync with the URL's locale prefix so a
@@ -16,13 +16,26 @@ import { X_HANDLE, X_URL } from "@/lib/brand";
 // Bare (Catalan-root) paths don't force a switch — the human's cached choice
 // wins there; crawlers get the Catalan snapshot from the prerender step.
 function LocaleSync() {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
+  const navigate = useNavigate();
   useEffect(() => {
     const seg = pathname.split("/")[1];
-    if ((seg === "en" || seg === "es") && i18n.language?.slice(0, 2) !== seg) {
-      void i18n.changeLanguage(seg);
+    const current = i18n.language?.slice(0, 2);
+    if (seg === "en" || seg === "es") {
+      if (current !== seg) void i18n.changeLanguage(seg);
+      return;
     }
-  }, [pathname]);
+    // A bare (Catalan-root) public URL opened with a cached en/es choice used
+    // to render English chrome around Catalan content: the UI strings follow
+    // i18n, but article cards, company insights, dates and every internal
+    // link are keyed off the URL's locale. Move the reader to the URL of the
+    // language they chose instead, so both agree and the canonical is right.
+    // Crawlers and the prerenderer carry no cached choice, so their bare-path
+    // render stays the deterministic Catalan one.
+    if ((current === "en" || current === "es") && isLocalizable(pathname)) {
+      navigate(withLocale(pathname, current) + search + hash, { replace: true });
+    }
+  }, [pathname, search, hash, navigate]);
   return null;
 }
 

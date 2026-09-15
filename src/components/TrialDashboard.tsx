@@ -3,6 +3,8 @@ import { LocaleLink } from "@/components/LocaleLink";
 
 import { useTranslation } from "react-i18next";
 import { aggregatePositions } from "@/lib/excel-parser";
+import { buildPositionRow } from "@/lib/money";
+import { NativeAwarePrice } from "@/components/NativePrice";
 import { convert, formatMoney, formatPct, type Currency } from "@/lib/currency";
 import { useDisplayCurrency } from "@/lib/preferences";
 import { getSotpQuotes, getLiveCompany, type SotpLiveQuote, type LiveCompany } from "@/lib/api";
@@ -77,16 +79,22 @@ export function TrialDashboard() {
   const rows = useMemo(() => {
     return positions.map((p) => {
       const q = quotes[p.ticker.toUpperCase()];
-      const priceQc = q?.price ?? null;
-      const qc = (q?.currency ?? "EUR") as Currency;
-      // Cost basis is EUR (manual entry + the EUR book); live value is in the
-      // ticker's quote currency. Bring both into the display currency.
-      const costDisp = convert(p.totalCost, "EUR", currency, fxRates);
-      const mvDisp =
-        priceQc != null ? convert(priceQc * p.shares, qc, currency, fxRates) : null;
-      const pl = mvDisp != null ? mvDisp - costDisp : null;
-      const plPct = pl != null && costDisp !== 0 ? pl / costDisp : null;
-      return { p, priceQc, qc, costDisp, mvDisp, pl, plPct };
+      // Cost basis is EUR (manual entry + the EUR book); the live quote is in
+      // the ticker's own currency. buildPositionRow brings both into the
+      // display currency once and keeps the native quote for the cell.
+      const money = buildPositionRow({
+        ticker: p.ticker,
+        shares: p.shares,
+        avgCost: p.avgCost,
+        totalCost: p.totalCost,
+        quote: q?.price != null ? { price: q.price, currency: q.currency } : null,
+        displayCurrency: currency,
+        fxRates,
+      });
+      // The cost is in the book currency whatever else happens, so a row that
+      // can't be priced is still carried at cost in the totals.
+      const costDisp = money.cost ?? convert(p.totalCost, "EUR", currency, fxRates);
+      return { p, money, costDisp, mvDisp: money.marketValue, pl: money.pl, plPct: money.plPct };
     });
   }, [positions, quotes, fxRates, currency]);
 
@@ -178,7 +186,7 @@ export function TrialDashboard() {
                           {Number(r.p.shares.toFixed(4)).toLocaleString()}
                         </td>
                         <td className="text-right tabular-nums">
-                          {r.priceQc != null ? formatMoney(r.priceQc, r.qc) : "—"}
+                          <NativeAwarePrice row={r.money} display={currency} />
                         </td>
                         <td className="text-right tabular-nums">{fmt(r.mvDisp)}</td>
                         <td className="text-right tabular-nums text-slate-500">
@@ -288,7 +296,7 @@ function TrialValuation({
       shares={shares}
       avgCostEur={avgCostEur}
       currentPrice={company.price}
-      quoteCurrency={company.currency ?? currency}
+      quoteCurrency={company.quoteCurrency ?? company.currency ?? currency}
       fundamentals={company.fundamentals}
       totalPortfolioValueEur={0}
       displayCurrency={currency}

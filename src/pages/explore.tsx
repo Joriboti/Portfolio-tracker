@@ -221,7 +221,9 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
       .finally(() => setLoading(false));
   }
 
-  const qc = (company?.currency ?? currency) as Currency;
+  // The price is in the market's currency, which for an ADR is not the one the
+  // statements are filed in — never label the quote with the filing currency.
+  const qc = (company?.quoteCurrency ?? company?.currency ?? currency) as Currency;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 space-y-6">
@@ -374,7 +376,7 @@ function ExploreInner({ routeTicker }: { routeTicker: string | null }) {
                 shares={0}
                 avgCostEur={0}
                 currentPrice={company.price}
-                quoteCurrency={company.currency ?? currency}
+                quoteCurrency={qc}
                 fundamentals={company.fundamentals}
                 totalPortfolioValueEur={0}
                 displayCurrency={currency}

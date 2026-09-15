@@ -213,3 +213,17 @@ CREATE TABLE IF NOT EXISTS portfolio_snapshots (
 
 CREATE INDEX IF NOT EXISTS idx_portfolio_snapshots_user
   ON portfolio_snapshots (user_id, created_at DESC);
+
+-- Broker ticker → Yahoo symbol, as found by Yahoo search. Shared (no user_id).
+-- Only tickers the hand-curated static map in api/_ticker-resolve.ts does NOT
+-- know end up here, and misses are cached too (status 'unresolved', symbol
+-- NULL) so an unknown ticker costs exactly one search, ever. The dashboard
+-- reads the misses back to show "price unavailable" on those rows. The
+-- resolver creates this table on first use; the DDL is here for reference.
+CREATE TABLE IF NOT EXISTS ticker_symbols (
+  ticker      TEXT PRIMARY KEY,
+  symbol      TEXT,
+  status      TEXT NOT NULL, -- 'search' | 'unresolved'
+  name        TEXT,
+  resolved_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

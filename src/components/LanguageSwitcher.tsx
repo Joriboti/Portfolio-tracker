@@ -15,8 +15,10 @@ export function LanguageSwitcher() {
   const navigate = useNavigate();
   const current = (i18n.language?.slice(0, 2) ?? "ca") as Locale;
 
-  function choose(lng: Locale) {
-    void i18n.changeLanguage(lng);
+  async function choose(lng: Locale) {
+    // Language first, URL second — LocaleSync reads i18n.language when the
+    // path changes, and must see the new choice, not the old one.
+    await i18n.changeLanguage(lng);
     // App/auth pages are deliberately language-neutral: switch the UI language
     // in place rather than inventing a /es URL for them.
     if (!isLocalizable(stripLocale(pathname))) return;
@@ -28,7 +30,7 @@ export function LanguageSwitcher() {
       {LOCALES.map((lng) => (
         <button
           key={lng}
-          onClick={() => choose(lng)}
+          onClick={() => void choose(lng)}
           className={`px-2 py-1 rounded ${
             current === lng
               ? "bg-brand-600 text-white"

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { LocaleLink } from "@/components/LocaleLink";
 
 import { useTranslation } from "react-i18next";
@@ -23,9 +23,14 @@ import {
   appendHoldings,
   renameTicker,
   type PriceQuote,
+  type PriceUnavailableReason,
   type Fundamentals,
   type LiveCompany,
 } from "@/lib/api";
+import { runPriceRefresh } from "@/lib/price-refresh";
+import { holdFor } from "@/lib/phases";
+import { buildPositionRow, formatLargeMoney, numberLocale } from "@/lib/money";
+import { NativeAwarePrice } from "@/components/NativePrice";
 import {
   computeSinceInception,
   computeYearlyBreakdown,
@@ -41,7 +46,7 @@ import { HistoryChart } from "@/components/HistoryChart";
 import { ScenarioValuation } from "@/components/ScenarioValuation";
 import { CompanyOverview } from "@/components/CompanyOverview";
 import { CompanyLogo } from "@/components/CompanyLogo";
-import { PageLoading } from "@/components/Logo";
+import { Logo, PageLoading } from "@/components/Logo";
 import { PortfolioVerifier } from "@/components/PortfolioVerifier";
 import { TickerRenameDialog } from "@/components/TickerRenameDialog";
 
@@ -72,7 +77,23 @@ function DashboardInner() {
   const [fxRates, setFxRates] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  // The price refresh, as the header shows it: how far along, whether the
+  // last one failed (in which case the timestamp is stale). The quotes on
+  // screen are never cleared by a refresh — they're dimmed and overwritten
+  // row by row as chunks land.
+  const [refresh, setRefresh] = useState<{
+    active: boolean;
+    done: number;
+    total: number;
+    error: string | null;
+    stale: boolean;
+  }>({ active: false, done: 0, total: 0, error: null, stale: false });
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  // Tickers with no market symbol → why, so their rows can say so.
+  const [unavailable, setUnavailable] = useState<Record<string, PriceUnavailableReason>>({});
+  // One refresh at a time; a ref so a double click can't start a second run
+  // before the first render lands.
+  const refreshRunning = useRef(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [showPie, setShowPie] = useState(false);
   const [fundamentals, setFundamentals] = useState<Record<string, Fundamentals>>({});
@@ -86,28 +107,73 @@ function DashboardInner() {
   // Ticker of the holding whose "change ticker" dialog is open, if any.
   const [renaming, setRenaming] = useState<string | null>(null);
 
-  async function handleRefresh() {
-    if (!user || refreshing) return;
-    setRefreshing(true);
+  // Refresh prices in parallel chunks and paint each row as its chunk lands.
+  // What's on screen is never cleared: a chunk that fails leaves its rows as
+  // they were, the timestamp is marked stale and a retry is offered. Runs at
+  // least 400ms so a fast refresh reads as one, not as a flash.
+  async function runRefresh(tickers: string[]) {
+    if (!user || refreshRunning.current) return;
+    refreshRunning.current = true;
+    const startedAt = Date.now();
+    const total = tickers.length;
+    setRefresh({ active: true, done: 0, total, error: null, stale: false });
+    // Dividend events ride along; the portfolio re-read that picks them up is
+    // detached so it never holds the price indicator open.
+    void refreshDividends(user.id)
+      .catch(() => null)
+      .then(() => getPortfolio(user.id))
+      .then((d) => setData(d))
+      .catch(() => {});
     try {
-      await Promise.all([
-        refreshPrices(user.id),
-        refreshDividends(user.id),
-      ]);
-      const [priceRes, portfolioRes] = await Promise.all([
-        getPrices(openPositions.map((p) => p.ticker)),
-        getPortfolio(user.id),
-      ]);
-      const map: Record<string, PriceQuote> = {};
-      for (const q of priceRes.quotes) map[q.ticker] = q;
-      setQuotes(map);
-      setFxRates(priceRes.fxRates);
-      setData(portfolioRes);
+      const outcome = await runPriceRefresh({
+        tickers,
+        fetchChunk: (symbols, { fx }) => refreshPrices(user.id, { symbols, fx }),
+        onProgress: ({ done, quotes: arrived, fxRates: fx }) => {
+          if (Object.keys(arrived).length > 0) setQuotes((prev) => ({ ...prev, ...arrived }));
+          if (Object.keys(fx).length > 0) setFxRates((prev) => ({ ...prev, ...fx }));
+          setRefresh((r) => ({ ...r, done }));
+        },
+      });
+      setUnavailable((prev) => {
+        const next = { ...prev };
+        for (const tk of Object.keys(outcome.quotes)) delete next[tk];
+        for (const [tk, why] of Object.entries(outcome.unavailable)) {
+          next[tk] = why === "skipped" ? "skipped" : "unresolved";
+        }
+        return next;
+      });
+      await holdFor(startedAt);
+      if (outcome.failed.length > 0) {
+        setRefresh({
+          active: false,
+          done: total,
+          total,
+          error: t("dashboard.refreshPartial", { count: outcome.failed.length }),
+          stale: true,
+        });
+      } else {
+        setLastUpdated(new Date().toISOString());
+        setRefresh({ active: false, done: total, total, error: null, stale: false });
+      }
     } catch (e) {
-      setError((e as Error).message);
+      await holdFor(startedAt);
+      setRefresh({ active: false, done: 0, total, error: (e as Error).message, stale: true });
     } finally {
-      setRefreshing(false);
+      refreshRunning.current = false;
     }
+  }
+
+  function handleRefresh() {
+    // Biggest positions first, so the numbers that move the total land first.
+    const ordered = openPositions
+      .map((p) => {
+        const q = quotes[p.ticker];
+        const value = q ? toDisplay(q.price, q.currency ?? null, currency, fxRates) * p.shares : 0;
+        return { ticker: p.ticker, value };
+      })
+      .sort((a, b) => b.value - a.value)
+      .map((x) => x.ticker);
+    void runRefresh(ordered);
   }
 
   useEffect(() => {
@@ -215,26 +281,31 @@ function DashboardInner() {
     [visibleData],
   );
 
+  // Keyed on the set of open tickers, not the positions array: a portfolio
+  // re-read after a refresh yields a new array of the same tickers and must
+  // not trigger another price fetch.
+  const openTickerKey = useMemo(() => [...openTickers].sort().join(","), [openTickers]);
   useEffect(() => {
-    if (openPositions.length === 0) return;
-    const tickers = openPositions.map((p) => p.ticker);
+    if (openTickerKey === "") return;
+    const tickers = openTickerKey.split(",");
     getPrices(tickers)
-      .then(({ quotes, fxRates }) => {
+      .then(({ quotes, fxRates, unavailable }) => {
         const map: Record<string, PriceQuote> = {};
         for (const q of quotes) map[q.ticker] = q;
-        setQuotes(map);
-        setFxRates(fxRates);
+        // Merge, never replace: a refresh may be painting rows at the same time.
+        setQuotes((prev) => ({ ...prev, ...map }));
+        setFxRates((prev) => ({ ...prev, ...fxRates }));
+        setUnavailable(unavailable);
       })
       .catch(() => {
-        setQuotes({});
-        setFxRates({});
+        /* keep whatever is on screen; the banner offers a refresh */
       });
     // Cached fundamentals (PER, P/B, …). Missing table / no rows → empty map,
     // the PER card shows its "no data" state.
     getFundamentals(tickers)
       .then(setFundamentals)
       .catch(() => setFundamentals({}));
-  }, [openPositions]);
+  }, [openTickerKey]);
 
   async function handleFundamentalsRefresh() {
     if (!user || fundRefreshing) return;
@@ -329,32 +400,18 @@ function DashboardInner() {
 
     // The new symbol may be one nothing has ever priced. Everything here is
     // best-effort: the rename itself is already committed, and the daily crons
-    // catch up on whatever fails.
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        refreshPrices(user.id),
-        refreshDividends(user.id).catch(() => null),
-      ]);
-      try {
-        await refreshHistoricalPrices(user.id);
-      } catch {
-        /* cron will catch up */
-      }
-      const [portfolioRes, priceRes] = await Promise.all([
-        getPortfolio(user.id),
-        getPrices([...new Set(openPositions.map((p) => (p.ticker === from ? to : p.ticker)))]),
-      ]);
-      const map: Record<string, PriceQuote> = {};
-      for (const q of priceRes.quotes) map[q.ticker] = q;
-      setQuotes(map);
-      setFxRates(priceRes.fxRates);
-      setData(portfolioRes);
-    } catch {
-      /* the rename landed; a manual refresh will pick the prices up */
-    } finally {
-      setRefreshing(false);
-    }
+    // catch up on whatever fails. The old symbol's "unavailable" mark goes
+    // with it; the new one is priced first so its row fills in first.
+    setUnavailable((prev) => {
+      const next = { ...prev };
+      delete next[from];
+      return next;
+    });
+    void refreshHistoricalPrices(user.id).catch(() => {});
+    const others = openPositions
+      .map((p) => p.ticker)
+      .filter((tk) => tk !== from && tk !== to);
+    await runRefresh([to, ...others]);
   }
 
   // Deconstructor controls.
@@ -406,20 +463,29 @@ function DashboardInner() {
 
   const realizedPL = allPositions.reduce((s, p) => s + p.realizedPL, 0);
 
+  // Rows with no price, split by why: no market symbol (fix: change the
+  // ticker) vs. simply not fetched yet (fix: refresh).
+  const missingQuotes = openPositions.filter((p) => !quotes[p.ticker]).map((p) => p.ticker);
+  const unresolvedQuotes = missingQuotes.filter((tk) => unavailable[tk]);
+  const pendingQuotes = missingQuotes.filter((tk) => !unavailable[tk]);
+  const pricesUpdatedAt = lastUpdated ?? data.lastPriceUpdate;
+
+  // Both totals in the display currency — the cost is recorded in EUR and used
+  // to be summed as-is even when the dashboard showed USD.
   let totalValue = 0;
   let totalCost = 0;
   for (const p of openPositions) {
-    const quote = quotes[p.ticker];
-    if (quote) {
-      const priceInDisplay = toDisplay(
-        quote.price,
-        quote.currency ?? null,
-        currency,
-        fxRates,
-      );
-      totalValue += priceInDisplay * p.shares;
-    }
-    totalCost += p.totalCost;
+    const row = buildPositionRow({
+      ticker: p.ticker,
+      shares: p.shares,
+      avgCost: p.avgCost,
+      totalCost: p.totalCost,
+      quote: quotes[p.ticker] ?? null,
+      displayCurrency: currency,
+      fxRates,
+    });
+    if (row.marketValue != null) totalValue += row.marketValue;
+    totalCost += row.cost ?? p.totalCost;
   }
   const unrealized = totalValue > 0 ? totalValue - totalCost : 0;
 
@@ -438,20 +504,47 @@ function DashboardInner() {
         <h1 className="text-2xl font-semibold text-slate-900">
           {t("dashboard.title")}
         </h1>
-        <div className="flex items-center gap-3">
-          {data.lastPriceUpdate && (
-            <p className="text-xs text-slate-500">
-              {t("dashboard.lastUpdated", {
-                when: new Date(data.lastPriceUpdate).toLocaleString(),
-              })}
+        <div className="flex items-center gap-3 flex-wrap">
+          <p className="text-xs text-slate-500">
+            {pricesUpdatedAt
+              ? t("dashboard.lastUpdated", {
+                  when: new Date(pricesUpdatedAt).toLocaleString(),
+                })
+              : t("dashboard.neverUpdated")}
+            {refresh.stale && (
+              <span className="ml-1.5 rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-800">
+                {t("dashboard.stale")}
+              </span>
+            )}
+          </p>
+          {refresh.error && !refresh.active && (
+            <p className="text-xs text-rose-700">
+              {refresh.error}{" "}
+              <button
+                onClick={handleRefresh}
+                className="font-medium underline hover:text-rose-900"
+              >
+                {t("dashboard.retry")}
+              </button>
             </p>
           )}
           <button
-            onClick={() => void handleRefresh()}
-            disabled={refreshing}
-            className="btn-ghost text-xs px-3 py-1.5"
+            onClick={handleRefresh}
+            disabled={refresh.active}
+            className="btn-ghost inline-flex items-center gap-1.5 text-xs px-3 py-1.5"
           >
-            {refreshing ? t("common.loading") : t("dashboard.refresh")}
+            {refresh.active ? (
+              <>
+                <Logo className="h-3.5 w-3.5" spinning label={t("common.loading")} />
+                <span aria-live="polite">
+                  {refresh.total > 1
+                    ? t("dashboard.updating", { done: refresh.done, total: refresh.total })
+                    : t("dashboard.updatingOne")}
+                </span>
+              </>
+            ) : (
+              t("dashboard.refresh")
+            )}
           </button>
         </div>
       </header>
@@ -481,25 +574,41 @@ function DashboardInner() {
         </div>
       )}
 
-      {openPositions.length > 0 &&
-        openPositions.some((p) => !quotes[p.ticker]) && (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
-            <span>⚠</span>
-            <span>
-              {t("dashboard.missingPrices")}{" "}
-              <button
-                onClick={() => void handleRefresh()}
-                disabled={refreshing}
-                className="underline font-medium hover:text-amber-900"
-              >
-                {t("dashboard.refresh")}
-              </button>
-              {user && <span className="ml-1">{t("dashboard.rename.missingHint")}</span>}
-            </span>
-          </div>
-        )}
+      {missingQuotes.length > 0 && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+          <span>⚠</span>
+          <span>
+            {pendingQuotes.length > 0 && (
+              <>
+                {t("dashboard.missingPrices")}{" "}
+                <button
+                  onClick={handleRefresh}
+                  disabled={refresh.active}
+                  className="underline font-medium hover:text-amber-900"
+                >
+                  {t("dashboard.refresh")}
+                </button>
+                {". "}
+              </>
+            )}
+            {unresolvedQuotes.length > 0 && (
+              <>
+                {t("dashboard.unresolvedBanner", {
+                  count: unresolvedQuotes.length,
+                  list: unresolvedQuotes.join(", "),
+                })}
+                {user && <span className="ml-1">{t("dashboard.rename.missingHint")}</span>}
+              </>
+            )}
+          </span>
+        </div>
+      )}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <section
+        className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 transition-opacity duration-300 ${
+          refresh.active ? "opacity-60" : ""
+        }`}
+      >
         <Stat label={t("dashboard.totalValue")} value={formatMoney(totalValue, currency)} />
         <Stat label={t("dashboard.totalCost")} value={formatMoney(totalCost, currency)} />
         <Stat
@@ -577,6 +686,8 @@ function DashboardInner() {
           <PositionsTable
             positions={openPositions}
             quotes={quotes}
+            unavailable={unavailable}
+            dimmed={refresh.active}
             currency={currency}
             fxRates={fxRates}
             fundamentals={fundamentals}
@@ -827,9 +938,30 @@ function SortTh({
   );
 }
 
+// "Price unavailable", said on the row itself — never a blank, never a 0. The
+// tooltip says which kind: no market symbol for this ticker (fix: change the
+// ticker) or simply not fetched yet (fix: refresh).
+function PriceUnavailable({ reason }: { reason: PriceUnavailableReason | null }) {
+  const { t } = useTranslation();
+  return (
+    <span
+      className="inline-flex whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-800"
+      title={
+        reason
+          ? t("dashboard.priceUnavailableUnresolved")
+          : t("dashboard.priceUnavailablePending")
+      }
+    >
+      {t("dashboard.priceUnavailable")}
+    </span>
+  );
+}
+
 function PositionsTable({
   positions,
   quotes,
+  unavailable,
+  dimmed,
   currency,
   fxRates,
   fundamentals,
@@ -840,6 +972,9 @@ function PositionsTable({
 }: {
   positions: Position[];
   quotes: Record<string, PriceQuote>;
+  unavailable: Record<string, PriceUnavailableReason>;
+  /** A refresh is in flight: keep every figure, just lower it a notch. */
+  dimmed: boolean;
   currency: Currency;
   fxRates: Record<string, number>;
   fundamentals: Record<string, Fundamentals>;
@@ -860,27 +995,32 @@ function PositionsTable({
   const rows = useMemo(() => {
     const mapped = positions.map((p) => {
       const quote = quotes[p.ticker];
-      // Cost basis is already in the user's account currency (EUR);
-      // only the live Yahoo price needs FX conversion.
-      const currentPriceDisp = quote
-        ? toDisplay(quote.price, quote.currency ?? null, currency, fxRates)
-        : null;
-      const marketValue =
-        currentPriceDisp != null ? currentPriceDisp * p.shares : null;
-      const pl = marketValue != null ? marketValue - p.totalCost : null;
-      const plPct = pl != null && p.totalCost > 0 ? pl / p.totalCost : null;
+      // One conversion, here, into the display currency — for the quote AND
+      // the EUR cost basis — so every figure on the row is in the same
+      // currency (the row asserts it). The native quote stays on the row for
+      // the price cell to show.
+      const money = buildPositionRow({
+        ticker: p.ticker,
+        shares: p.shares,
+        avgCost: p.avgCost,
+        totalCost: p.totalCost,
+        quote: quote ?? null,
+        displayCurrency: currency,
+        fxRates,
+      });
       const weight =
-        marketValue != null && totalPortfolioValue > 0
-          ? marketValue / totalPortfolioValue
+        money.marketValue != null && totalPortfolioValue > 0
+          ? money.marketValue / totalPortfolioValue
           : null;
       return {
         p,
         quote,
         fund: fundamentals[p.ticker],
-        currentPriceDisp,
-        marketValue,
-        pl,
-        plPct,
+        money,
+        currentPriceDisp: money.price,
+        marketValue: money.marketValue,
+        pl: money.pl,
+        plPct: money.plPct,
         weight,
       };
     });
@@ -891,7 +1031,7 @@ function PositionsTable({
         case "shares":
           return r.p.shares;
         case "avgCost":
-          return r.p.avgCost;
+          return r.money.avgCost ?? -Infinity;
         case "price":
           return r.currentPriceDisp ?? -Infinity;
         case "value":
@@ -899,7 +1039,7 @@ function PositionsTable({
         case "weight":
           return r.weight ?? -Infinity;
         case "cost":
-          return r.p.totalCost;
+          return r.money.cost ?? -Infinity;
         case "pl":
           return r.pl ?? -Infinity;
         case "plPct":
@@ -942,10 +1082,9 @@ function PositionsTable({
           <th className={onRename ? "w-16" : "w-8"} />
         </tr>
       </thead>
-      <tbody>
+      <tbody className={`transition-opacity duration-300 ${dimmed ? "opacity-60" : ""}`}>
         {rows.map((row) => {
-          const { p, quote, fund, currentPriceDisp, marketValue, pl, plPct, weight } =
-            row;
+          const { p, quote, fund, money, marketValue, pl, plPct, weight } = row;
           const isExpanded = expanded === p.ticker;
           return (
             <Fragment key={p.ticker}>
@@ -963,15 +1102,17 @@ function PositionsTable({
                   </div>
                 </td>
                 <td className="text-right">{p.shares.toFixed(4)}</td>
-                <td className="text-right">{formatMoney(p.avgCost, currency)}</td>
+                <td className="text-right">{formatMoney(money.avgCost, currency)}</td>
                 <td className="text-right">
-                  {currentPriceDisp != null
-                    ? formatMoney(currentPriceDisp, currency)
-                    : "—"}
+                  <NativeAwarePrice
+                    row={money}
+                    display={currency}
+                    fallback={<PriceUnavailable reason={unavailable[p.ticker] ?? null} />}
+                  />
                 </td>
                 <td className="text-right">{formatMoney(marketValue, currency)}</td>
                 <td className="text-right text-slate-500">{formatPct(weight)}</td>
-                <td className="text-right">{formatMoney(p.totalCost, currency)}</td>
+                <td className="text-right">{formatMoney(money.cost, currency)}</td>
                 <td
                   className={`text-right ${
                     pl == null
@@ -1040,7 +1181,7 @@ function PositionsTable({
                       p={p}
                       quote={quote}
                       fund={fund}
-                      currentPriceDisp={currentPriceDisp}
+                      currentPriceDisp={money.price}
                       userId={userId}
                       currency={currency}
                       totalPortfolioValue={totalPortfolioValue}
@@ -1091,6 +1232,8 @@ function ExpandedPositionDetail({
         ticker: p.ticker,
         price: quote?.price ?? null,
         currency: quote?.currency ?? currency,
+        // The stored quote IS the market's own (pence already in pounds).
+        quoteCurrency: quote?.currency ?? currency,
         fundamentals: fund,
       }
     : null;
@@ -1185,13 +1328,9 @@ function FundamentalsDetail({
     { label: t("fundamentals.yieldOnCost"), value: formatPct(yieldOnCost) },
     {
       label: t("fundamentals.marketCap"),
-      value:
-        fund.marketCap == null
-          ? "—"
-          : new Intl.NumberFormat(i18n.language, {
-              notation: "compact",
-              maximumFractionDigits: 1,
-            }).format(fund.marketCap) + (fund.currency ? ` ${fund.currency}` : ""),
+      // Short scale on purpose: Intl's compact notation writes "B" for 10^12
+      // under a Catalan locale (bilió), which turned trillions into billions.
+      value: formatLargeMoney(fund.marketCap, fund.currency, numberLocale(i18n.language)),
     },
   ];
   return (

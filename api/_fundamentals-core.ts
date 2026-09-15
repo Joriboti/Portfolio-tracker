@@ -12,207 +12,13 @@
 // click or next weekly cron) continues where it left off. Every field can be
 // null/undefined; rows are written with whatever came back.
 
+import { symbolPairs } from "./_ticker-resolve.js";
+
 const DELAY_BETWEEN_TICKERS_MS = 400;
-
-// transactions.ticker (raw broker name) → Yahoo symbol. Kept in sync manually
-// with prices-update / historical-backfill, same additive convention.
-const TICKER_MAP: Record<string, string> = {
-  TESLA: "TSLA",
-  ABERCROMBIE: "ANF",
-  PINDUODUO: "PDD",
-  SABADELL: "SAB.MC",
-  IAG: "IAG.MC",
-  BBVA: "BBVA.MC",
-  SANTANDER: "SAN.MC",
-  TELEFONICA: "TEF.MC",
-  INDITEX: "ITX.MC",
-  REPSOL: "REP.MC",
-  CAIXABANK: "CABK.MC",
-  CAIXABANC: "CABK.MC",
-  IBERDROLA: "IBE.MC",
-  ENDESA: "ELE.MC",
-  AMADEUS: "AMS.MC",
-  CELLNEX: "CLNX.MC",
-  MAPFRE: "MAP.MC",
-  BANKINTER: "BKT.MC",
-  FERROVIAL: "FER.MC",
-  ACS: "ACS.MC",
-  GRIFOLS: "GRF.MC",
-  NATURGY: "NTGY.MC",
-  COLONIAL: "COL.MC",
-  ACCIONA: "ANA.MC",
-  NBUS: "NBIS",
-  PALLADIUM: "SPDM.MI",
-  "PHYSICAL PALLADIUM ETF": "SPDM.MI",
-  "BANCO SANTANDER": "SAN.MC",
-  ENAGAS: "ENG.MC",
-  "GAS NATURAL": "NTGY.MC",
-  ALIBABA: "BABA",
-  ALPHABET: "GOOGL",
-  AMAZON: "AMZN",
-  AMBARELLA: "AMBA",
-  APPLE: "AAPL",
-  "ASTERA LABS": "ALAB",
-  "AURA BIOSCIENCE": "AURA",
-  BIOGEN: "BIIB",
-  "CATALYST PHARMACEUTICAL": "CPRX",
-  "COMCAST CORP": "CMCSA",
-  "CONSTELLATION BRANDS": "STZ",
-  INTUIT: "INTU",
-  "JD.COM": "JD",
-  "MARVELL TECHNOLOGY": "MRVL",
-  MICRON: "MU",
-  "NEBIUS GROUP": "NBIS",
-  "NOVO NORDISK": "NVO",
-  NVIDIA: "NVDA",
-  PEPSICO: "PEP",
-  "PLUG POWER": "PLUG",
-  "RECURSION PHARMACEUTICAL": "RXRX",
-  "REGENERON PHARMACEUTICAL": "REGN",
-  RIVIAN: "RIVN",
-  "SERVE ROBOTICS": "SERV",
-  "SOUNDHOUND AI": "SOUN",
-  "TREND MICRO": "TMICY",
-  "ZETA GLOBAL": "ZETA",
-  "AEDAS HOMES": "AEDAS.MC",
-  "PROSEGUR CASH": "CASH.MC",
-  LOGISTA: "LOG.MC",
-  MELIA: "MEL.MC",
-  NEINOR: "HOME.MC",
-  "ORYZON GENOMICS": "ORY.MC",
-  "PUIG BRANDS": "PUIG.MC",
-  SACYR: "SCYR.MC",
-  SOLARIA: "SLR.MC",
-  SOLTEC: "SOL.MC",
-  TUBACEX: "TUB.MC",
-  MEDIASET: "TL5.MC",
-  "LAR ESPAÑA": "LRE.MC",
-  LVMH: "MC.PA",
-  SAN: "SAN.MC",
-  CABK: "CABK.MC",
-  ENG: "ENG.MC",
-  MAP: "MAP.MC",
-  GRF: "GRF.MC",
-  REP: "REP.MC",
-  NGY: "NTGY.MC",
-  CLNX: "CLNX.MC",
-  AEDAS: "AEDAS.MC",
-  CASH: "CASH.MC",
-  LOG: "LOG.MC",
-  MEL: "MEL.MC",
-  HOME: "HOME.MC",
-  ORY: "ORY.MC",
-  PUIG: "PUIG.MC",
-  SCYR: "SCYR.MC",
-  SLR: "SLR.MC",
-  TUB: "TUB.MC",
-  TL5: "TL5.MC",
-  LRE: "LRE.MC",
-  MC: "MC.PA",
-  IBE: "IBE.MC",
-  ELE: "ELE.MC",
-  AMS: "AMS.MC",
-  BKT: "BKT.MC",
-  FER: "FER.MC",
-  COL: "COL.MC",
-  ANA: "ANA.MC",
-  SAB: "SAB.MC",
-  TEF: "TEF.MC",
-  ITX: "ITX.MC",
-  BME: "BME.MC",
-  BTC: "BTC-USD",
-  ETH: "ETH-USD",
-  ADA: "ADA-USD",
-  SOL: "SOL-USD",
-  DOT: "DOT-USD",
-  NBIS: "NBIS",
-};
-
-const SKIP_TICKERS = new Set<string>([
-  "GOLD",
-  "SILVER",
-  "PLATINUM",
-  "ETF IBEX",
-  "ETF IBEX INVERSA",
-  "FONS DE PENSIONS",
-  "LYXOR VIX",
-  "LYXOR DOBLE SHORT",
-  "ABE",
-  "LDK",
-  "IBR",
-]);
 
 // Crypto pseudo-tickers have no earnings/fundamentals — skip the Yahoo call
 // entirely but still write a row (sector "Crypto") so the UI can group them.
 const CRYPTO_TICKERS = new Set<string>(["BTC", "ETH", "ADA", "SOL", "DOT"]);
-
-const TICKER_STORAGE_ALIASES: Record<string, string> = {
-  TESLA: "TSLA",
-  "BANCO SANTANDER": "SAN",
-  CAIXABANK: "CABK",
-  CAIXABANC: "CABK",
-  ENAGAS: "ENG",
-  MAPFRE: "MAP",
-  GRIFOLS: "GRF",
-  REPSOL: "REP",
-  "GAS NATURAL": "NGY",
-  NATURGY: "NGY",
-  ALIBABA: "BABA",
-  ALPHABET: "GOOGL",
-  AMAZON: "AMZN",
-  AMBARELLA: "AMBA",
-  APPLE: "AAPL",
-  "ASTERA LABS": "ALAB",
-  "AURA BIOSCIENCE": "AURA",
-  BIOGEN: "BIIB",
-  "CATALYST PHARMACEUTICAL": "CPRX",
-  "COMCAST CORP": "CMCSA",
-  "CONSTELLATION BRANDS": "STZ",
-  INTUIT: "INTU",
-  "JD.COM": "JD",
-  "MARVELL TECHNOLOGY": "MRVL",
-  MICRON: "MU",
-  "NEBIUS GROUP": "NBIS",
-  "NOVO NORDISK": "NVO",
-  NVIDIA: "NVDA",
-  PEPSICO: "PEP",
-  "PLUG POWER": "PLUG",
-  "RECURSION PHARMACEUTICAL": "RXRX",
-  "REGENERON PHARMACEUTICAL": "REGN",
-  RIVIAN: "RIVN",
-  "SERVE ROBOTICS": "SERV",
-  "SOUNDHOUND AI": "SOUN",
-  "TREND MICRO": "TMICY",
-  "ZETA GLOBAL": "ZETA",
-  "AEDAS HOMES": "AEDAS",
-  CELLNEX: "CLNX",
-  "PROSEGUR CASH": "CASH",
-  LOGISTA: "LOG",
-  MELIA: "MEL",
-  NEINOR: "HOME",
-  "ORYZON GENOMICS": "ORY",
-  "PUIG BRANDS": "PUIG",
-  SACYR: "SCYR",
-  SOLARIA: "SLR",
-  SOLTEC: "SOL",
-  TUBACEX: "TUB",
-  MEDIASET: "TL5",
-  "LAR ESPAÑA": "LRE",
-  LVMH: "MC",
-  NBUS: "NBIS",
-  "PHYSICAL PALLADIUM ETF": "PPFA",
-};
-
-function mapTicker(raw: string): string | null {
-  const key = raw.trim().toUpperCase();
-  if (SKIP_TICKERS.has(key)) return null;
-  return TICKER_MAP[key] ?? key;
-}
-
-function storageKey(original: string): string {
-  const key = original.trim().toUpperCase();
-  return TICKER_STORAGE_ALIASES[key] ?? key;
-}
 
 // Yahoo numbers sometimes arrive as {raw: n} wrappers depending on module —
 // yahoo-finance2 usually unwraps, but be defensive. null/undefined → null.
@@ -332,16 +138,12 @@ export async function refreshFundamentals(
   }
 
   // original broker name → (stored key, yahoo symbol), deduped by stored key.
+  // Static map → Postgres cache of past Yahoo searches (api/_ticker-resolve);
+  // skipped and unresolved tickers never reach Yahoo.
   const work = new Map<string, { yahoo: string; crypto: boolean }>();
-  for (const row of rows) {
-    const mapped = mapTicker(row.ticker);
-    if (!mapped) continue;
-    const stored = storageKey(row.ticker);
-    if (!work.has(stored)) {
-      work.set(stored, {
-        yahoo: mapped,
-        crypto: CRYPTO_TICKERS.has(stored),
-      });
+  for (const p of await symbolPairs(sql, rows.map((r) => r.ticker))) {
+    if (!work.has(p.stored)) {
+      work.set(p.stored, { yahoo: p.symbol, crypto: CRYPTO_TICKERS.has(p.stored) });
     }
   }
 

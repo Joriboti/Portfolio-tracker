@@ -112,3 +112,33 @@
     animation-delay: 0.35s;
   }
 }
+
+/* ── an indeterminate bar, for a wait whose length nobody knows ─────────── */
+
+/*
+ * The bar runs on `transform` only, so it keeps moving on the compositor even
+ * while the main thread is busy parsing a spreadsheet — the one moment a
+ * loading indicator most needs to keep moving.
+ */
+.progress-indeterminate {
+  animation: progress-indeterminate 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: left;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%) scaleX(0.4);
+  }
+  50% {
+    transform: translateX(40%) scaleX(0.6);
+  }
+  100% {
+    transform: translateX(260%) scaleX(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-indeterminate {
+    animation: progress-indeterminate 3s linear infinite;
+  }
+}

@@ -147,43 +147,82 @@ export default async function handler(
       await sql`DELETE FROM wealth_entries WHERE user_id = ${userId}`;
     }
 
+    // Every table is written as a handful of multi-row statements (unnest over
+    // parallel arrays) rather than one INSERT per row: a 300-row Excel used to
+    // cost 300 round trips to Neon — ten-plus seconds of the user staring at a
+    // frozen button — and now costs one. Within a statement unnest keeps array
+    // order, so ids (and therefore portfolio-get's ORDER BY id) still follow
+    // the spreadsheet's row order.
+    const ROWS_PER_STATEMENT = 500;
+    const numOrNull = (v: unknown): number | null =>
+      typeof v === "number" && Number.isFinite(v) ? v : null;
+    const strOrNull = (v: unknown): string | null =>
+      typeof v === "string" && v.length > 0 ? v : null;
+
     phase = "insert-transactions";
-    for (const t of transactions) {
+    for (let i = 0; i < transactions.length; i += ROWS_PER_STATEMENT) {
+      const batch = transactions.slice(i, i + ROWS_PER_STATEMENT);
       await sql`
         INSERT INTO transactions
           (user_id, portfolio, ticker, shares, buy_price, buy_value, buy_date,
            sell_shares, sell_price, sell_value, sell_date, result)
-        VALUES
-          (${userId}, ${t.portfolio ?? "default"}, ${t.ticker},
-           ${Number.isFinite(t.shares) ? t.shares : 0},
-           ${t.buyPrice}, ${t.buyValue}, ${t.buyDate},
-           ${t.sellShares}, ${t.sellPrice}, ${t.sellValue}, ${t.sellDate},
-           ${t.result})
+        SELECT ${userId}, portfolio, ticker, shares, buy_price, buy_value, buy_date,
+               sell_shares, sell_price, sell_value, sell_date, result
+        FROM unnest(
+          ${batch.map((t) => t.portfolio ?? "default")}::text[],
+          ${batch.map((t) => t.ticker)}::text[],
+          ${batch.map((t) => numOrNull(t.shares) ?? 0)}::numeric[],
+          ${batch.map((t) => numOrNull(t.buyPrice))}::numeric[],
+          ${batch.map((t) => numOrNull(t.buyValue))}::numeric[],
+          ${batch.map((t) => strOrNull(t.buyDate))}::date[],
+          ${batch.map((t) => numOrNull(t.sellShares))}::numeric[],
+          ${batch.map((t) => numOrNull(t.sellPrice))}::numeric[],
+          ${batch.map((t) => numOrNull(t.sellValue))}::numeric[],
+          ${batch.map((t) => strOrNull(t.sellDate))}::date[],
+          ${batch.map((t) => numOrNull(t.result))}::numeric[]
+        ) AS u(portfolio, ticker, shares, buy_price, buy_value, buy_date,
+               sell_shares, sell_price, sell_value, sell_date, result)
       `;
     }
 
     phase = "insert-dividends";
-    for (const d of dividends) {
+    for (let i = 0; i < dividends.length; i += ROWS_PER_STATEMENT) {
+      const batch = dividends.slice(i, i + ROWS_PER_STATEMENT);
       await sql`
         INSERT INTO dividends (user_id, ticker, amount, paid_at)
-        VALUES (${userId}, ${d.ticker}, ${d.amount}, ${d.date})
+        SELECT ${userId}, ticker, amount, paid_at
+        FROM unnest(
+          ${batch.map((d) => d.ticker)}::text[],
+          ${batch.map((d) => numOrNull(d.amount) ?? 0)}::numeric[],
+          ${batch.map((d) => strOrNull(d.date))}::date[]
+        ) AS u(ticker, amount, paid_at)
       `;
     }
 
     phase = "insert-interests";
-    for (const it of interests) {
+    for (let i = 0; i < interests.length; i += ROWS_PER_STATEMENT) {
+      const batch = interests.slice(i, i + ROWS_PER_STATEMENT);
       await sql`
         INSERT INTO interests (user_id, amount, paid_at)
-        VALUES (${userId}, ${it.amount}, ${it.date})
+        SELECT ${userId}, amount, paid_at
+        FROM unnest(
+          ${batch.map((it) => numOrNull(it.amount) ?? 0)}::numeric[],
+          ${batch.map((it) => strOrNull(it.date))}::date[]
+        ) AS u(amount, paid_at)
       `;
     }
 
     phase = "insert-wealth";
-    for (const w of wealth) {
-      const cat = w.category === "cash" ? "cash" : "stocks";
+    for (let i = 0; i < wealth.length; i += ROWS_PER_STATEMENT) {
+      const batch = wealth.slice(i, i + ROWS_PER_STATEMENT);
       await sql`
         INSERT INTO wealth_entries (user_id, category, label, value)
-        VALUES (${userId}, ${cat}, ${w.label}, ${w.value})
+        SELECT ${userId}, category, label, value
+        FROM unnest(
+          ${batch.map((w) => (w.category === "cash" ? "cash" : "stocks"))}::text[],
+          ${batch.map((w) => w.label)}::text[],
+          ${batch.map((w) => numOrNull(w.value) ?? 0)}::numeric[]
+        ) AS u(category, label, value)
       `;
     }
 

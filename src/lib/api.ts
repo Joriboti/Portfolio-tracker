@@ -84,18 +84,26 @@ function normaliseDividendEvent(e: DividendEvent): DividendEvent {
   return { ...e, amount: numReq(e.amount) };
 }
 
-export async function getPrices(
-  tickers: string[],
-): Promise<{ quotes: PriceQuote[]; fxRates: Record<string, number> }> {
-  if (tickers.length === 0) return { quotes: [], fxRates: {} };
+// Why a ticker has no price: never quoted on purpose, or searched for and not
+// found. Either way the row must say so rather than show a blank or a zero.
+export type PriceUnavailableReason = "skipped" | "unresolved";
+
+export async function getPrices(tickers: string[]): Promise<{
+  quotes: PriceQuote[];
+  fxRates: Record<string, number>;
+  unavailable: Record<string, PriceUnavailableReason>;
+}> {
+  if (tickers.length === 0) return { quotes: [], fxRates: {}, unavailable: {} };
   const params = new URLSearchParams({ symbols: tickers.join(",") });
   const data = await jsonFetch<{
     quotes: PriceQuote[];
     fxRates?: Record<string, number>;
+    unavailable?: Record<string, PriceUnavailableReason>;
   }>(`/api/prices-current?${params.toString()}`);
   return {
     quotes: data.quotes.map(normaliseQuote),
     fxRates: data.fxRates ?? {},
+    unavailable: data.unavailable ?? {},
   };
 }
 
@@ -211,21 +219,66 @@ export async function getPortfolio(userId: string): Promise<{
   };
 }
 
+export type TickerResolution = {
+  ticker: string;
+  symbol: string | null;
+  status: "static" | "cached" | "search" | "unresolved" | "skipped";
+  name: string | null;
+};
+
 export type RefreshPricesResult = {
   ok: boolean;
   updated: number;
   tickers: number;
   fxOk: number;
+  /** The prices this call just wrote — so rows can update without a re-read. */
+  quotes: PriceQuote[];
+  unresolved: Array<{ ticker: string; status: string }>;
+  fxRates: Record<string, number>;
   skipped?: string[];
   errors?: string[];
   elapsed?: string;
 };
 
-// Manual trigger of the price-update endpoint. Yahoo Finance has no
-// effective rate limit on the unofficial endpoints used by yahoo-finance2,
-// so a single invocation refreshes everything in one shot.
-export function refreshPrices(userId: string): Promise<RefreshPricesResult> {
-  return jsonFetch("/api/prices-update", { method: "GET", userId });
+// Manual trigger of the price-update endpoint. With no `symbols` it refreshes
+// every ticker of the user's portfolio in one call; with `symbols` only those
+// (the dashboard sends its tickers in parallel chunks so rows fill in as they
+// arrive). `fx` asks for the FX pairs too — once per refresh is enough.
+export async function refreshPrices(
+  userId: string,
+  opts: { symbols?: string[]; fx?: boolean } = {},
+): Promise<RefreshPricesResult> {
+  const params = new URLSearchParams();
+  if (opts.symbols && opts.symbols.length > 0) params.set("symbols", opts.symbols.join(","));
+  if (opts.fx) params.set("fx", "1");
+  const qs = params.toString();
+  const data = await jsonFetch<RefreshPricesResult>(
+    `/api/prices-update${qs ? `?${qs}` : ""}`,
+    { method: "GET", userId },
+  );
+  return {
+    ...data,
+    quotes: (data.quotes ?? []).map(normaliseQuote),
+    unresolved: data.unresolved ?? [],
+    fxRates: data.fxRates ?? {},
+  };
+}
+
+// Match the portfolio's broker tickers to Yahoo symbols (static map → cache →
+// Yahoo search) without quoting anything. The upload flow's "resolving
+// tickers" phase; whatever it can't match comes back in `unresolved`.
+export async function resolveTickers(
+  userId: string,
+  tickers: string[],
+): Promise<{ resolution: TickerResolution[]; unresolved: TickerResolution[] }> {
+  if (tickers.length === 0) return { resolution: [], unresolved: [] };
+  const params = new URLSearchParams({ mode: "resolve", symbols: tickers.join(",") });
+  const data = await jsonFetch<{ resolution?: TickerResolution[] }>(
+    `/api/prices-update?${params.toString()}`,
+    { method: "GET", userId },
+  );
+  const resolution = data.resolution ?? [];
+  return { resolution, unresolved: resolution.filter((r) => !r.symbol) };
 }
 
 export function refreshDividends(
@@ -395,8 +448,12 @@ export async function getFundamentals(
 
 export type LiveCompany = {
   ticker: string;
+  /** Latest price, in `quoteCurrency` (major units — pence already /100). */
   price: number | null;
+  /** The currency the statements are reported in (an ADR's home currency). */
   currency: string | null;
+  /** The currency the share trades in. Use THIS to convert `price`. */
+  quoteCurrency: string | null;
   fundamentals: Fundamentals;
 };
 
@@ -413,6 +470,7 @@ export async function getLiveCompany(ticker: string): Promise<LiveCompany | null
       ticker: string;
       price: unknown;
       currency: string | null;
+      quoteCurrency?: string | null;
       fundamentals: Fundamentals;
     } | null;
   }>(`/api/fundamentals-get?${params.toString()}`);
@@ -421,6 +479,9 @@ export async function getLiveCompany(ticker: string): Promise<LiveCompany | null
     ticker: data.company.ticker.toUpperCase(),
     price: num(data.company.price),
     currency: data.company.currency,
+    // A server one deploy behind sends no quoteCurrency; the filing currency
+    // is then the best available label, as before.
+    quoteCurrency: data.company.quoteCurrency ?? data.company.currency,
     fundamentals: normaliseFundamentals(data.company.fundamentals),
   };
 }

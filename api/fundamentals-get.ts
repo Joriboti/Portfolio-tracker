@@ -92,6 +92,23 @@ function toNum(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+// Markets that quote in a sub-unit of the major currency (London in pence).
+// Mirrors SUB_UNITS in src/lib/money.ts and SUB_UNIT_TO_MAJOR in prices-update.
+const SUB_UNIT_TO_MAJOR: Record<string, { major: string; divisor: number }> = {
+  GBp: { major: "GBP", divisor: 100 },
+  GBX: { major: "GBP", divisor: 100 },
+  ZAc: { major: "ZAR", divisor: 100 },
+  ILA: { major: "ILS", divisor: 100 },
+};
+function normaliseSubUnit(
+  price: number,
+  currency: string | null,
+): { price: number; currency: string } | null {
+  if (!currency) return null;
+  const conv = SUB_UNIT_TO_MAJOR[currency];
+  return conv ? { price: price / conv.divisor, currency: conv.major } : { price, currency };
+}
+
 // Yahoo numbers sometimes arrive as {raw: n} wrappers depending on the module.
 function pickNum(v: unknown): number | null {
   if (v == null) return null;
@@ -146,9 +163,16 @@ async function handleLiveCompany(req: VercelRequest, res: VercelResponse) {
   const ap = qs.assetProfile ?? {};
   const pr = qs.price ?? {};
 
-  const price = pickNum(pr.regularMarketPrice) ?? pickNum(fd.currentPrice);
-  const currency =
-    pickStr(fd.financialCurrency) ?? pickStr(pr.currency) ?? pickStr(sd.currency);
+  // Two currencies, kept apart on purpose: the statements are reported in
+  // `financialCurrency` (an ADR files in DKK/JPY/TWD) while the share trades
+  // in `quoteCurrency` (USD for that same ADR). `currency` stays the filing
+  // one for the fundamentals; the price is labelled with the market's own.
+  const rawPrice = pickNum(pr.regularMarketPrice) ?? pickNum(fd.currentPrice);
+  const rawQuoteCcy = pickStr(pr.currency) ?? pickStr(sd.currency);
+  const normalised = rawPrice != null ? normaliseSubUnit(rawPrice, rawQuoteCcy) : null;
+  const price = normalised?.price ?? rawPrice;
+  const quoteCurrency = normalised?.currency ?? rawQuoteCcy;
+  const currency = pickStr(fd.financialCurrency) ?? quoteCurrency;
   const forwardPe = pickNum(sd.forwardPE) ?? pickNum(ks.forwardPE);
   const forwardEps =
     pickNum(ks.forwardEps) ??
@@ -177,9 +201,9 @@ async function handleLiveCompany(req: VercelRequest, res: VercelResponse) {
     updatedAt: new Date().toISOString(),
   };
 
-  res
-    .status(200)
-    .end(JSON.stringify({ ok: true, company: { ticker, price, currency, fundamentals } }));
+  res.status(200).end(
+    JSON.stringify({ ok: true, company: { ticker, price, currency, quoteCurrency, fundamentals } }),
+  );
 }
 
 async function handleLiveQuotes(req: VercelRequest, res: VercelResponse) {
@@ -200,11 +224,15 @@ async function handleLiveQuotes(req: VercelRequest, res: VercelResponse) {
     tickers.map(async (ticker) => {
       try {
         const q = await yahoo.quote(ticker, {}, { validateResult: false });
+        const raw = toNum(q.regularMarketPrice);
+        // London quotes arrive in pence: bring them to pounds here, once, so
+        // no consumer has to know.
+        const norm = raw != null ? normaliseSubUnit(raw, q.currency ?? null) : null;
         return {
           ticker,
           marketCap: toNum(q.marketCap),
-          price: toNum(q.regularMarketPrice),
-          currency: q.currency ?? null,
+          price: norm?.price ?? raw,
+          currency: norm?.currency ?? q.currency ?? null,
         };
       } catch {
         return { ticker, marketCap: null, price: null, currency: null };
