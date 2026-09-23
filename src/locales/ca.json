@@ -422,7 +422,7 @@
     "howToToggle": "Com preparar l'Excel",
     "orExcel": "o penja un Excel",
     "drop": "Arrossega el teu fitxer aquí o fes clic per seleccionar",
-    "supports": "Format: .xlsx (exportable des de Google Sheets)",
+    "supports": "Formats: .xlsx, .xls, .ods o Google Sheets. Al mòbil, també pots triar-lo des de Drive.",
     "preview": {
       "ticker": "Ticker",
       "shares": "Accions",
@@ -456,7 +456,8 @@
     "errors": {
       "noSheets": "No s'ha trobat cap full reconegut a l'Excel.",
       "parseFailed": "No s'ha pogut llegir el fitxer. Comprova que segueixi el format correcte."
-    }
+    },
+    "previewTitle": "Previsualització"
   },
   "dashboard": {
     "title": "La meva cartera",
@@ -1121,7 +1122,7 @@
       "error": "No hem pogut llegir la cartera del panell."
     },
     "dropTitle": "Arrossega el teu Excel aquí",
-    "dropHint": "o fes clic per triar-lo (.xlsx)",
+    "dropHint": "o fes clic per triar-lo (.xlsx, .xls, .ods; també des de Drive)",
     "privacy": "El teu Excel es processa al navegador. No s'envia enlloc ni es desa.",
     "needFormat": "No tens el format?",
     "needFormatLink": "Mira com preparar l'Excel",
@@ -1313,5 +1314,18 @@
       "mcRuns": "{{runs}} simulacions de la distribució del valor raonable."
     },
     "rerun": "Torna a simular"
+  },
+  "sheetLink": {
+    "label": "O enganxa un enllaç de Google Sheets o Drive",
+    "placeholder": "https://docs.google.com/spreadsheets/d/…",
+    "import": "Importa",
+    "loading": "Descarregant…",
+    "hint": "Al full: Comparteix → «Qualsevol persona que tingui l'enllaç» (lector). No cal descarregar res.",
+    "errors": {
+      "invalid": "Aquest enllaç no és d'un full de Google Sheets ni d'un fitxer de Drive.",
+      "private": "No hi hem pogut accedir. Comparteix el full com a «Qualsevol persona que tingui l'enllaç» i torna-ho a provar.",
+      "notFound": "Aquest full no existeix o l'enllaç està incomplet.",
+      "notSpreadsheet": "L'enllaç no apunta a un full de càlcul (.xlsx, .xls o Google Sheets)."
+    }
   }
 }

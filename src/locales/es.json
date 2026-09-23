@@ -422,7 +422,7 @@
     "howToToggle": "Cómo preparar el Excel",
     "orExcel": "o sube un Excel",
     "drop": "Arrastra tu archivo aquí o haz clic para seleccionar",
-    "supports": "Formato: .xlsx (exportable desde Google Sheets)",
+    "supports": "Formatos: .xlsx, .xls, .ods o Google Sheets. En el móvil, también puedes elegirlo desde Drive.",
     "preview": {
       "ticker": "Ticker",
       "shares": "Acciones",
@@ -456,7 +456,8 @@
     "errors": {
       "noSheets": "No se ha encontrado ninguna hoja reconocida en el Excel.",
       "parseFailed": "No se ha podido leer el archivo. Comprueba que siga el formato correcto."
-    }
+    },
+    "previewTitle": "Vista previa"
   },
   "dashboard": {
     "title": "Mi cartera",
@@ -1121,7 +1122,7 @@
       "error": "No hemos podido leer la cartera del panel."
     },
     "dropTitle": "Arrastra tu Excel aquí",
-    "dropHint": "o haz clic para elegirlo (.xlsx)",
+    "dropHint": "o haz clic para elegirlo (.xlsx, .xls, .ods; también desde Drive)",
     "privacy": "Tu Excel se procesa en el navegador. No se envía a ningún sitio ni se guarda.",
     "needFormat": "¿No tienes el formato?",
     "needFormatLink": "Mira cómo preparar el Excel",
@@ -1313,5 +1314,18 @@
       "mcRuns": "{{runs}} simulaciones de la distribución del valor razonable."
     },
     "rerun": "Volver a simular"
+  },
+  "sheetLink": {
+    "label": "O pega un enlace de Google Sheets o Drive",
+    "placeholder": "https://docs.google.com/spreadsheets/d/…",
+    "import": "Importar",
+    "loading": "Descargando…",
+    "hint": "En la hoja: Compartir → «Cualquier persona que tenga el enlace» (lector). No hace falta descargar nada.",
+    "errors": {
+      "invalid": "Este enlace no es de una hoja de Google Sheets ni de un archivo de Drive.",
+      "private": "No hemos podido acceder. Comparte la hoja como «Cualquier persona que tenga el enlace» y vuelve a intentarlo.",
+      "notFound": "Esta hoja no existe o el enlace está incompleto.",
+      "notSpreadsheet": "El enlace no apunta a una hoja de cálculo (.xlsx, .xls o Google Sheets)."
+    }
   }
 }

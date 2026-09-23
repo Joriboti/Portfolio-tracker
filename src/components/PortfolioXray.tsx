@@ -14,6 +14,8 @@ import { getLiveCompany, getPortfolio, getSotpQuotes } from "@/lib/api";
 import { formatMoney, formatPct } from "@/lib/currency";
 import { useUser } from "@/hooks/useUser";
 import { getTrialTxns, hasTrial, setTrialFromExcel } from "@/lib/trial";
+import { SPREADSHEET_ACCEPT } from "@/lib/sheet-link";
+import { SheetLinkImport } from "@/components/SheetLinkImport";
 import {
   computeXray,
   type XrayReport,
@@ -455,7 +457,7 @@ export function PortfolioXray() {
             <input
               ref={fileRef}
               type="file"
-              accept=".xlsx,.xls"
+              accept={SPREADSHEET_ACCEPT}
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -465,6 +467,7 @@ export function PortfolioXray() {
             <span className="font-medium text-slate-700">{t("xray.dropTitle")}</span>
             <span className="mt-1 text-sm text-slate-500">{t("xray.dropHint")}</span>
           </label>
+          <SheetLinkImport onFile={onFile} className="mt-4" />
           <p className="mt-3 text-center text-xs text-slate-400">{t("xray.privacy")}</p>
           <p className="mt-4 text-center text-sm text-slate-500">
             {t("xray.needFormat")}{" "}

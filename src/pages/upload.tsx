@@ -22,6 +22,8 @@ import { HowToPrepareExcel } from "@/components/HowToPrepareExcel";
 import { FifoCalculator } from "@/components/FifoCalculator";
 import { useUser } from "@/hooks/useUser";
 import { setTrialFromExcel } from "@/lib/trial";
+import { SPREADSHEET_ACCEPT } from "@/lib/sheet-link";
+import { SheetLinkImport } from "@/components/SheetLinkImport";
 
 // The import runs through `seq`, one status machine for the whole thing:
 //   file picked   → parsing → (preview, user confirms)
@@ -226,7 +228,7 @@ function UploadInner() {
         <input
           ref={inputRef}
           type="file"
-          accept=".xlsx,.xls"
+          accept={SPREADSHEET_ACCEPT}
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -236,21 +238,24 @@ function UploadInner() {
         />
 
         {!parsed && idle && (
-          <div
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              const f = e.dataTransfer.files?.[0];
-              if (f) void handleFile(f);
-            }}
-            className="card border-dashed border-2 border-slate-300 cursor-pointer hover:border-brand-500 hover:bg-brand-50/40 transition-colors"
-          >
-            <p className="text-center text-slate-700">{t("upload.drop")}</p>
-            <p className="text-center text-xs text-slate-500 mt-2">
-              {t("upload.supports")}
-            </p>
-          </div>
+          <>
+            <div
+              onClick={() => inputRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const f = e.dataTransfer.files?.[0];
+                if (f) void handleFile(f);
+              }}
+              className="card border-dashed border-2 border-slate-300 cursor-pointer hover:border-brand-500 hover:bg-brand-50/40 transition-colors"
+            >
+              <p className="text-center text-slate-700">{t("upload.drop")}</p>
+              <p className="text-center text-xs text-slate-500 mt-2">
+                {t("upload.supports")}
+              </p>
+            </div>
+            <SheetLinkImport onFile={handleFile} />
+          </>
         )}
 
         {/* One panel for every phase; mounted for the whole run, never swapped. */}
@@ -263,6 +268,8 @@ function UploadInner() {
               retryLabel={parseFailed ? t("upload.chooseAnother") : t("upload.retry")}
               note={unresolvedNote}
             />
+            {/* A bad sheet can be swapped for another link without going back. */}
+            {parseFailed && <SheetLinkImport onFile={handleFile} />}
             {status.phase === "error" && !parseFailed && (
               <button onClick={cancel} className="btn-ghost">
                 {t("upload.cancel")}
@@ -273,7 +280,7 @@ function UploadInner() {
 
         {parsed && idle && (
           <section className="card">
-            <h2 className="font-medium text-slate-900">{t("upload.preview")}</h2>
+            <h2 className="font-medium text-slate-900">{t("upload.previewTitle")}</h2>
             <p className="text-sm text-slate-600 mt-1">
               {t("upload.summary", {
                 count: parsed.transactions.length,

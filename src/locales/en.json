@@ -422,7 +422,7 @@
     "howToToggle": "How to prepare the Excel",
     "orExcel": "or upload an Excel",
     "drop": "Drop your file here or click to browse",
-    "supports": "Format: .xlsx (exportable from Google Sheets)",
+    "supports": "Formats: .xlsx, .xls, .ods or Google Sheets. On your phone you can also pick it from Drive.",
     "preview": {
       "ticker": "Ticker",
       "shares": "Shares",
@@ -456,7 +456,8 @@
     "errors": {
       "noSheets": "No recognized sheet was found in the Excel.",
       "parseFailed": "Could not read the file. Make sure it follows the expected format."
-    }
+    },
+    "previewTitle": "Preview"
   },
   "dashboard": {
     "title": "My portfolio",
@@ -1121,7 +1122,7 @@
       "error": "We couldn't read the dashboard portfolio."
     },
     "dropTitle": "Drop your Excel here",
-    "dropHint": "or click to choose it (.xlsx)",
+    "dropHint": "or click to choose it (.xlsx, .xls, .ods; Drive works too)",
     "privacy": "Your Excel is processed in the browser. It is never uploaded or stored.",
     "needFormat": "Don't have the format?",
     "needFormatLink": "See how to prepare the Excel",
@@ -1313,5 +1314,18 @@
       "mcRuns": "{{runs}} simulations of the fair value distribution."
     },
     "rerun": "Re-run"
+  },
+  "sheetLink": {
+    "label": "Or paste a Google Sheets or Drive link",
+    "placeholder": "https://docs.google.com/spreadsheets/d/…",
+    "import": "Import",
+    "loading": "Downloading…",
+    "hint": "In the sheet: Share → “Anyone with the link” (Viewer). No download needed.",
+    "errors": {
+      "invalid": "This link is not a Google Sheets spreadsheet or a Drive file.",
+      "private": "We couldn't access it. Share the sheet as “Anyone with the link” and try again.",
+      "notFound": "This sheet doesn't exist or the link is incomplete.",
+      "notSpreadsheet": "The link doesn't point to a spreadsheet (.xlsx, .xls or Google Sheets)."
+    }
   }
 }
