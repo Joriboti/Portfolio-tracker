@@ -2,12 +2,22 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { buildRedirects, buildRewrites } from "../../scripts/gen-vercel.mjs";
-import { ARTICLES, LOCALES, PREFIX, ROUTE_SLUGS } from "../../scripts/routes.mjs";
+import { ARTICLES, DEFAULT, LOCALES, PREFIX, ROUTE_SLUGS } from "../../scripts/routes.mjs";
 
 // Tests for the edge config: which URLs redirect, which reach the app, and
 // which must 404. The bug these lock down: a locale/slug pair that is not a
 // page (/es/dcf-calculator — Spanish prefix, English slug) matched a rewrite
 // and answered 200 with the 5 kB generic Catalan shell.
+//
+// Since 2026-09 English owns the bare path and Catalan lives under /ca; the
+// "root swap" suite pins the 301s that carry every old URL to its new home.
+
+/** Catalan slugs that used to live at the root and now 301 to /ca/<slug>. */
+const LEGACY_CA_SLUGS = new Set(
+  Object.values(ROUTE_SLUGS)
+    .map((s) => s.ca)
+    .filter((ca) => !Object.values(ROUTE_SLUGS).some((s) => s.en === ca)),
+);
 
 const ROOT = path.resolve(__dirname, "../..");
 const vercel = JSON.parse(readFileSync(path.join(ROOT, "vercel.json"), "utf8")) as {
@@ -124,6 +134,8 @@ describe("wrong locale/slug combinations", () => {
     for (const l of LOCALES) {
       for (const slug of new Set(Object.values(byLocale))) {
         if (slug === byLocale[l]) continue;
+        // An old Catalan root slug is a migration redirect now (see below).
+        if (l === DEFAULT && LEGACY_CA_SLUGS.has(slug)) continue;
         wrong.push({ url: `${PREFIX[l]}${slug}`, expected: `${PREFIX[l]}${byLocale[l]}` });
       }
     }
@@ -133,11 +145,11 @@ describe("wrong locale/slug combinations", () => {
     const urls = wrong.map((w) => w.url);
     for (const u of [
       "/es/dcf-calculator",
-      "/en/calculadora-dcf",
+      "/ca/dcf-calculator",
       "/es/reverse-dcf-calculator",
-      "/en/dcf-inverso",
+      "/dcf-inverso",
       "/es/graham-number-calculator",
-      "/en/simulador-monte-carlo",
+      "/ca/monte-carlo-stock-simulator",
     ]) {
       expect(urls, `${u} must be covered`).toContain(u);
     }
@@ -162,11 +174,11 @@ describe("English-only landings have no ca/es URL", () => {
   it.each(["/etf-growth-calculator", "/portfolio-tracker"])(
     "%s 404s under ca and es",
     (slug) => {
-      for (const p of ["", "/es"]) {
+      for (const p of ["/ca", "/es"]) {
         const r = follow(`${p}${slug}`);
         expect(r.status, `${p}${slug} should 404`).toBe(404);
       }
-      expect(follow(`/en${slug}`).status).toBe(200);
+      expect(follow(slug).status).toBe(200);
     },
   );
 });
@@ -174,17 +186,24 @@ describe("English-only landings have no ca/es URL", () => {
 describe("legacy ?lng= redirects", () => {
   const cases = [
     { from: "/research?lng=es", to: "/es/research" },
-    { from: "/research?lng=en", to: "/en/research" },
-    { from: "/explore/aapl?lng=en", to: "/en/explore/aapl" },
+    { from: "/research?lng=ca", to: "/ca/research" },
+    { from: "/explore/aapl?lng=ca", to: "/ca/explore/aapl" },
     { from: "/explore/aapl?lng=es", to: "/es/explore/aapl" },
-    { from: "/taxes?lng=en", to: "/en/taxes" },
+    { from: "/taxes?lng=ca", to: "/ca/taxes" },
     { from: "/?lng=es", to: "/es" },
-    { from: "/?lng=en", to: "/en" },
-    // An article with no translation must reach its real language directly,
-    // not via the locale it was asked for.
-    { from: "/research/netflix?lng=es", to: "/en/research/netflix" },
-    { from: "/research/exor?lng=es", to: "/en/research/exor" },
+    { from: "/?lng=ca", to: "/ca" },
   ];
+
+  // An article with no translation is already at its real language on the
+  // bare path: asking for ?lng=es must not bounce it through /es and back.
+  it.each(["/research/netflix?lng=es", "/research/exor?lng=ca"])(
+    "%s stays on the English article",
+    (from) => {
+      const r = follow(from);
+      expect(r.hops).toEqual([]);
+      expect(r.status).toBe(200);
+    },
+  );
 
   it.each(cases)("$from → $to in exactly one hop", ({ from, to }) => {
     const r = follow(from);
@@ -230,6 +249,7 @@ describe("no route answers 200 with the generic shell", () => {
       "/nonexistent-page-xyz",
       "/es/pagina-que-no-existeix",
       "/en/nope",
+      "/ca/nope",
       "/en/etf-growth",
       "/calculadora",
       "/es/radiografia-completa",
@@ -250,7 +270,7 @@ describe("no route answers 200 with the generic shell", () => {
 
   it("keeps /research/:slug reachable for articles published since the deploy", () => {
     // A new Notion article must work without a redeploy.
-    const r = follow("/en/research/some-new-article");
+    const r = follow("/research/some-new-article");
     expect(r.status).toBe(200);
   });
 });
@@ -271,4 +291,41 @@ describe("article redirects", () => {
       }
     },
   );
+});
+
+describe("root swap (ca at / → en at /)", () => {
+  // Every URL of the old layout reaches the same page, in the same language,
+  // in ONE hop — so the signals Google collected for it move with it.
+  it.each([
+    ["/en", "/"],
+    ["/en/dcf-calculator", "/dcf-calculator"],
+    ["/en/research", "/research"],
+    ["/en/research/netflix", "/research/netflix"],
+    ["/en/explore/aapl", "/explore/aapl"],
+    ["/en/fifo-capital-gains-calculator", "/fifo-capital-gains-calculator"],
+    ["/en/portfolio-tracker", "/portfolio-tracker"],
+    ["/calculadora-dcf", "/ca/calculadora-dcf"],
+    ["/calculadora-fifo", "/ca/calculadora-fifo"],
+    ["/dcf-invers", "/ca/dcf-invers"],
+    ["/sobre-trimmtrack", "/ca/sobre-trimmtrack"],
+    ["/privacitat", "/ca/privacitat"],
+    ["/termes", "/ca/termes"],
+  ])("%s → %s", (from, to) => {
+    const r = follow(from);
+    expect(r.hops).toEqual([to]);
+    expect(r.status).toBe(200);
+    expect(r.servedByShell, `${to} landed on the generic shell`).toBe(false);
+  });
+
+  it("covers every old Catalan root slug", () => {
+    for (const slug of LEGACY_CA_SLUGS) {
+      expect(follow(slug).hops).toEqual([`/ca${slug}`]);
+    }
+  });
+
+  it("serves the Spanish tree unchanged", () => {
+    for (const p of ["/es", "/es/calculadora-dcf", "/es/explore/aapl", "/es/taxes"]) {
+      expect(follow(p).hops, `${p} must not move`).toEqual([]);
+    }
+  });
 });

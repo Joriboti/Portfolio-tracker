@@ -3,7 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getInsights, type CompanyInsights as Insights } from "@/lib/research";
 import { useLocale } from "@/components/LocaleLink";
-import { stripLocale, withLocale, DEFAULT_LOCALE } from "@/lib/locale";
+import { stripLocale, withLocale, type Locale } from "@/lib/locale";
+
+/** The language company insights are authored in. */
+const INSIGHTS_LOCALE: Locale = "ca";
 
 // "Insights" section of the company dashboard: qualitative competitive
 // advantages / investment risks, authored in the Notion research CMS and keyed
@@ -36,13 +39,13 @@ export function CompanyInsights({ ticker }: { ticker: string }) {
     // Nothing authored in THIS language. Never fall back to the Catalan text —
     // point at the Catalan page instead and keep the quantitative sections,
     // which are translated, exactly where they were.
-    if (!hasCatalan || locale === DEFAULT_LOCALE) return null;
+    if (!hasCatalan || locale === INSIGHTS_LOCALE) return null;
     return (
       <section className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
         <p className="text-sm text-slate-600">{t("insights.unavailable")}</p>
         <Link
-          to={withLocale(stripLocale(pathname), DEFAULT_LOCALE)}
-          hrefLang={DEFAULT_LOCALE}
+          to={withLocale(stripLocale(pathname), INSIGHTS_LOCALE)}
+          hrefLang={INSIGHTS_LOCALE}
           className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline"
         >
           {t("insights.viewCatalan")} →

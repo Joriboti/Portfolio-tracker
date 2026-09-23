@@ -14,7 +14,10 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ARTICLES, LOCALES, PREFIX, ROUTE_SLUGS } from "./routes.mjs";
+import { ARTICLES, DEFAULT, LOCALES, PREFIX, ROUTE_SLUGS } from "./routes.mjs";
+
+/** The locales that carry a path prefix ("/ca", "/es"). */
+const PREFIXED = LOCALES.filter((l) => l !== DEFAULT);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FILE = path.join(ROOT, "vercel.json");
@@ -33,9 +36,27 @@ const seg = (s) => s.replace(/^\//, "");
 export function buildRedirects() {
   const out = [];
 
-  // 1. Articles first, so a legacy ?lng= URL on an article reaches its real
+  // 0. The 2026-09 root swap. Catalan used to own the bare path and English
+  //    lived under /en; now English is bare and Catalan moved to /ca. Every
+  //    URL Google indexed under the old layout 301s to the same page in the
+  //    same language, so its signals move with it:
+  //      • /en and /en/*                → the bare path (same English page)
+  //      • a Catalan-only slug at root → /ca/<slug> (/calculadora-dcf etc.)
+  //    Shared slugs (/explore, /taxes, /, …) cannot redirect — the bare URL
+  //    is now the English page — so hreflang carries those to /ca instead.
+  //    These come first: Vercel applies the first matching redirect.
+  out.push({ source: "/en", destination: "/", permanent: true });
+  out.push({ source: "/en/:path*", destination: "/:path*", permanent: true });
+  const enSlugs = new Set(Object.values(ROUTE_SLUGS).map((s) => s.en));
+  for (const id of Object.keys(ROUTE_SLUGS)) {
+    const ca = ROUTE_SLUGS[id].ca;
+    if (enSlugs.has(ca)) continue;
+    out.push({ source: ca, destination: `${PREFIX.ca}${ca}`, permanent: true });
+  }
+
+  // 1. Articles next, so a legacy ?lng= URL on an article reaches its real
   //    language in ONE hop instead of bouncing through the locale redirect.
-  //    (/research/netflix?lng=es → /en/research/netflix, not → /es/… → /en/….)
+  //    (/ca/research/netflix → /research/netflix, the language it exists in.)
   for (const { slug, locales } of ARTICLES) {
     const target = locales.includes("en") ? "en" : locales[0];
     for (const l of LOCALES) {
@@ -58,6 +79,8 @@ export function buildRedirects() {
     for (const l of LOCALES) {
       for (const wrong of allSlugs) {
         if (wrong === byLocale[l]) continue;
+        // Already claimed by a legacy rule in step 0 (old Catalan root slug).
+        if (out.some((r) => r.source === `${PREFIX[l]}${wrong}`)) continue;
         out.push({
           source: `${PREFIX[l]}${wrong}`,
           destination: `${PREFIX[l]}${byLocale[l]}`,
@@ -79,7 +102,13 @@ export function buildRedirects() {
   //    destination's canonical is clean and self-referencing (verified in
   //    production: /es/research?lng=es canonicalises to /es/research), which is
   //    what Google consolidates on. See SEO_ARCHITECTURE.md.
-  for (const l of ["es", "en"]) {
+  //    An article that is not written in `l` is left where it is: the bare URL
+  //    already is its real (English) language, and sending it to /es/… would
+  //    only bounce straight back.
+  const notPrefixed = PREFIXED.map((l) => `${l}/|${l}$`).join("|");
+  for (const l of PREFIXED) {
+    const untranslated = ARTICLES.filter((a) => !a.locales.includes(l)).map((a) => a.slug);
+    const skipArticles = untranslated.length ? `|research/(?:${untranslated.join("|")})$` : "";
     out.push({
       source: "/",
       has: [{ type: "query", key: "lng", value: l }],
@@ -87,7 +116,7 @@ export function buildRedirects() {
       permanent: true,
     });
     out.push({
-      source: `/:path((?!es/|en/|es$|en$).*)`,
+      source: `/:path((?!${notPrefixed}${skipArticles}).*)`,
       has: [{ type: "query", key: "lng", value: l }],
       destination: `${PREFIX[l]}/:path`,
       permanent: true,
@@ -109,10 +138,10 @@ export function buildRewrites() {
 
   const rules = [
     { source: "/", destination: "/app.html" },
-    { source: "/:locale(es|en)", destination: "/app.html" },
+    { source: `/:locale(${PREFIXED.join("|")})`, destination: "/app.html" },
   ];
   // One group PER LOCALE, listing only that locale's own slugs. A shared
-  // "(es|en)" group would make /es/dcf-calculator a 200 again.
+  // "(ca|es)" group would make /es/dcf-calculator a 200 again.
   for (const l of LOCALES) {
     const p = PREFIX[l];
     rules.push({ source: `${p}/:seg(${group(l)})`, destination: "/app.html" });

@@ -227,6 +227,8 @@ describe("internal links", () => {
     expect(normalizeArticleLink("https://www.trimmtrack.com/explore")).toBe("/explore");
     expect(normalizeArticleLink("https://trimmtrack.com/es/explore")).toBe("/explore");
     expect(normalizeArticleLink("/en/research/meta")).toBe("/research/meta");
+    expect(normalizeArticleLink("/ca/explore/aapl")).toBe("/explore/aapl");
+    expect(normalizeArticleLink("https://www.trimmtrack.com/en")).toBe("/");
   });
 
   it("drops the legacy language parameter", () => {

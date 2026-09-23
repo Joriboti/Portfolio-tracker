@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ca">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -7,10 +7,10 @@
     <meta name="theme-color" content="#e76b1c" />
 
     <!-- Primary SEO: keyword-rich title + description (what Google shows) -->
-    <title>TrimmTrack — Seguidor de cartera i calculadores d'inversió gratuïtes</title>
+    <title>TrimmTrack — Portfolio tracker, DCF calculators &amp; ETF forecasting</title>
     <meta
       name="description"
-      content="Segueix la teva cartera d'inversió en viu i fes servir calculadores gratuïtes: FIFO per a plusvàlues (IRPF), valoració d'empreses amb DCF i Reverse DCF, número de Graham i NAV. Sense registre."
+      content="Track your investment portfolio live and use free calculators: FIFO capital gains, DCF and Reverse DCF valuation, Graham number, Monte Carlo and NAV. No sign-up."
     />
     <meta
       name="keywords"
@@ -25,25 +25,25 @@
     <!-- Open Graph / Twitter: professional link previews when shared -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="TrimmTrack" />
-    <meta property="og:locale" content="ca_ES" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:url" content="https://www.trimmtrack.com/" />
     <meta
       property="og:title"
-      content="TrimmTrack — Seguidor de cartera i calculadores d'inversió gratuïtes"
+      content="TrimmTrack — Portfolio tracker, DCF calculators &amp; ETF forecasting"
     />
     <meta
       property="og:description"
-      content="Calculadora FIFO per a plusvàlues, valoració DCF / Reverse DCF, número de Graham i NAV. Segueix la teva cartera en viu, gratis i sense registre."
+      content="FIFO capital-gains calculator, DCF / Reverse DCF valuation, Graham number and NAV. Track your portfolio live, free and without sign-up."
     />
     <meta property="og:image" content="https://www.trimmtrack.com/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="TrimmTrack — Seguidor de cartera i calculadores gratuïtes"
+      content="TrimmTrack — Portfolio tracker and free investing calculators"
     />
     <meta
       name="twitter:description"
-      content="Calculadora FIFO, valoració DCF / Reverse DCF, número de Graham i NAV. Gratis i sense registre."
+      content="FIFO calculator, DCF / Reverse DCF valuation, Graham number and NAV. Free, no sign-up."
     />
     <meta name="twitter:image" content="https://www.trimmtrack.com/og.png" />
 
@@ -57,15 +57,22 @@
             "@id": "https://www.trimmtrack.com/#website",
             "url": "https://www.trimmtrack.com/",
             "name": "TrimmTrack",
-            "inLanguage": "ca",
+            "alternateName": ["Trimm Track", "trimmtrack.com"],
+            "inLanguage": ["ca", "es", "en"],
             "publisher": { "@id": "https://www.trimmtrack.com/#org" }
           },
           {
             "@type": "Organization",
             "@id": "https://www.trimmtrack.com/#org",
             "name": "TrimmTrack",
+            "alternateName": "Trimm Track",
             "url": "https://www.trimmtrack.com/",
-            "logo": "https://www.trimmtrack.com/favicon.svg",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.trimmtrack.com/logo.png",
+              "width": 512,
+              "height": 512
+            },
             "sameAs": ["https://x.com/trimmtrack"]
           },
           {
@@ -76,9 +83,9 @@
             "operatingSystem": "Web",
             "inLanguage": ["ca", "es", "en"],
             "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-            "description": "Seguidor de cartera d'inversió amb calculadora FIFO per a plusvàlues, valoració DCF i Reverse DCF, número de Graham, Monte Carlo i NAV (suma de parts). Portfolio tracker con calculadoras de valoración, simulación y predicción de carteras de ETFs, y análisis de empresas (Netflix, EXOR).",
+            "description": "Free portfolio tracker with a FIFO capital-gains calculator, DCF and Reverse DCF valuation, Graham number, Monte Carlo, sum-of-the-parts (NAV), ETF portfolio forecasting and equity research. In Catalan, Spanish and English.",
             "featureList": [
-              "Portfolio tracker: sube tu Excel y visualiza P&L, dividendos y pesos en vivo",
+              "Portfolio tracker: upload your Excel or a Google Sheets link and see live P&L, dividends and weights",
               "Stock valuation calculators: DCF, Reverse DCF, Graham number, Monte Carlo, sum-of-the-parts (NAV)",
               "ETF portfolio forecast & simulation (Monte Carlo, contributions, fees)",
               "Equity research: Netflix, EXOR valuation models",

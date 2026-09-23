@@ -13,7 +13,7 @@ export function LanguageSwitcher() {
   const { i18n } = useTranslation();
   const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
-  const current = (i18n.language?.slice(0, 2) ?? "ca") as Locale;
+  const current = (i18n.language?.slice(0, 2) ?? "en") as Locale;
 
   async function choose(lng: Locale) {
     // Language first, URL second — LocaleSync reads i18n.language when the

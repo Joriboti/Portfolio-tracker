@@ -2,453 +2,453 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://www.trimmtrack.com/</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/"/>
+    <loc>https://www.trimmtrack.com/ca</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en"/>
-    <lastmod>2026-08-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/"/>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/es</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/"/>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/"/>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/es</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en"/>
-    <lastmod>2026-08-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/en</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en"/>
-    <lastmod>2026-08-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/explore</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore"/>
+    <loc>https://www.trimmtrack.com/ca/explore</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/explore"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/explore"/>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/es/explore</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/explore"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/explore"/>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/explore</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/explore"/>
+    <loc>https://www.trimmtrack.com/explore</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/explore"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/explore"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/explore"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/explore"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/explore"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/explore"/>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/research</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/research"/>
+    <loc>https://www.trimmtrack.com/ca/research</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/research"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/research"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/research"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/research"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/research"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/research"/>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/es/research</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/research"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/research"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/research"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/research"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/research"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/research"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/research"/>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/research</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/research"/>
+    <loc>https://www.trimmtrack.com/research</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/research"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/research"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/research"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/research"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/research"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/research"/>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/ca/radiografia</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/radiografia"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/es/radiografia</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/radiografia"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/radiografia</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/radiografia"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/radiografia"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/radiografia"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/radiografia"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/radiografia"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/es/radiografia</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/radiografia"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/radiografia"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/radiografia"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/radiografia"/>
+    <loc>https://www.trimmtrack.com/ca/taxes</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/taxes"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/taxes"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/taxes"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/taxes"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/radiografia</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/radiografia"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/radiografia"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/radiografia"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/radiografia"/>
+    <loc>https://www.trimmtrack.com/es/taxes</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/taxes"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/taxes"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/taxes"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/taxes"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/taxes</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/taxes"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/taxes"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/taxes"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/taxes"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/taxes"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/taxes"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/taxes"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/es/taxes</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/taxes"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/taxes"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/taxes"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/taxes"/>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/en/taxes</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/taxes"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/taxes"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/taxes"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/taxes"/>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/forecast</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/forecast"/>
+    <loc>https://www.trimmtrack.com/ca/forecast</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/forecast"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/forecast"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/forecast"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/forecast"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/forecast"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/forecast"/>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/es/forecast</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/forecast"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/forecast"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/forecast"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/forecast"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/forecast"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/forecast"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/forecast"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/forecast</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/forecast"/>
+    <loc>https://www.trimmtrack.com/forecast</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/forecast"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/forecast"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/forecast"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/forecast"/>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/calculadora-fifo</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/calculadora-fifo"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/calculadora-fifo"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/fifo-capital-gains-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/fifo-capital-gains-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/forecast"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/forecast"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/ca/calculadora-fifo</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/calculadora-fifo"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/calculadora-fifo"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/fifo-capital-gains-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/fifo-capital-gains-calculator"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/es/calculadora-fifo</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/calculadora-fifo"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/calculadora-fifo"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/calculadora-fifo"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/fifo-capital-gains-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/fifo-capital-gains-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/fifo-capital-gains-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/fifo-capital-gains-calculator"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/fifo-capital-gains-calculator</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/calculadora-fifo"/>
+    <loc>https://www.trimmtrack.com/fifo-capital-gains-calculator</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/calculadora-fifo"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/calculadora-fifo"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/fifo-capital-gains-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/fifo-capital-gains-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/fifo-capital-gains-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/fifo-capital-gains-calculator"/>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/calculadora-dcf</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/calculadora-dcf"/>
+    <loc>https://www.trimmtrack.com/ca/calculadora-dcf</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/calculadora-dcf"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/calculadora-dcf"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/dcf-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/dcf-calculator"/>
     <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/es/calculadora-dcf</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/calculadora-dcf"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/calculadora-dcf"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/calculadora-dcf"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/dcf-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/dcf-calculator"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/dcf-calculator</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/calculadora-dcf"/>
+    <loc>https://www.trimmtrack.com/dcf-calculator</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/calculadora-dcf"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/calculadora-dcf"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/dcf-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/dcf-calculator"/>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/dcf-invers</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/dcf-invers"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/dcf-inverso"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/reverse-dcf-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/reverse-dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/dcf-calculator"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://www.trimmtrack.com/ca/dcf-invers</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/dcf-invers"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/dcf-inverso"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/reverse-dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/reverse-dcf-calculator"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.trimmtrack.com/es/dcf-inverso</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/dcf-invers"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/dcf-invers"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/dcf-inverso"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/reverse-dcf-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/reverse-dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/reverse-dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/reverse-dcf-calculator"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/reverse-dcf-calculator</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/dcf-invers"/>
+    <loc>https://www.trimmtrack.com/reverse-dcf-calculator</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/dcf-invers"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/dcf-inverso"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/reverse-dcf-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/reverse-dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/reverse-dcf-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/reverse-dcf-calculator"/>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/numero-de-graham</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/numero-de-graham"/>
+    <loc>https://www.trimmtrack.com/ca/numero-de-graham</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/numero-de-graham"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/numero-de-graham"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/graham-number-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/graham-number-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/graham-number-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/graham-number-calculator"/>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/es/numero-de-graham</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/numero-de-graham"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/numero-de-graham"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/numero-de-graham"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/graham-number-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/graham-number-calculator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/graham-number-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/graham-number-calculator"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/graham-number-calculator</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/numero-de-graham"/>
+    <loc>https://www.trimmtrack.com/graham-number-calculator</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/numero-de-graham"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/numero-de-graham"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/graham-number-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/graham-number-calculator"/>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/simulador-monte-carlo</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/simulador-monte-carlo"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/simulador-monte-carlo"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/monte-carlo-stock-simulator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/monte-carlo-stock-simulator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/graham-number-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/graham-number-calculator"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/es/simulador-monte-carlo</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/simulador-monte-carlo"/>
+    <loc>https://www.trimmtrack.com/ca/simulador-monte-carlo</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/simulador-monte-carlo"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/simulador-monte-carlo"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/monte-carlo-stock-simulator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/monte-carlo-stock-simulator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/monte-carlo-stock-simulator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/monte-carlo-stock-simulator"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/monte-carlo-stock-simulator</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/simulador-monte-carlo"/>
+    <loc>https://www.trimmtrack.com/es/simulador-monte-carlo</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/simulador-monte-carlo"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/simulador-monte-carlo"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/monte-carlo-stock-simulator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/monte-carlo-stock-simulator"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/monte-carlo-stock-simulator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/monte-carlo-stock-simulator"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/monte-carlo-stock-simulator</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/simulador-monte-carlo"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/simulador-monte-carlo"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/monte-carlo-stock-simulator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/monte-carlo-stock-simulator"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/ca/disclaimer</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/disclaimer"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/es/disclaimer</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/disclaimer"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/disclaimer</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/disclaimer"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/disclaimer"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/disclaimer"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/disclaimer"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/disclaimer"/>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/es/disclaimer</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/disclaimer"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/disclaimer"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/disclaimer"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/disclaimer"/>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/en/disclaimer</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/disclaimer"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/disclaimer"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/disclaimer"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/disclaimer"/>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/sobre-trimmtrack</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/sobre-trimmtrack"/>
+    <loc>https://www.trimmtrack.com/ca/sobre-trimmtrack</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/sobre-trimmtrack"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/sobre-trimmtrack"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/about"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/about"/>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/es/sobre-trimmtrack</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/sobre-trimmtrack"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/sobre-trimmtrack"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/sobre-trimmtrack"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/about"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/about"/>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/about</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/sobre-trimmtrack"/>
+    <loc>https://www.trimmtrack.com/about</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/sobre-trimmtrack"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/sobre-trimmtrack"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/about"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/about"/>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/privacitat</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/privacitat"/>
+    <loc>https://www.trimmtrack.com/ca/privacitat</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/privacitat"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/privacidad"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/privacy"/>
     <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://www.trimmtrack.com/es/privacidad</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/privacitat"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/privacitat"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/privacidad"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/privacy"/>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/privacy</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/privacitat"/>
+    <loc>https://www.trimmtrack.com/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/privacitat"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/privacidad"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/privacy"/>
-    <changefreq>yearly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/termes</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/termes"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/terminos"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/terms"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/privacy"/>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://www.trimmtrack.com/ca/termes</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/termes"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/terminos"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/terms"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
     <loc>https://www.trimmtrack.com/es/terminos</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/termes"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/termes"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/terminos"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/terms"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/terms"/>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/terms</loc>
-    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/termes"/>
+    <loc>https://www.trimmtrack.com/terms</loc>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://www.trimmtrack.com/ca/termes"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.trimmtrack.com/es/terminos"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/terms"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/terms"/>
     <changefreq>yearly</changefreq>
-    <priority>0.2</priority>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/etf-growth-calculator</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/etf-growth-calculator"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/etf-growth-calculator"/>
+    <loc>https://www.trimmtrack.com/etf-growth-calculator</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/etf-growth-calculator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/etf-growth-calculator"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/portfolio-tracker</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/portfolio-tracker"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/portfolio-tracker"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.trimmtrack.com/research/applovin</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/research/applovin"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/research/applovin"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/portfolio-tracker</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/portfolio-tracker"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/portfolio-tracker"/>
+    <loc>https://www.trimmtrack.com/research/netflix</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/research/netflix"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/research/netflix"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/research/applovin</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/research/applovin"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/research/applovin"/>
+    <loc>https://www.trimmtrack.com/research/exor</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/research/exor"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/research/exor"/>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.trimmtrack.com/en/research/netflix</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/research/netflix"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/research/netflix"/>
+    <loc>https://www.trimmtrack.com/research/meta</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/research/meta"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/research/meta"/>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/en/research/exor</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/research/exor"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/research/exor"/>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.trimmtrack.com/en/research/meta</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.trimmtrack.com/en/research/meta"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.trimmtrack.com/en/research/meta"/>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
 </urlset>

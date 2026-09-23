@@ -1,4 +1,4 @@
-import { LOCALES, stripLocale } from "@/lib/locale";
+import { DEFAULT_LOCALE, LOCALES, stripLocale } from "@/lib/locale";
 
 // CMS prose is written by hand, so its links drift from the site's URL rules:
 // `http://` instead of https, the apex host instead of www, a path with no
@@ -42,7 +42,11 @@ export function normalizeArticleLink(href: string): string | null {
   params.delete("lng");
   const rest = params.toString();
 
-  const neutral = stripLocale(pathname).replace(/\/+$/, "") || "/";
+  // "/en/…" is the pre-2026-09 English prefix (English is bare now); articles
+  // written before the root swap still carry it.
+  const legacyEn =
+    pathname === "/en" || pathname.startsWith("/en/") ? pathname.slice(3) || "/" : pathname;
+  const neutral = stripLocale(legacyEn).replace(/\/+$/, "") || "/";
   return rest ? `${neutral}?${rest}` : neutral;
 }
 
@@ -56,4 +60,4 @@ export function isBadInternalLink(href: string): boolean {
 }
 
 /** Locale prefixes, exported so the link tests can enumerate them. */
-export const LOCALE_PREFIXES = LOCALES.map((l) => (l === "ca" ? "" : `/${l}`));
+export const LOCALE_PREFIXES = LOCALES.map((l) => (l === DEFAULT_LOCALE ? "" : `/${l}`));

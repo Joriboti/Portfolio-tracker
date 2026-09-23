@@ -16,7 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
 import { generateOgImages } from "./og-images.mjs";
-import { PAIR_DATA, TICKER_DATA, allPrerenderRoutes } from "./routes.mjs";
+import { DEFAULT, PAIR_DATA, TICKER_DATA, allPrerenderRoutes } from "./routes.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -339,10 +339,10 @@ async function snapshot(browser, route, lng, opts = {}) {
     );
     await mkdir(path.dirname(outFile), { recursive: true });
     await writeFile(outFile, html, "utf8");
-    // The Catalan 404 is ALSO written to dist/404.html, which is what Vercel
+    // The English (default-locale) 404 is ALSO written to dist/404.html, which is what Vercel
     // serves — with a real 404 status — for a path matching no rewrite and no
     // file. Without that file an unknown URL answers 200 with the SPA shell.
-    if (opts.notFound && lng === "ca") {
+    if (opts.notFound && lng === DEFAULT) {
       await writeFile(path.join(DIST, "404.html"), html, "utf8");
     }
     console.log(

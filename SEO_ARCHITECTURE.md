@@ -6,11 +6,30 @@ modes here are silent: nothing crashes, Google just quietly stops indexing.
 
 ## The model
 
-Catalan is the default and lives at the bare path (`/`, `/explore`). Spanish and
-English are mirrored under `/es/…` and `/en/…`. Every locale variant is a real
+English is the default and lives at the bare path (`/`, `/explore`). Catalan and
+Spanish are mirrored under `/ca/…` and `/es/…`. Every locale variant is a real
 URL with its own prerendered HTML, its own `<html lang>`, its own
 self-referencing canonical and a reciprocal hreflang cluster. `x-default` points
 at English.
+
+### The 2026-09 root swap
+
+Until September 2026 Catalan owned the bare path and English lived under `/en`.
+Google therefore showed the Catalan home page for the brand query everywhere.
+The swap is carried by the first block of redirects in `vercel.json`
+(`scripts/gen-vercel.mjs`, step 0), pinned by the "root swap" suite in
+`src/lib/vercel-config.test.ts`:
+
+- `/en` and `/en/*` → the bare path (same English page, one hop).
+- Catalan-only root slugs (`/calculadora-dcf`, `/privacitat`, …) → `/ca/<slug>`.
+- Shared slugs (`/`, `/explore`, `/taxes`, …) cannot redirect — the bare URL
+  is now the English page — so hreflang points Catalan searchers at `/ca/…`.
+
+On the client, `LocaleSync` (Layout.tsx) moves a visitor with a cached ca/es
+choice from a bare URL to their language, and sends a first-time visitor whose
+browser's first language is ca/es to that tree once. Neither applies to bots or
+to the prerenderer (`navigator.webdriver`), so crawlers always get English at
+the bare path.
 
 ## Single sources of truth
 
@@ -48,16 +67,16 @@ rotting, so do not delete it.
 
 **Redirects** (all `permanent: true` = 301):
 
-- `?lng=es|en` → the path-prefixed URL. Google discovered URLs like
+- `?lng=ca|es` → the path-prefixed URL. Google discovered URLs like
   `/research?lng=es` from the pre-2026-07 query-param scheme. Vercel forwards the
   query string to the destination, so the source pattern carries a negative
-  lookahead (`/:path((?!es/|en/|es$|en$).*)`) — without it, `/es/research?lng=es`
-  would match again and loop. `?lng=ca` is deliberately not redirected: it was
-  never published, a redirect for it could not be made loop-safe the same way,
-  and the self-referencing canonical already consolidates it.
-- `/en/calculadora-fifo` → `/en/fifo-capital-gains-calculator`. One intent had
+  lookahead (`/:path((?!ca/|ca$|es/|es$).*)`) — without it, `/es/research?lng=es`
+  would match again and loop. English-only articles are excluded from that
+  pattern, so `/research/netflix?lng=es` stays on the English article.
+- `/ca/fifo-capital-gains-calculator` → `/ca/calculadora-fifo` (and every other
+  wrong locale/slug pair). One intent had
   two English URLs; the keyword slug is now the English slug of that page.
-- The six `/research/*` and `/es/research/*` article paths → `/en/research/*`.
+- The `/ca/research/*` and `/es/research/*` article paths → `/research/*`.
   See "Research translations" below.
 
 **Rewrites** are enumerated rather than a catch-all. The old
@@ -97,7 +116,7 @@ hreflang problem — but they do read as untranslated content to a Spanish visit
 
 ## Deliberate non-localizations
 
-- `/en/portfolio-tracker` and `/en/etf-growth-calculator` stay English-only. The
+- `/portfolio-tracker` and `/etf-growth-calculator` stay English-only. The
   ca/es **home page** already targets "portfolio tracker from Excel" and
   `/forecast` already targets ETF projection in all three languages; a localized
   copy would compete with a page that already owns the intent.

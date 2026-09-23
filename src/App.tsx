@@ -42,7 +42,7 @@ const EsReverseDcfPage = lazy(() => import("@/pages/tools-localized").then((m) =
 const EsGrahamPage = lazy(() => import("@/pages/tools-localized").then((m) => ({ default: m.EsGrahamPage })));
 const EsMonteCarloPage = lazy(() => import("@/pages/tools-localized").then((m) => ({ default: m.EsMonteCarloPage })));
 
-// English-only SEO tool pages (phase 1). Each targets one keyword under /en/*.
+// English-only SEO tool pages (phase 1). Each targets one keyword at the English root.
 const DcfCalculatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.DcfCalculatorPage })));
 const ReverseDcfCalculatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.ReverseDcfCalculatorPage })));
 const GrahamNumberCalculatorPage = lazy(() => import("@/pages/en-tools").then((m) => ({ default: m.GrahamNumberCalculatorPage })));
@@ -57,8 +57,8 @@ function Private({ children }: { children: React.ReactNode }) {
   return <AuthGuard>{children}</AuthGuard>;
 }
 
-// Public, indexable pages, mirrored under each locale. Catalan lives at the bare
-// path, Spanish at "/es", English at "/en" — each URL is its own crawlable,
+// Public, indexable pages, mirrored under each locale. English lives at the bare
+// path, Catalan at "/ca", Spanish at "/es" — each URL is its own crawlable,
 // prerenderable page with a self-referencing canonical. Returned as a flat array
 // of <Route> so it can be spread into <Routes> once per locale (React Router
 // matches Route elements, not wrapper components).
@@ -95,7 +95,7 @@ function publicRoutes(locale: Locale) {
 }
 
 // The FIFO page: ca/es use the general calculator landing, English uses the
-// keyword-targeted page that already existed at /en/fifo-capital-gains-calculator.
+// keyword-targeted page that already existed at /fifo-capital-gains-calculator.
 // Routing them through one route id is what lets the two hreflang-pair instead of
 // competing for the same query.
 function FifoPageFor({ locale }: { locale: Locale }) {
@@ -105,7 +105,7 @@ function FifoPageFor({ locale }: { locale: Locale }) {
 // The four valuation tools that now exist in all three languages. English copy
 // lives in en-tools.tsx, Catalan and Spanish in tools-localized.tsx; the slug of
 // each comes from ROUTE_SLUGS so /calculadora-dcf, /es/calculadora-dcf and
-// /en/dcf-calculator are one page in three languages.
+// /dcf-calculator are one page in three languages.
 const LOCALIZED_TOOLS = [
   { id: "dcf", ca: CaDcfPage, es: EsDcfPage, en: DcfCalculatorPage },
   { id: "reverseDcf", ca: CaReverseDcfPage, es: EsReverseDcfPage, en: ReverseDcfCalculatorPage },
@@ -163,8 +163,8 @@ export default function App() {
         {/* Still English-only, deliberately: a ca/es "ETF growth" page would
             compete with /forecast and a ca/es "portfolio tracker" page with the
             home page, which already own those intents in those languages. */}
-        <Route path="/en/etf-growth-calculator" element={<EtfGrowthCalculatorPage />} />
-        <Route path="/en/portfolio-tracker" element={<PortfolioTrackerPage />} />
+        <Route path={withLocale("/etf-growth-calculator", "en")} element={<EtfGrowthCalculatorPage />} />
+        <Route path={withLocale("/portfolio-tracker", "en")} element={<PortfolioTrackerPage />} />
 
         {/* Unknown paths render a real 404 in the language of the URL. They used
             to redirect to the home page, which told Google a typo and the home

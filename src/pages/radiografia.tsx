@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { LocaleLink } from "@/components/LocaleLink";
+import { localeUrl } from "@/lib/locale";
+import { LocaleLink, useLocale } from "@/components/LocaleLink";
 
 import { useTranslation } from "react-i18next";
 import { PortfolioXray } from "@/components/PortfolioXray";
@@ -16,6 +17,7 @@ const STEP_KEYS = ["one", "two", "three"] as const;
 
 export function RadiografiaPage() {
   const { t } = useTranslation();
+  const locale = useLocale();
 
   const jsonLd = useMemo(
     () => ({
@@ -26,7 +28,7 @@ export function RadiografiaPage() {
           name: t("xray.h1"),
           applicationCategory: "FinanceApplication",
           operatingSystem: "Web",
-          url: "https://www.trimmtrack.com/radiografia",
+          url: localeUrl("/radiografia", locale),
           offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         },
         {
@@ -39,7 +41,7 @@ export function RadiografiaPage() {
         },
       ],
     }),
-    [t],
+    [t, locale],
   );
 
   useSeo({

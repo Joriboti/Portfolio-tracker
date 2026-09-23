@@ -7,7 +7,7 @@ import { Blocks } from "@/components/NotionBlocks";
 import { ResearchWordmark } from "@/components/Logo";
 import { useSeo } from "@/lib/seo";
 import { ROUTE_SLUGS, localeUrl, withLocale } from "@/lib/locale";
-import { OG_IMAGE, SAME_AS, shareOnX } from "@/lib/brand";
+import { LOGO_IMAGE, OG_IMAGE, SAME_AS, shareOnX } from "@/lib/brand";
 import { editorialName } from "@/pages/trust";
 import { articleLocales, resolveArticleLocale } from "@/lib/research-locales";
 import { TickerBadge, TagPill, formatDate } from "./research";
@@ -87,7 +87,7 @@ export function ResearchArticlePage() {
             "@type": "Organization",
             name: "TrimmTrack",
             url: localeUrl("/", locale),
-            logo: { "@type": "ImageObject", url: OG_IMAGE },
+            logo: { "@type": "ImageObject", url: LOGO_IMAGE, width: 512, height: 512 },
             sameAs: SAME_AS,
           },
           mainEntityOfPage: url,

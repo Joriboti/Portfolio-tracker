@@ -52,23 +52,24 @@ const SHELL_TITLE_FRAGMENT = "Seguidor de cartera i calculadores";
 
 // A representative sample: the URLs the audit named, plus one of each kind.
 const SAMPLE = [
-  { url: "/", lang: "ca" },
+  { url: "/", lang: "en" },
   { url: "/es", lang: "es" },
-  { url: "/en", lang: "en" },
-  { url: "/explore/aapl", lang: "ca" },
+  { url: "/ca", lang: "ca" },
+  { url: "/explore/aapl", lang: "en" },
   { url: "/es/explore/aapl", lang: "es" },
-  { url: "/en/explore/aapl", lang: "en" },
+  { url: "/ca/explore/aapl", lang: "ca" },
   { url: "/es/explore/jpm", lang: "es" },
-  { url: "/en/explore/jpm", lang: "en" },
-  { url: "/explore/compare/aapl-vs-msft", lang: "ca" },
+  { url: "/ca/explore/jpm", lang: "ca" },
+  { url: "/explore/compare/aapl-vs-msft", lang: "en" },
   { url: "/es/explore/compare/aapl-vs-msft", lang: "es" },
-  { url: "/en/explore/compare/aapl-vs-msft", lang: "en" },
-  { url: "/en/research/netflix", lang: "en" },
-  { url: "/calculadora-dcf", lang: "ca" },
+  { url: "/ca/explore/compare/aapl-vs-msft", lang: "ca" },
+  { url: "/research/netflix", lang: "en" },
+  { url: "/ca/calculadora-dcf", lang: "ca" },
   { url: "/es/calculadora-dcf", lang: "es" },
-  { url: "/en/dcf-calculator", lang: "en" },
+  { url: "/dcf-calculator", lang: "en" },
   { url: "/es/taxes", lang: "es" },
-  { url: "/en/fifo-capital-gains-calculator", lang: "en" },
+  { url: "/ca/taxes", lang: "ca" },
+  { url: "/fifo-capital-gains-calculator", lang: "en" },
 ];
 
 describe.skipIf(!built)("prerendered HTML (no JavaScript)", () => {
@@ -124,7 +125,7 @@ describe.skipIf(!built)("prerendered HTML (no JavaScript)", () => {
     expect(root.length, `${url} has an empty #root`).toBeGreaterThan(2000);
   });
 
-  it.each(SAMPLE.filter((s) => s.lang !== "ca"))(
+  it.each(SAMPLE.filter((s) => s.lang !== "en"))(
     "$url keeps its language in internal links",
     ({ url, lang }) => {
       const links = internalLinks(fileFor(url)!);
@@ -135,7 +136,7 @@ describe.skipIf(!built)("prerendered HTML (no JavaScript)", () => {
       // only in English. Pointing a Spanish reader at /es/research/netflix would
       // just bounce them through a 301 to the English original, so the listing
       // links straight to the language the article is actually written in.
-      const ARTICLE = /^\/(es|en)?\/?research\/[^/]+$/;
+      const ARTICLE = /^\/(ca|es)?\/?research\/[^/]+$/;
       const leaked = links.filter(
         (l) => !APP.test(l) && !ARTICLE.test(l) && !l.startsWith(`/${lang}`),
       );
@@ -143,18 +144,28 @@ describe.skipIf(!built)("prerendered HTML (no JavaScript)", () => {
     },
   );
 
-  it.each(SAMPLE.filter((s) => s.lang !== "ca"))(
-    "$url never links to a Catalan-root public page",
+  it.each(SAMPLE.filter((s) => s.lang !== "en"))(
+    "$url never links to an English-root public page",
     ({ url, lang }) => {
       // The narrower, unambiguous half of the rule above: no link may drop the
-      // prefix entirely and land on the ca tree. This is the leak that used to
-      // send every /es and /en page's authority to the Catalan URLs.
+      // prefix entirely and land on the English root tree. This is the leak that
+      // used to send every prefixed page's authority to the root URLs.
       const APP = /^\/(dashboard|upload|account|auth|debug|verify|how-to-prepare)(\/|$|\?)/;
+      // English-only articles live at the bare path by design (see above).
+      const ARTICLE = /^\/research\/[^/]+$/;
       const bare = internalLinks(fileFor(url)!).filter(
-        (l) => !APP.test(l) && !/^\/(es|en)(\/|$)/.test(l),
+        (l) => !APP.test(l) && !ARTICLE.test(l) && !/^\/(ca|es)(\/|$)/.test(l),
       );
-      expect(bare, `${url} links to unprefixed (Catalan) URLs: ${bare.join(", ")}`).toEqual([]);
-      expect(lang).not.toBe("ca");
+      expect(bare, `${url} links to unprefixed (English) URLs: ${bare.join(", ")}`).toEqual([]);
+      expect(lang).not.toBe("en");
+    },
+  );
+
+  it.each(SAMPLE.filter((s) => s.lang === "en"))(
+    "$url (English root) never links into the /ca or /es tree",
+    ({ url }) => {
+      const leaked = internalLinks(fileFor(url)!).filter((l) => /^\/(ca|es)(\/|$)/.test(l));
+      expect(leaked, `${url} links to other-language URLs: ${leaked.join(", ")}`).toEqual([]);
     },
   );
 
@@ -233,14 +244,15 @@ const ENGLISH_MARKERS = [
 ];
 
 /** Pages that render the shared calculator widgets, per locale. */
-const CALCULATOR_URLS: Record<"es" | "en", string[]> = {
+const CALCULATOR_URLS: Record<"ca" | "es" | "en", string[]> = {
+  ca: ["/ca/calculadora-dcf", "/ca/dcf-invers", "/ca/numero-de-graham", "/ca/simulador-monte-carlo"],
   es: ["/es/calculadora-dcf", "/es/dcf-inverso", "/es/numero-de-graham", "/es/simulador-monte-carlo"],
-  en: ["/en/dcf-calculator", "/en/reverse-dcf-calculator", "/en/graham-number-calculator"],
+  en: ["/dcf-calculator", "/reverse-dcf-calculator", "/graham-number-calculator"],
 };
 
 describe.skipIf(!built)("no language leaks in the built HTML", () => {
   const SPANISH_PAGES = ["/es", "/es/research", ...CALCULATOR_URLS.es];
-  const ENGLISH_PAGES = ["/en", "/en/research", ...CALCULATOR_URLS.en];
+  const ENGLISH_PAGES = ["/", "/research", ...CALCULATOR_URLS.en];
 
   it.each(SPANISH_PAGES)("%s ships no Catalan UI copy", (url) => {
     const html = fileFor(url);
@@ -256,7 +268,7 @@ describe.skipIf(!built)("no language leaks in the built HTML", () => {
     expect(found, `${url} leaks Catalan`).toEqual([]);
   });
 
-  it.each(CALCULATOR_URLS.es)("%s ships no English calculator labels", (url) => {
+  it.each([...CALCULATOR_URLS.es, ...CALCULATOR_URLS.ca])("%s ships no English calculator labels", (url) => {
     const html = fileFor(url);
     expect(html, `${url} is not prerendered`).toBeTruthy();
     const found = ENGLISH_MARKERS.filter((m) => html!.includes(m));
@@ -266,28 +278,28 @@ describe.skipIf(!built)("no language leaks in the built HTML", () => {
   it("still renders the calculators in the language of the URL", () => {
     // Guard against "fixed the leak by deleting the widget".
     expect(fileFor("/es/calculadora-dcf")).toContain("Valor razonable hoy");
-    expect(fileFor("/calculadora-dcf")).toContain("Valor raonable avui");
-    expect(fileFor("/en/dcf-calculator")).toContain("Fair value today");
+    expect(fileFor("/ca/calculadora-dcf")).toContain("Valor raonable avui");
+    expect(fileFor("/dcf-calculator")).toContain("Fair value today");
   });
 
   it("localises the landing's dashboard preview", () => {
-    expect(fileFor("/")).toContain("La meva cartera");
+    expect(fileFor("/ca")).toContain("La meva cartera");
     expect(fileFor("/es")).toContain("Mi cartera");
-    expect(fileFor("/en")).toContain("My portfolio");
+    expect(fileFor("/")).toContain("My portfolio");
   });
 });
 
 describe.skipIf(!built)("trust pages", () => {
   const PAGES = [
-    { url: "/sobre-trimmtrack", lang: "ca" },
+    { url: "/ca/sobre-trimmtrack", lang: "ca" },
     { url: "/es/sobre-trimmtrack", lang: "es" },
-    { url: "/en/about", lang: "en" },
-    { url: "/privacitat", lang: "ca" },
+    { url: "/about", lang: "en" },
+    { url: "/ca/privacitat", lang: "ca" },
     { url: "/es/privacidad", lang: "es" },
-    { url: "/en/privacy", lang: "en" },
-    { url: "/termes", lang: "ca" },
+    { url: "/privacy", lang: "en" },
+    { url: "/ca/termes", lang: "ca" },
     { url: "/es/terminos", lang: "es" },
-    { url: "/en/terms", lang: "en" },
+    { url: "/terms", lang: "en" },
   ];
 
   it.each(PAGES)("$url is real prerendered HTML in $lang", ({ url, lang }) => {
@@ -307,8 +319,8 @@ describe.skipIf(!built)("trust pages", () => {
   });
 
   it("is linked from every page's footer", () => {
-    const html = fileFor("/en/about")!;
-    expect(internalLinks(html)).toEqual(expect.arrayContaining(["/en/about", "/en/privacy", "/en/terms"]));
+    const html = fileFor("/about")!;
+    expect(internalLinks(html)).toEqual(expect.arrayContaining(["/about", "/privacy", "/terms"]));
     expect(html).toContain('href="https://x.com/trimmtrack"');
     expect(html).toContain('rel="me noopener noreferrer"');
   });

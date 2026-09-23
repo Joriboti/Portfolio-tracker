@@ -189,7 +189,7 @@ for (const p of ["/dashboard", "/upload", "/account", "/auth/sign-in", "/debug"]
   }
 }
 
-for (const p of ["/nonexistent-page-xyz", "/es/pagina-que-no-existeix", "/en/nope"]) {
+for (const p of ["/nonexistent-page-xyz", "/es/pagina-que-no-existeix", "/ca/nope"]) {
   const res = await get(`${BASE_URL}${p}`);
   if (res.status !== 404) fail("404", p, `expected 404, got ${res.status}`);
 }

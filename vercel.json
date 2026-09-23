@@ -10,48 +10,98 @@
   },
   "redirects": [
     {
-      "source": "/research/applovin",
-      "destination": "/en/research/applovin",
+      "source": "/en",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/en/:path*",
+      "destination": "/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/calculadora-fifo",
+      "destination": "/ca/calculadora-fifo",
+      "permanent": true
+    },
+    {
+      "source": "/calculadora-dcf",
+      "destination": "/ca/calculadora-dcf",
+      "permanent": true
+    },
+    {
+      "source": "/dcf-invers",
+      "destination": "/ca/dcf-invers",
+      "permanent": true
+    },
+    {
+      "source": "/numero-de-graham",
+      "destination": "/ca/numero-de-graham",
+      "permanent": true
+    },
+    {
+      "source": "/simulador-monte-carlo",
+      "destination": "/ca/simulador-monte-carlo",
+      "permanent": true
+    },
+    {
+      "source": "/sobre-trimmtrack",
+      "destination": "/ca/sobre-trimmtrack",
+      "permanent": true
+    },
+    {
+      "source": "/privacitat",
+      "destination": "/ca/privacitat",
+      "permanent": true
+    },
+    {
+      "source": "/termes",
+      "destination": "/ca/termes",
+      "permanent": true
+    },
+    {
+      "source": "/ca/research/applovin",
+      "destination": "/research/applovin",
       "permanent": true
     },
     {
       "source": "/es/research/applovin",
-      "destination": "/en/research/applovin",
+      "destination": "/research/applovin",
       "permanent": true
     },
     {
-      "source": "/research/netflix",
-      "destination": "/en/research/netflix",
+      "source": "/ca/research/netflix",
+      "destination": "/research/netflix",
       "permanent": true
     },
     {
       "source": "/es/research/netflix",
-      "destination": "/en/research/netflix",
+      "destination": "/research/netflix",
       "permanent": true
     },
     {
-      "source": "/research/exor",
-      "destination": "/en/research/exor",
+      "source": "/ca/research/exor",
+      "destination": "/research/exor",
       "permanent": true
     },
     {
       "source": "/es/research/exor",
-      "destination": "/en/research/exor",
+      "destination": "/research/exor",
       "permanent": true
     },
     {
-      "source": "/research/meta",
-      "destination": "/en/research/meta",
+      "source": "/ca/research/meta",
+      "destination": "/research/meta",
       "permanent": true
     },
     {
       "source": "/es/research/meta",
-      "destination": "/en/research/meta",
+      "destination": "/research/meta",
       "permanent": true
     },
     {
-      "source": "/fifo-capital-gains-calculator",
-      "destination": "/calculadora-fifo",
+      "source": "/ca/fifo-capital-gains-calculator",
+      "destination": "/ca/calculadora-fifo",
       "permanent": true
     },
     {
@@ -60,13 +110,8 @@
       "permanent": true
     },
     {
-      "source": "/en/calculadora-fifo",
-      "destination": "/en/fifo-capital-gains-calculator",
-      "permanent": true
-    },
-    {
-      "source": "/dcf-calculator",
-      "destination": "/calculadora-dcf",
+      "source": "/ca/dcf-calculator",
+      "destination": "/ca/calculadora-dcf",
       "permanent": true
     },
     {
@@ -75,18 +120,13 @@
       "permanent": true
     },
     {
-      "source": "/en/calculadora-dcf",
-      "destination": "/en/dcf-calculator",
+      "source": "/ca/dcf-inverso",
+      "destination": "/ca/dcf-invers",
       "permanent": true
     },
     {
-      "source": "/dcf-inverso",
-      "destination": "/dcf-invers",
-      "permanent": true
-    },
-    {
-      "source": "/reverse-dcf-calculator",
-      "destination": "/dcf-invers",
+      "source": "/ca/reverse-dcf-calculator",
+      "destination": "/ca/dcf-invers",
       "permanent": true
     },
     {
@@ -100,18 +140,13 @@
       "permanent": true
     },
     {
-      "source": "/en/dcf-invers",
-      "destination": "/en/reverse-dcf-calculator",
+      "source": "/dcf-inverso",
+      "destination": "/reverse-dcf-calculator",
       "permanent": true
     },
     {
-      "source": "/en/dcf-inverso",
-      "destination": "/en/reverse-dcf-calculator",
-      "permanent": true
-    },
-    {
-      "source": "/graham-number-calculator",
-      "destination": "/numero-de-graham",
+      "source": "/ca/graham-number-calculator",
+      "destination": "/ca/numero-de-graham",
       "permanent": true
     },
     {
@@ -120,13 +155,8 @@
       "permanent": true
     },
     {
-      "source": "/en/numero-de-graham",
-      "destination": "/en/graham-number-calculator",
-      "permanent": true
-    },
-    {
-      "source": "/monte-carlo-stock-simulator",
-      "destination": "/simulador-monte-carlo",
+      "source": "/ca/monte-carlo-stock-simulator",
+      "destination": "/ca/simulador-monte-carlo",
       "permanent": true
     },
     {
@@ -135,13 +165,8 @@
       "permanent": true
     },
     {
-      "source": "/en/simulador-monte-carlo",
-      "destination": "/en/monte-carlo-stock-simulator",
-      "permanent": true
-    },
-    {
-      "source": "/about",
-      "destination": "/sobre-trimmtrack",
+      "source": "/ca/about",
+      "destination": "/ca/sobre-trimmtrack",
       "permanent": true
     },
     {
@@ -150,18 +175,13 @@
       "permanent": true
     },
     {
-      "source": "/en/sobre-trimmtrack",
-      "destination": "/en/about",
+      "source": "/ca/privacidad",
+      "destination": "/ca/privacitat",
       "permanent": true
     },
     {
-      "source": "/privacidad",
-      "destination": "/privacitat",
-      "permanent": true
-    },
-    {
-      "source": "/privacy",
-      "destination": "/privacitat",
+      "source": "/ca/privacy",
+      "destination": "/ca/privacitat",
       "permanent": true
     },
     {
@@ -175,23 +195,18 @@
       "permanent": true
     },
     {
-      "source": "/en/privacitat",
-      "destination": "/en/privacy",
+      "source": "/privacidad",
+      "destination": "/privacy",
       "permanent": true
     },
     {
-      "source": "/en/privacidad",
-      "destination": "/en/privacy",
+      "source": "/ca/terminos",
+      "destination": "/ca/termes",
       "permanent": true
     },
     {
-      "source": "/terminos",
-      "destination": "/termes",
-      "permanent": true
-    },
-    {
-      "source": "/terms",
-      "destination": "/termes",
+      "source": "/ca/terms",
+      "destination": "/ca/termes",
       "permanent": true
     },
     {
@@ -205,13 +220,32 @@
       "permanent": true
     },
     {
-      "source": "/en/termes",
-      "destination": "/en/terms",
+      "source": "/terminos",
+      "destination": "/terms",
       "permanent": true
     },
     {
-      "source": "/en/terminos",
-      "destination": "/en/terms",
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "lng",
+          "value": "ca"
+        }
+      ],
+      "destination": "/ca",
+      "permanent": true
+    },
+    {
+      "source": "/:path((?!ca/|ca$|es/|es$|research/(?:applovin|netflix|exor|meta)$).*)",
+      "has": [
+        {
+          "type": "query",
+          "key": "lng",
+          "value": "ca"
+        }
+      ],
+      "destination": "/ca/:path",
       "permanent": true
     },
     {
@@ -227,7 +261,7 @@
       "permanent": true
     },
     {
-      "source": "/:path((?!es/|en/|es$|en$).*)",
+      "source": "/:path((?!ca/|ca$|es/|es$|research/(?:applovin|netflix|exor|meta)$).*)",
       "has": [
         {
           "type": "query",
@@ -237,30 +271,6 @@
       ],
       "destination": "/es/:path",
       "permanent": true
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "query",
-          "key": "lng",
-          "value": "en"
-        }
-      ],
-      "destination": "/en",
-      "permanent": true
-    },
-    {
-      "source": "/:path((?!es/|en/|es$|en$).*)",
-      "has": [
-        {
-          "type": "query",
-          "key": "lng",
-          "value": "en"
-        }
-      ],
-      "destination": "/en/:path",
-      "permanent": true
     }
   ],
   "rewrites": [
@@ -269,15 +279,15 @@
       "destination": "/app.html"
     },
     {
-      "source": "/:locale(es|en)",
+      "source": "/:locale(ca|es)",
       "destination": "/app.html"
     },
     {
-      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacitat|termes)",
+      "source": "/ca/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacitat|termes)",
       "destination": "/app.html"
     },
     {
-      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacitat|termes)/:rest*",
+      "source": "/ca/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacitat|termes)/:rest*",
       "destination": "/app.html"
     },
     {
@@ -289,11 +299,11 @@
       "destination": "/app.html"
     },
     {
-      "source": "/en/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|about|privacy|terms|etf-growth-calculator|portfolio-tracker)",
+      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|about|privacy|terms|etf-growth-calculator|portfolio-tracker)",
       "destination": "/app.html"
     },
     {
-      "source": "/en/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|about|privacy|terms|etf-growth-calculator|portfolio-tracker)/:rest*",
+      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|about|privacy|terms|etf-growth-calculator|portfolio-tracker)/:rest*",
       "destination": "/app.html"
     },
     {

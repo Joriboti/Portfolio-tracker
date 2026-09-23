@@ -1,5 +1,5 @@
 import manifest from "@/data/research-articles.json";
-import { DEFAULT_LOCALE, LOCALES, X_DEFAULT_LOCALE, type Locale } from "@/lib/locale";
+import { LOCALES, X_DEFAULT_LOCALE, type Locale } from "@/lib/locale";
 
 // Which languages each research article is ACTUALLY written in.
 //
@@ -82,7 +82,7 @@ export function isKnownArticle(slug: string): boolean {
 export function resolveArticleLocale(slug: string, wanted: Locale): Locale | null {
   const available = articleLocales(slug);
   if (!available.length || available.includes(wanted)) return null;
-  for (const pref of [X_DEFAULT_LOCALE, DEFAULT_LOCALE]) {
+  for (const pref of [X_DEFAULT_LOCALE, "ca"] as Locale[]) {
     if (available.includes(pref)) return pref;
   }
   return available[0];

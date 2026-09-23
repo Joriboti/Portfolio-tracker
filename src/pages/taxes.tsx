@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
-import { LocaleLink } from "@/components/LocaleLink";
+import { localeUrl } from "@/lib/locale";
+import { LocaleLink, useLocale } from "@/components/LocaleLink";
 
 import { useTranslation } from "react-i18next";
 import {
@@ -10,6 +11,8 @@ import {
 } from "@/lib/excel-parser";
 import { getPortfolio } from "@/lib/api";
 import { getTrialTxns, hasTrial } from "@/lib/trial";
+import { SPREADSHEET_ACCEPT } from "@/lib/sheet-link";
+import { SheetLinkImport } from "@/components/SheetLinkImport";
 import { useUser } from "@/hooks/useUser";
 import { useSeo } from "@/lib/seo";
 import { formatMoney } from "@/lib/currency";
@@ -57,6 +60,7 @@ function localeOf(lang: string): string {
 
 export function TaxesPage() {
   const { t, i18n } = useTranslation();
+  const locale = useLocale();
   const { user } = useUser();
   const numLocale = localeOf(i18n.language ?? "ca");
   const eur = (n: number) => formatMoney(n, "EUR", numLocale);
@@ -80,7 +84,7 @@ export function TaxesPage() {
           name: t("taxes.h1"),
           applicationCategory: "FinanceApplication",
           operatingSystem: "Web",
-          url: "https://www.trimmtrack.com/taxes",
+          url: localeUrl("/taxes", locale),
           offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         },
         {
@@ -93,7 +97,7 @@ export function TaxesPage() {
         },
       ],
     }),
-    [t],
+    [t, locale],
   );
   useSeo({
     title: t("seo.taxesTitle"),
@@ -384,7 +388,7 @@ export function TaxesPage() {
                 <input
                   ref={fileRef}
                   type="file"
-                  accept=".xlsx,.xls"
+                  accept={SPREADSHEET_ACCEPT}
                   className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
@@ -421,6 +425,7 @@ export function TaxesPage() {
                 </button>
               </div>
             </div>
+            <SheetLinkImport onFile={onExcel} className={`mt-6 border-t ${HAIR} pt-5`} />
             {sourceError && (
               <p className="mt-5 border-l-2 border-rose-400 pl-3 text-sm text-rose-700">
                 {sourceError}

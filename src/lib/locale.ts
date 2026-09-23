@@ -1,5 +1,7 @@
-// Path-based i18n routing. Catalan (the default) lives at the bare URL ("/",
-// "/research"); Spanish and English are mirrored under "/es/…" and "/en/…".
+// Path-based i18n routing. English (the default) lives at the bare URL ("/",
+// "/research"); Catalan and Spanish are mirrored under "/ca/…" and "/es/…".
+// Until 2026-09 Catalan owned the root and English lived under /en — every
+// old URL 301s to its new home (see scripts/gen-vercel.mjs, "legacy" rules).
 // Each locale therefore has its own crawlable, prerenderable URL — the thing
 // query-string variants (?lng=en) could never give us for SEO.
 //
@@ -16,10 +18,10 @@ export type Locale = (typeof LOCALES)[number];
 /** LOCALES as a plain array, for the many APIs that want `Locale[]`. */
 export const ALL_LOCALES: Locale[] = [...LOCALES];
 
-/** URL path prefix for each locale. Catalan is prefixless (root). */
-export const PREFIXED_LOCALES = ["es", "en"] as const;
+/** URL path prefix for each locale. English is prefixless (root). */
+export const PREFIXED_LOCALES = ["ca", "es"] as const;
 
-export const DEFAULT_LOCALE: Locale = "ca";
+export const DEFAULT_LOCALE: Locale = "en";
 
 /** Which locale Google should serve when it has no better language match. */
 export const X_DEFAULT_LOCALE: Locale = "en";
@@ -123,7 +125,7 @@ export function isLocalizable(path: string): boolean {
   );
 }
 
-/** Read the locale encoded in a pathname ("/en/foo" → "en", "/foo" → "ca"). */
+/** Read the locale encoded in a pathname ("/ca/foo" → "ca", "/foo" → "en"). */
 export function localeFromPath(pathname: string): Locale {
   const seg = pathname.split("/")[1];
   return (PREFIXED_LOCALES as readonly string[]).includes(seg)
@@ -131,11 +133,11 @@ export function localeFromPath(pathname: string): Locale {
     : DEFAULT_LOCALE;
 }
 
-/** Strip any locale prefix, returning the path as written ("/en/x" → "/x"). */
+/** Strip any locale prefix, returning the path as written ("/ca/x" → "/x"). */
 export function stripLocale(pathname: string): string {
   const seg = pathname.split("/")[1];
   if ((PREFIXED_LOCALES as readonly string[]).includes(seg)) {
-    const rest = pathname.slice(seg.length + 1); // drop "/en"
+    const rest = pathname.slice(seg.length + 1); // drop "/ca"
     return rest === "" ? "/" : rest;
   }
   return pathname;
@@ -144,7 +146,7 @@ export function stripLocale(pathname: string): string {
 /**
  * Translate a page's slug into `locale`, leaving untranslated routes alone.
  * Accepts the slug in ANY locale, so it round-trips: the Spanish URL of the
- * page currently shown at /en/dcf-calculator is /es/calculadora-dcf.
+ * page currently shown at /dcf-calculator is /es/calculadora-dcf.
  */
 function translateSlug(unprefixed: string, locale: Locale): string {
   const [pathOnly, suffix] = splitSuffix(unprefixed);

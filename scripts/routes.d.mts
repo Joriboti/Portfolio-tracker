@@ -44,6 +44,7 @@ export const ARTICLES: ArticleEntry[];
 export const BASE: string;
 export const LOCALES: Locale[];
 export const X_DEFAULT: Locale;
+export const DEFAULT: Locale;
 export const PREFIX: Record<Locale, string>;
 export const ROUTE_SLUGS: Record<string, Record<Locale, string>>;
 export const TICKER_DATA: TickerEntry[];

@@ -23,8 +23,9 @@ const read = (f) => JSON.parse(readFileSync(path.join(ROOT, f), "utf8"));
 export const BASE = "https://www.trimmtrack.com";
 export const LOCALES = ["ca", "es", "en"];
 export const X_DEFAULT = "en";
-/** Catalan is prefixless; the other two live under their code. */
-export const PREFIX = { ca: "", es: "/es", en: "/en" };
+/** English is prefixless; the other two live under their code. */
+export const PREFIX = { ca: "/ca", es: "/es", en: "" };
+export const DEFAULT = "en";
 
 /** Mirror of ROUTE_SLUGS in src/lib/locale.ts — pages whose slug is translated. */
 export const ROUTE_SLUGS = {
@@ -96,8 +97,8 @@ const EN_ONLY = [
 ];
 
 // Research articles, with the locales each one is ACTUALLY written in. All three
-// are authored in English today, so only /en/research/:slug is indexable and the
-// ca/es paths 301 to it (see vercel.json). Publishing a real translation = add
+// are authored in English today, so only /research/:slug is indexable and the
+// /ca and /es paths 301 to it (see vercel.json). Publishing a real translation = add
 // the locale here and drop that redirect; nothing else needs touching.
 export const ARTICLES = read("src/data/research-articles.json");
 
@@ -147,7 +148,7 @@ export function allIndexableUrls({ lastmod } = {}) {
         alternates: alts,
         // A page's non-default language variants are a shade less important
         // than the original, which is what the priority hint is for.
-        priority: l === "ca" ? priority : (Number(priority) - 0.1).toFixed(1),
+        priority: l === DEFAULT ? priority : (Number(priority) - 0.1).toFixed(1),
         changefreq,
         lastmod: mod,
       });

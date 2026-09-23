@@ -6,34 +6,68 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo, Wordmark } from "./Logo";
 import { useUser } from "@/hooks/useUser";
 import { authClient } from "@/lib/auth";
-import i18n from "@/lib/i18n";
+import i18n, { HAD_LANGUAGE_CHOICE } from "@/lib/i18n";
 import { ROUTE_SLUGS, isLocalizable, stripLocale, withLocale } from "@/lib/locale";
 import { X_HANDLE, X_URL } from "@/lib/brand";
 
 // Keep the active i18next language in sync with the URL's locale prefix so a
-// visitor landing directly on /en/… or /es/… (e.g. from Google) sees the right
+// visitor landing directly on /ca/… or /es/… (e.g. from Google) sees the right
 // language, and the prerenderer renders each locale URL in its own language.
-// Bare (Catalan-root) paths don't force a switch — the human's cached choice
-// wins there; crawlers get the Catalan snapshot from the prerender step.
+// Bare (English-root) paths don't force a switch — the human's cached choice
+// wins there; crawlers get the English snapshot from the prerender step.
+// Runs once per page load: a first-time visitor whose browser asks for
+// Catalan or Spanish is moved to that tree (see offerBrowserLanguage).
+let firstRouteHandled = false;
+
+function isAutomated(): boolean {
+  if (typeof navigator === "undefined") return true;
+  // The prerenderer (puppeteer) sets webdriver; crawlers announce themselves.
+  return (
+    navigator.webdriver === true ||
+    /bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent)
+  );
+}
+
+/** ca/es when the browser's FIRST preference is one of them, else null. */
+function browserLocale(): "ca" | "es" | null {
+  const first = (navigator.languages?.[0] ?? navigator.language ?? "").slice(0, 2);
+  return first === "ca" || first === "es" ? first : null;
+}
+
 function LocaleSync() {
   const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
   useEffect(() => {
+    const first = !firstRouteHandled;
+    firstRouteHandled = true;
     const seg = pathname.split("/")[1];
     const current = i18n.language?.slice(0, 2);
-    if (seg === "en" || seg === "es") {
+    if (seg === "ca" || seg === "es") {
       if (current !== seg) void i18n.changeLanguage(seg);
       return;
     }
-    // A bare (Catalan-root) public URL opened with a cached en/es choice used
-    // to render English chrome around Catalan content: the UI strings follow
+    if (!isLocalizable(pathname)) return;
+    // A bare (English-root) public URL opened with a cached ca/es choice would
+    // render Catalan chrome around English content: the UI strings follow
     // i18n, but article cards, company insights, dates and every internal
     // link are keyed off the URL's locale. Move the reader to the URL of the
     // language they chose instead, so both agree and the canonical is right.
     // Crawlers and the prerenderer carry no cached choice, so their bare-path
-    // render stays the deterministic Catalan one.
-    if ((current === "en" || current === "es") && isLocalizable(pathname)) {
+    // render stays the deterministic English one.
+    if (current === "ca" || current === "es") {
       navigate(withLocale(pathname, current) + search + hash, { replace: true });
+      return;
+    }
+    // First visit ever, straight onto an English URL, from a browser that
+    // asks for Catalan or Spanish first: take them to their language once.
+    // Never for bots (Google must see the English page it was sent to), and
+    // never again after they pick a language with the switcher.
+    if (first && !HAD_LANGUAGE_CHOICE && !isAutomated()) {
+      const wanted = browserLocale();
+      if (wanted) {
+        void i18n.changeLanguage(wanted);
+        navigate(withLocale(pathname, wanted) + search + hash, { replace: true });
+      }
     }
   }, [pathname, search, hash, navigate]);
   return null;
@@ -230,7 +264,7 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
   // the current page opens itself (see NavGroup).
   //
   // LocaleNavLink turns each neutral slug into the current language's URL
-  // (/calculadora-dcf → /en/dcf-calculator), so these are written once.
+  // (/calculadora-dcf → /dcf-calculator), so these are written once.
   const sections = [
     { to: "/dashboard", label: t("nav.dashboard") },
     { to: "/upload", label: t("nav.upload") },

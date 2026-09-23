@@ -159,12 +159,12 @@ describe("prerender coverage", () => {
     for (const p of [
       "/explore/aapl",
       "/es/explore/aapl",
-      "/en/explore/aapl",
+      "/ca/explore/aapl",
       "/es/explore/jpm",
-      "/en/explore/jpm",
+      "/ca/explore/jpm",
       "/explore/compare/aapl-vs-msft",
       "/es/explore/compare/aapl-vs-msft",
-      "/en/explore/compare/aapl-vs-msft",
+      "/ca/explore/compare/aapl-vs-msft",
     ]) {
       expect(paths.has(p), `${p} must be prerendered`).toBe(true);
     }
@@ -187,12 +187,12 @@ describe("prerender coverage", () => {
 
 describe("research articles", () => {
   it("does not publish a variant in a language it is not written in", () => {
-    // All four articles are authored in English; ca/es variants 301 to it.
+    // All articles are authored in English (the bare path); /ca and /es 301 to it.
     const articleUrls = urls.filter((u) => u.neutral.startsWith("/research/"));
     expect(articleUrls.length).toBeGreaterThan(0);
     for (const u of articleUrls) {
       expect(u.locale).toBe("en");
-      expect(u.loc).toContain("/en/research/");
+      expect(u.loc).toMatch(/^https:\/\/www\.trimmtrack\.com\/research\//);
     }
   });
 
@@ -212,17 +212,17 @@ describe("research articles", () => {
       const target = locales.includes("en") ? "en" : locales[0];
       for (const l of LOCALES) {
         if (locales.includes(l)) continue;
-        const from = l === "ca" ? `/research/${slug}` : `/${l}/research/${slug}`;
+        const from = l === "en" ? `/research/${slug}` : `/${l}/research/${slug}`;
         const rule = vercel.redirects.find((r) => r.source === from);
         expect(rule, `${from} is not written in ${l} and has no redirect`).toBeTruthy();
         expect(rule!.destination).toBe(
-          target === "ca" ? `/research/${slug}` : `/${target}/research/${slug}`,
+          target === "en" ? `/research/${slug}` : `/${target}/research/${slug}`,
         );
         expect(rule!.permanent).toBe(true);
       }
       // …and the language it IS written in must never redirect.
       for (const l of locales) {
-        const self = l === "ca" ? `/research/${slug}` : `/${l}/research/${slug}`;
+        const self = l === "en" ? `/research/${slug}` : `/${l}/research/${slug}`;
         expect(vercel.redirects.some((r) => r.source === self)).toBe(false);
       }
     }

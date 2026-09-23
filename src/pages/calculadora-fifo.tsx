@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { LocaleLink } from "@/components/LocaleLink";
+import { localeUrl } from "@/lib/locale";
+import { LocaleLink, useLocale } from "@/components/LocaleLink";
 
 import { useTranslation } from "react-i18next";
 import { FifoCalculator } from "@/components/FifoCalculator";
@@ -14,6 +15,7 @@ const FAQ_KEYS = ["what", "crypto", "partial", "tax"] as const;
 
 export function FifoCalculatorPage() {
   const { t } = useTranslation();
+  const locale = useLocale();
 
   const jsonLd = useMemo(
     () => ({
@@ -24,7 +26,7 @@ export function FifoCalculatorPage() {
           name: t("fifoPage.h1"),
           applicationCategory: "FinanceApplication",
           operatingSystem: "Web",
-          url: "https://www.trimmtrack.com/calculadora-fifo",
+          url: localeUrl("/calculadora-fifo", locale),
           offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         },
         {
@@ -37,7 +39,7 @@ export function FifoCalculatorPage() {
         },
       ],
     }),
-    [t],
+    [t, locale],
   );
 
   useSeo({

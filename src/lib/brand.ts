@@ -11,6 +11,9 @@ export const SAME_AS: string[] = [X_URL];
 /** The one OG/Schema image every page and article uses. */
 export const OG_IMAGE = "https://www.trimmtrack.com/og.png";
 
+/** Square raster logo for schema `logo` — Google does not accept SVG there. */
+export const LOGO_IMAGE = "https://www.trimmtrack.com/logo.png";
+
 /** X share intent for a page, with no SDK and no third-party script. */
 export function shareOnX(url: string, text: string): string {
   const p = new URLSearchParams({ url, text, via: X_HANDLE.replace("@", "") });

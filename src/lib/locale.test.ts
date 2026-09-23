@@ -18,70 +18,69 @@ import { ROUTE_SLUGS as SCRIPT_SLUGS, localePath } from "../../scripts/routes.mj
 // pages' /es and /en URLs were advertised but never built.
 
 describe("localeFromPath", () => {
-  it("reads the prefix, defaulting to Catalan", () => {
-    expect(localeFromPath("/")).toBe("ca");
-    expect(localeFromPath("/explore/aapl")).toBe("ca");
+  it("reads the prefix, defaulting to English", () => {
+    expect(localeFromPath("/")).toBe("en");
+    expect(localeFromPath("/explore/aapl")).toBe("en");
     expect(localeFromPath("/es")).toBe("es");
     expect(localeFromPath("/es/explore/aapl")).toBe("es");
-    expect(localeFromPath("/en/research/netflix")).toBe("en");
+    expect(localeFromPath("/ca/research/netflix")).toBe("ca");
+    // /en is no longer a prefix — it 301s to the bare path at the edge.
+    expect(localeFromPath("/en/research")).toBe("en");
   });
 
   it("does not mistake a page whose slug starts like a locale", () => {
-    // "/esquema" must not read as Spanish.
-    expect(localeFromPath("/esquema")).toBe("ca");
-    expect(localeFromPath("/entrada")).toBe("ca");
+    // "/esquema" must not read as Spanish, nor "/calculadora-dcf" as Catalan.
+    expect(localeFromPath("/esquema")).toBe("en");
+    expect(localeFromPath("/calculadora-dcf")).toBe("en");
   });
 });
 
 describe("stripLocale", () => {
   it("removes only a real prefix", () => {
     expect(stripLocale("/es/taxes")).toBe("/taxes");
-    expect(stripLocale("/en")).toBe("/");
+    expect(stripLocale("/ca")).toBe("/");
     expect(stripLocale("/es")).toBe("/");
     expect(stripLocale("/taxes")).toBe("/taxes");
-    expect(stripLocale("/entrada")).toBe("/entrada");
+    expect(stripLocale("/casa")).toBe("/casa");
   });
 });
 
 describe("withLocale", () => {
-  it("prefixes non-default locales and leaves Catalan bare", () => {
-    expect(withLocale("/explore", "ca")).toBe("/explore");
+  it("prefixes non-default locales and leaves English bare", () => {
+    expect(withLocale("/explore", "en")).toBe("/explore");
     expect(withLocale("/explore", "es")).toBe("/es/explore");
-    expect(withLocale("/explore", "en")).toBe("/en/explore");
-    expect(withLocale("/", "ca")).toBe("/");
+    expect(withLocale("/explore", "ca")).toBe("/ca/explore");
+    expect(withLocale("/", "en")).toBe("/");
     expect(withLocale("/", "es")).toBe("/es");
+    expect(withLocale("/", "ca")).toBe("/ca");
   });
 
   it("is idempotent and round-trips between locales", () => {
-    expect(withLocale("/es/explore/aapl", "en")).toBe("/en/explore/aapl");
-    expect(withLocale("/en/explore/aapl", "ca")).toBe("/explore/aapl");
+    expect(withLocale("/es/explore/aapl", "ca")).toBe("/ca/explore/aapl");
+    expect(withLocale("/ca/explore/aapl", "en")).toBe("/explore/aapl");
     expect(withLocale("/es/taxes", "es")).toBe("/es/taxes");
   });
 
   it("translates slugs that differ per locale, in either direction", () => {
-    expect(withLocale("/calculadora-dcf", "en")).toBe("/en/dcf-calculator");
-    expect(withLocale("/en/dcf-calculator", "es")).toBe("/es/calculadora-dcf");
-    expect(withLocale("/dcf-invers", "es")).toBe("/es/dcf-inverso");
-    expect(withLocale("/es/dcf-inverso", "ca")).toBe("/dcf-invers");
+    expect(withLocale("/ca/calculadora-dcf", "en")).toBe("/dcf-calculator");
+    expect(withLocale("/dcf-calculator", "es")).toBe("/es/calculadora-dcf");
+    expect(withLocale("/ca/dcf-invers", "es")).toBe("/es/dcf-inverso");
+    expect(withLocale("/es/dcf-inverso", "ca")).toBe("/ca/dcf-invers");
     // The FIFO page: one page, an English keyword slug and a Catalan one.
-    expect(withLocale("/calculadora-fifo", "en")).toBe(
-      "/en/fifo-capital-gains-calculator",
-    );
-    expect(withLocale("/en/fifo-capital-gains-calculator", "ca")).toBe(
-      "/calculadora-fifo",
-    );
+    expect(withLocale("/calculadora-fifo", "en")).toBe("/fifo-capital-gains-calculator");
+    expect(withLocale("/fifo-capital-gains-calculator", "ca")).toBe("/ca/calculadora-fifo");
   });
 
   it("leaves app and auth paths language-neutral", () => {
     for (const p of ["/dashboard", "/upload", "/account", "/auth/sign-in", "/verify/abc"]) {
       expect(withLocale(p, "es")).toBe(p);
-      expect(withLocale(p, "en")).toBe(p);
+      expect(withLocale(p, "ca")).toBe(p);
     }
   });
 
   it("preserves the query string and hash", () => {
     expect(withLocale("/explore/aapl?s=abc", "es")).toBe("/es/explore/aapl?s=abc");
-    expect(withLocale("/taxes#report", "en")).toBe("/en/taxes#report");
+    expect(withLocale("/taxes#report", "ca")).toBe("/ca/taxes#report");
     expect(withLocale("/auth/sign-in?next=/dashboard", "es")).toBe(
       "/auth/sign-in?next=/dashboard",
     );
@@ -90,15 +89,15 @@ describe("withLocale", () => {
 
 describe("localeUrl", () => {
   it("builds absolute, trailing-slash-free canonicals", () => {
-    expect(localeUrl("/", "ca")).toBe("https://www.trimmtrack.com/");
+    expect(localeUrl("/", "en")).toBe("https://www.trimmtrack.com/");
     expect(localeUrl("/", "es")).toBe("https://www.trimmtrack.com/es");
-    expect(localeUrl("/explore/aapl", "en")).toBe(
-      "https://www.trimmtrack.com/en/explore/aapl",
+    expect(localeUrl("/explore/aapl", "ca")).toBe(
+      "https://www.trimmtrack.com/ca/explore/aapl",
     );
   });
 
   it("is self-referencing: the canonical of a URL is that URL", () => {
-    for (const p of ["/", "/explore", "/es/taxes", "/en/explore/aapl", "/es/calculadora-dcf"]) {
+    for (const p of ["/", "/explore", "/es/taxes", "/ca/explore/aapl", "/es/calculadora-dcf"]) {
       const locale = localeFromPath(p);
       expect(localeUrl(p, locale)).toBe(
         `https://www.trimmtrack.com${p === "/" ? "/" : p}`,
