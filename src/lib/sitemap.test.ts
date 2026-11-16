@@ -3,8 +3,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
   BASE,
+  COMPARE_HUB,
   LOCALES,
+  RENAMED_TICKERS,
   allIndexableUrls,
+  isProgrammatic,
   allPrerenderRoutes,
   curatedUrls,
   programmaticUrls,
@@ -103,7 +106,33 @@ describe("sitemap inventory", () => {
 
   it("splits cleanly between the two sitemap files", () => {
     expect(curatedUrls({}).length + programmaticUrls({}).length).toBe(urls.length);
-    for (const u of curatedUrls({})) expect(u.neutral.startsWith("/explore/")).toBe(false);
+    for (const u of curatedUrls({})) expect(isProgrammatic(u.neutral)).toBe(false);
+    for (const u of programmaticUrls({})) expect(isProgrammatic(u.neutral)).toBe(true);
+  });
+
+  it("lists the comparison hub as a page, in every language", () => {
+    // It is in the navigation of every page, so it must be a real document:
+    // out of the inventory it was served as the empty SPA shell, carrying the
+    // home page's title, and marked "noindex, nofollow" once JavaScript ran.
+    const hub = curatedUrls({}).filter((u) => u.neutral === COMPARE_HUB);
+    expect(hub.map((u) => u.loc).sort()).toEqual(
+      [`${BASE}/ca/explore/compare`, `${BASE}/es/explore/compare`, `${BASE}/explore/compare`].sort(),
+    );
+    // A hub is not API-driven: the prerenderer must not wait for charts on it.
+    const route = allPrerenderRoutes().find((r) => r.path === "/explore/compare");
+    expect(route?.awaitCharts).toBe(false);
+  });
+
+  it("never lists a retired ticker symbol", () => {
+    const paths = urls.map((u) => u.loc.slice(BASE.length));
+    for (const [from, to] of Object.entries(RENAMED_TICKERS)) {
+      expect(TICKER_DATA.map((t) => t.symbol), `${from} is still in tickers.json`).not.toContain(from);
+      expect(TICKER_DATA.map((t) => t.symbol), `${to} must be the curated symbol`).toContain(to);
+      expect(paths).not.toContain(`/explore/${from.toLowerCase()}`);
+      for (const p of PAIR_DATA) {
+        expect([p.a, p.b], `compare-pairs.json still uses ${from}`).not.toContain(from);
+      }
+    }
   });
 
   it("only sets lastmod where content really changes per deploy", () => {

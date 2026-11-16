@@ -69,10 +69,28 @@ export function absolute(p) {
 // Page inventory
 // ---------------------------------------------------------------------------
 
+/** The picker + full list of head-to-head pages. A hub, not a programmatic page. */
+export const COMPARE_HUB = "/explore/compare";
+
+/**
+ * Tickers whose symbol changed (old → new). The old /explore/<symbol> URL 301s
+ * to the new one in every language (scripts/gen-vercel.mjs), so the page keeps
+ * whatever Google had collected for it instead of turning into an empty shell:
+ * Yahoo stops answering for a retired symbol, and the page then renders nothing
+ * but dashes. Block left SQ for XYZ in January 2025.
+ */
+export const RENAMED_TICKERS = { SQ: "XYZ" };
+
 /** Pages that exist in all three languages. [neutral, priority, changefreq] */
 const MULTILANG = [
   ["/", "1.0", "weekly"],
   ["/explore", "0.9", "weekly"],
+  // The comparison hub. It is linked from the navigation of every page, so it
+  // has to be a real, prerendered, indexable document: left out of this list it
+  // answered with the empty SPA shell (the home page's title, no canonical) and
+  // a client-side "noindex, nofollow" — which also cut the only page that lists
+  // every comparison out of the crawl graph.
+  [COMPARE_HUB, "0.7", "weekly"],
   ["/research", "0.8", "weekly"],
   ["/radiografia", "0.9", "monthly"],
   ["/taxes", "0.9", "monthly"],
@@ -176,16 +194,19 @@ export function allIndexableUrls({ lastmod } = {}) {
   return out;
 }
 
+/** A per-ticker or per-pair page — API-driven, generated from the data files. */
+export function isProgrammatic(neutral) {
+  return neutral.startsWith("/explore/") && neutral !== COMPARE_HUB;
+}
+
 /** The curated (small, reviewable) sitemap: everything except the programmatic pages. */
 export function curatedUrls(opts) {
-  return allIndexableUrls(opts).filter(
-    (u) => !u.neutral.startsWith("/explore/"),
-  );
+  return allIndexableUrls(opts).filter((u) => !isProgrammatic(u.neutral));
 }
 
 /** The programmatic sitemap: per-ticker and comparison pages, all languages. */
 export function programmaticUrls(opts) {
-  return allIndexableUrls(opts).filter((u) => u.neutral.startsWith("/explore/"));
+  return allIndexableUrls(opts).filter((u) => isProgrammatic(u.neutral));
 }
 
 /**
@@ -198,7 +219,7 @@ export function allPrerenderRoutes() {
     path: u.loc.slice(BASE.length) || "/",
     locale: u.locale,
     // API-driven pages wait for their charts to paint before snapshotting.
-    awaitCharts: u.neutral.startsWith("/explore/"),
+    awaitCharts: isProgrammatic(u.neutral),
   }));
   for (const l of LOCALES) {
     routes.push({ path: localePath("/404", l), locale: l, notFound: true });

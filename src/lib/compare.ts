@@ -136,6 +136,29 @@ export function alignSeries(
   };
 }
 
+/**
+ * `count` items taken from `items` starting right after position `index`,
+ * wrapping round the end. For the internal-link grids: a fixed `slice(0, n)`
+ * links every page to the same first n entries and leaves the tail of the list
+ * with no inbound link at all (50 of the 80 company pages, as shipped). A
+ * window that starts after the current entry gives every page a different set
+ * and every entry exactly `count` pages linking to it.
+ *
+ * `index < 0` (the current page is not in the list) starts from the top.
+ */
+export function windowAfter<T>(items: readonly T[], index: number, count: number): T[] {
+  const n = items.length;
+  if (n === 0) return [];
+  const out: T[] = [];
+  const start = index < 0 ? 0 : index + 1;
+  for (let k = 0; k < n && out.length < count; k++) {
+    const i = (start + k) % n;
+    if (i === index) continue;
+    out.push(items[i]);
+  }
+  return out;
+}
+
 /** Pairs featuring `symbol`, for cross-linking from its /explore page. */
 export function pairsFor(symbol: string): Pair[] {
   const s = symbol.toUpperCase();

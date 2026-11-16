@@ -325,3 +325,81 @@ describe.skipIf(!built)("trust pages", () => {
     expect(html).toContain('rel="me noopener noreferrer"');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Internal link graph
+// ---------------------------------------------------------------------------
+// A URL that is only in the sitemap is one Google lists as "Discovered –
+// currently not indexed": it knows the address, sees nothing on the site that
+// vouches for it, and does not spend a crawl on it. In November 2026 that was
+// 44 of the 399 sitemap URLs (14 company pages × 3 languages, linked from no
+// page at all, plus the two English-only landings), and another 135 hung off a
+// single comparison page — because the link grids were all `slice(0, 30)`.
+
+describe.skipIf(!built)("internal link graph", () => {
+  const inventory = allIndexableUrls({}).map((u) => u.loc.slice(BASE.length) || "/");
+  const known = new Set(inventory);
+  const clean = (href: string) => href.split("#")[0].split("?")[0].replace(/(.)\/$/, "$1");
+
+  /** target → the set of OTHER indexable pages that link to it. */
+  const inbound = new Map<string, Set<string>>(inventory.map((p) => [p, new Set()]));
+  for (const from of inventory) {
+    const html = fileFor(from);
+    if (!html) continue;
+    for (const href of internalLinks(html)) {
+      const to = clean(href);
+      if (to !== from && known.has(to)) inbound.get(to)!.add(from);
+    }
+  }
+
+  it("leaves no indexable URL without an inbound link", () => {
+    const orphans = inventory.filter((p) => inbound.get(p)!.size === 0);
+    expect(orphans, "in the sitemap but linked from no page").toEqual([]);
+  });
+
+  it("links every company and comparison page from several others", () => {
+    const thin = inventory
+      .filter((p) => /\/explore\/./.test(p) && !/\/explore\/compare$/.test(p))
+      .filter((p) => inbound.get(p)!.size < 10)
+      .map((p) => `${p} (${inbound.get(p)!.size})`);
+    expect(thin, "programmatic pages with fewer than 10 inbound links").toEqual([]);
+  });
+
+  it("reaches every company from /explore and every pair from /explore/compare", () => {
+    for (const prefix of ["", "/ca", "/es"]) {
+      const hub = new Set(internalLinks(fileFor(`${prefix}/explore`) ?? "").map(clean));
+      const compareHub = new Set(
+        internalLinks(fileFor(`${prefix}/explore/compare`) ?? "").map(clean),
+      );
+      const tickers = inventory.filter((p) => new RegExp(`^${prefix}/explore/(?!compare)[^/]+$`).test(p));
+      const pairs = inventory.filter((p) => p.startsWith(`${prefix}/explore/compare/`));
+      expect(tickers.length).toBeGreaterThan(0);
+      expect(pairs.length).toBeGreaterThan(0);
+      expect(tickers.filter((p) => !hub.has(p)), `${prefix}/explore misses companies`).toEqual([]);
+      expect(pairs.filter((p) => !compareHub.has(p)), `${prefix}/explore/compare misses pairs`).toEqual([]);
+    }
+  });
+
+  it("keeps the comparison hub indexable", () => {
+    for (const prefix of ["", "/ca", "/es"]) {
+      const html = fileFor(`${prefix}/explore/compare`);
+      expect(html, `${prefix}/explore/compare is not prerendered`).toBeTruthy();
+      expect(html!).not.toMatch(/name="robots"[^>]*content="noindex/);
+      expect(canonicals(html!)).toEqual([`${BASE}${prefix}/explore/compare`]);
+    }
+  });
+
+  it("links only to pages that exist", () => {
+    // An internal link to something that is neither indexable nor one of the
+    // app's own routes is a link into a 404 or a redirect.
+    const APP = /^\/(dashboard|upload|account|auth|verify|debug)(\/|$)/;
+    const stray = new Map<string, string>();
+    for (const from of inventory) {
+      for (const href of internalLinks(fileFor(from) ?? "")) {
+        const to = clean(href);
+        if (!known.has(to) && !APP.test(to) && !stray.has(to)) stray.set(to, from);
+      }
+    }
+    expect([...stray].map(([to, from]) => `${to} (from ${from})`)).toEqual([]);
+  });
+});

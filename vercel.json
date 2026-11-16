@@ -60,6 +60,26 @@
       "permanent": true
     },
     {
+      "source": "/ca/explore/sq",
+      "destination": "/ca/explore/xyz",
+      "permanent": true
+    },
+    {
+      "source": "/es/explore/sq",
+      "destination": "/es/explore/xyz",
+      "permanent": true
+    },
+    {
+      "source": "/explore/sq",
+      "destination": "/explore/xyz",
+      "permanent": true
+    },
+    {
+      "source": "/how-to-prepare",
+      "destination": "/upload",
+      "permanent": true
+    },
+    {
       "source": "/ca/research/applovin",
       "destination": "/research/applovin",
       "permanent": true
@@ -287,7 +307,15 @@
       "destination": "/app.html"
     },
     {
-      "source": "/ca/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-invers|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacitat|termes)/:rest*",
+      "source": "/ca/explore/:ticker",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/ca/explore/compare/:pair",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/ca/research/:slug",
       "destination": "/app.html"
     },
     {
@@ -295,7 +323,15 @@
       "destination": "/app.html"
     },
     {
-      "source": "/es/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|calculadora-fifo|calculadora-dcf|dcf-inverso|numero-de-graham|simulador-monte-carlo|sobre-trimmtrack|privacidad|terminos)/:rest*",
+      "source": "/es/explore/:ticker",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/es/explore/compare/:pair",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/es/research/:slug",
       "destination": "/app.html"
     },
     {
@@ -303,15 +339,23 @@
       "destination": "/app.html"
     },
     {
-      "source": "/:seg(explore|research|forecast|taxes|radiografia|disclaimer|404|fifo-capital-gains-calculator|dcf-calculator|reverse-dcf-calculator|graham-number-calculator|monte-carlo-stock-simulator|about|privacy|terms|etf-growth-calculator|portfolio-tracker)/:rest*",
+      "source": "/explore/:ticker",
       "destination": "/app.html"
     },
     {
-      "source": "/:seg(dashboard|upload|account|auth|debug|verify|how-to-prepare)",
+      "source": "/explore/compare/:pair",
       "destination": "/app.html"
     },
     {
-      "source": "/:seg(dashboard|upload|account|auth|debug|verify|how-to-prepare)/:rest*",
+      "source": "/research/:slug",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/:seg(dashboard|upload|account|auth|debug|verify)",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/:seg(dashboard|upload|account|auth|debug|verify)/:rest*",
       "destination": "/app.html"
     }
   ],
@@ -461,6 +505,60 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/ca/explore/:ticker((?!(?:aapl|nvda|tsla|msft|amzn|googl|meta|nflx|amd|pltr|brk-b|jpm|v|ma|dis|ko|pep|mcd|nke|sbux|intc|avgo|qcom|orcl|crm|adbe|pypl|uber|abnb|coin|shop|xyz|snow|mstr|baba|wmt|cost|hd|pg|jnj|unh|lly|pfe|mrna|xom|cvx|ba|cat|ge|f|gm|t|vz|csco|ibm|txn|mu|arm|smci|dell|spot|rblx|snap|pins|rivn|lcid|nio|asml|tsm|sap|nvo|tm|sony|san\\.mc|bbva\\.mc|itx\\.mc|ibe\\.mc|tef\\.mc|mc\\.pa|air\\.pa|compare)$)[^/]+)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/ca/explore/compare/:pair((?!(?:aapl-vs-msft|msft-vs-googl|googl-vs-meta|nvda-vs-amd|amd-vs-intc|nvda-vs-tsm|tsm-vs-intc|asml-vs-tsm|avgo-vs-qcom|mu-vs-txn|ko-vs-pep|v-vs-ma|amzn-vs-wmt|wmt-vs-cost|tsla-vs-tm|f-vs-gm|rivn-vs-lcid|xom-vs-cvx|t-vs-vz|jnj-vs-pfe|lly-vs-nvo|unh-vs-jnj|nflx-vs-dis|spot-vs-nflx|uber-vs-abnb|crm-vs-orcl|ibm-vs-orcl|adbe-vs-crm|snap-vs-pins|coin-vs-mstr|ba-vs-air\\.pa|cat-vs-ge|mc\\.pa-vs-itx\\.mc|san\\.mc-vs-bbva\\.mc|dell-vs-smci|mcd-vs-sbux)$)[^/]+)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/es/explore/:ticker((?!(?:aapl|nvda|tsla|msft|amzn|googl|meta|nflx|amd|pltr|brk-b|jpm|v|ma|dis|ko|pep|mcd|nke|sbux|intc|avgo|qcom|orcl|crm|adbe|pypl|uber|abnb|coin|shop|xyz|snow|mstr|baba|wmt|cost|hd|pg|jnj|unh|lly|pfe|mrna|xom|cvx|ba|cat|ge|f|gm|t|vz|csco|ibm|txn|mu|arm|smci|dell|spot|rblx|snap|pins|rivn|lcid|nio|asml|tsm|sap|nvo|tm|sony|san\\.mc|bbva\\.mc|itx\\.mc|ibe\\.mc|tef\\.mc|mc\\.pa|air\\.pa|compare)$)[^/]+)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/es/explore/compare/:pair((?!(?:aapl-vs-msft|msft-vs-googl|googl-vs-meta|nvda-vs-amd|amd-vs-intc|nvda-vs-tsm|tsm-vs-intc|asml-vs-tsm|avgo-vs-qcom|mu-vs-txn|ko-vs-pep|v-vs-ma|amzn-vs-wmt|wmt-vs-cost|tsla-vs-tm|f-vs-gm|rivn-vs-lcid|xom-vs-cvx|t-vs-vz|jnj-vs-pfe|lly-vs-nvo|unh-vs-jnj|nflx-vs-dis|spot-vs-nflx|uber-vs-abnb|crm-vs-orcl|ibm-vs-orcl|adbe-vs-crm|snap-vs-pins|coin-vs-mstr|ba-vs-air\\.pa|cat-vs-ge|mc\\.pa-vs-itx\\.mc|san\\.mc-vs-bbva\\.mc|dell-vs-smci|mcd-vs-sbux)$)[^/]+)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/explore/:ticker((?!(?:aapl|nvda|tsla|msft|amzn|googl|meta|nflx|amd|pltr|brk-b|jpm|v|ma|dis|ko|pep|mcd|nke|sbux|intc|avgo|qcom|orcl|crm|adbe|pypl|uber|abnb|coin|shop|xyz|snow|mstr|baba|wmt|cost|hd|pg|jnj|unh|lly|pfe|mrna|xom|cvx|ba|cat|ge|f|gm|t|vz|csco|ibm|txn|mu|arm|smci|dell|spot|rblx|snap|pins|rivn|lcid|nio|asml|tsm|sap|nvo|tm|sony|san\\.mc|bbva\\.mc|itx\\.mc|ibe\\.mc|tef\\.mc|mc\\.pa|air\\.pa|compare)$)[^/]+)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/explore/compare/:pair((?!(?:aapl-vs-msft|msft-vs-googl|googl-vs-meta|nvda-vs-amd|amd-vs-intc|nvda-vs-tsm|tsm-vs-intc|asml-vs-tsm|avgo-vs-qcom|mu-vs-txn|ko-vs-pep|v-vs-ma|amzn-vs-wmt|wmt-vs-cost|tsla-vs-tm|f-vs-gm|rivn-vs-lcid|xom-vs-cvx|t-vs-vz|jnj-vs-pfe|lly-vs-nvo|unh-vs-jnj|nflx-vs-dis|spot-vs-nflx|uber-vs-abnb|crm-vs-orcl|ibm-vs-orcl|adbe-vs-crm|snap-vs-pins|coin-vs-mstr|ba-vs-air\\.pa|cat-vs-ge|mc\\.pa-vs-itx\\.mc|san\\.mc-vs-bbva\\.mc|dell-vs-smci|mcd-vs-sbux)$)[^/]+)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
         }
       ]
     }

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 import { LocaleLink, useLocale } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
-import { companyName, pairSlug, pairsFor } from "@/lib/compare";
+import { companyName, pairSlug, pairsFor, windowAfter } from "@/lib/compare";
 import { ComparePicker } from "@/components/ComparePicker";
 import { SITE_ORIGIN, localeUrl } from "@/lib/locale";
 import { shareOnX } from "@/lib/brand";
@@ -456,9 +456,26 @@ function ComparisonLinks({ ticker }: { ticker: string }) {
 // Internal-link grid to the per-ticker pages: gives Google a crawl path to
 // every /explore/:ticker (alongside the sitemap) and lets visitors jump between
 // companies. Also renders as indexable, keyword-rich anchor text.
+//
+// The hub (/explore) lists EVERY curated company — it is the one page whose job
+// is to reach them all. A company page shows the 30 that follow it in the list,
+// wrapping round, so each page links a different set and every company is
+// linked from 30 others. Both used to be `slice(0, 30)`: the last 50 companies
+// were linked from nowhere but their own comparison pages, and 14 of them from
+// nowhere at all — sitemap-only URLs, which Google discovers and then does not
+// bother to crawl.
+const RELATED_COUNT = 30;
+
 function PopularCompanies({ exclude }: { exclude: string | null }) {
   const { t } = useTranslation();
-  const list = CURATED.filter((c) => c.symbol.toUpperCase() !== exclude).slice(0, 30);
+  const list =
+    exclude == null
+      ? CURATED
+      : windowAfter(
+          CURATED,
+          CURATED.findIndex((c) => c.symbol.toUpperCase() === exclude),
+          RELATED_COUNT,
+        );
   return (
     <section className="border-t border-slate-200 pt-6">
       <h2 className="text-sm font-semibold text-slate-700">{t("explore.popularTitle")}</h2>
@@ -492,7 +509,16 @@ function isValuationTab(v: string | undefined): v is ValuationTab {
 
 export function ExplorePage() {
   const { ticker } = useParams();
+  const { pathname, search, hash } = useLocation();
   const routeTicker = ticker ? ticker.toUpperCase() : null;
+  // One spelling per company. /explore/AAPL rendered the same page as
+  // /explore/aapl under its own self-referencing canonical — a duplicate for
+  // every capitalisation anyone linked. Paths are lower case everywhere else
+  // (sitemap, prerender, internal links), so that is the one that stays.
+  if (ticker && ticker !== ticker.toLowerCase()) {
+    const lower = pathname.replace(/[^/]+\/?$/, (seg) => seg.toLowerCase());
+    return <Navigate to={`${lower}${search}${hash}`} replace />;
+  }
   // Remount on ticker change so per-route state (loaded company, share) resets
   // cleanly instead of leaking between /explore/aapl and /explore/msft.
   return <ExploreInner key={routeTicker ?? "hub"} routeTicker={routeTicker} />;

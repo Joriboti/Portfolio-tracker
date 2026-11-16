@@ -79,6 +79,10 @@ rotting, so do not delete it.
 - The `/ca/research/*` and `/es/research/*` article paths → `/research/*`.
   See "Research translations" below.
 
+- `/explore/sq` → `/explore/xyz` (per language): retired ticker symbols, from
+  `RENAMED_TICKERS` in `scripts/routes.mjs`. See "Ticker renames" below.
+- `/how-to-prepare` → `/upload`. It was a client-side `<Navigate>`, i.e. a 200.
+
 **Rewrites** are enumerated rather than a catch-all. The old
 `/((?!api).*) → /app.html` answered *every* unknown URL with `200` and a generic
 Catalan shell. Now a path matching no rewrite and no prerendered file falls
@@ -87,8 +91,25 @@ route pattern, so if a prerender ever fails the page degrades to the SPA shell
 instead of 404ing. **Vercel matches static files before rewrites**, so the
 prerendered pages are unaffected by any of this.
 
+Every slug matches **exactly**. There is no `/:seg(...)/:rest*` tail any more: it
+made `/taxes/anything` and `/explore/a/b/c` answer 200 with the shell. Only the
+sections that really have children get a child rule, one segment deep:
+`/explore/:ticker`, `/explore/compare/:pair` and `/research/:slug`.
+
 `/research/:slug` must stay in the rewrites: an article published in Notion has
 to work without a redeploy.
+
+**Headers.** Besides the private app routes (`noindex, nofollow, noarchive`),
+the open-ended routes carry `X-Robots-Tag: noindex` for everything that is *not*
+curated: `/explore/:ticker` for a symbol outside `tickers.json` and
+`/explore/compare/:pair` for a pair outside `compare-pairs.json`, in each
+language. Those URLs are the SPA shell; the `noindex` the app sets for them only
+exists after JavaScript runs, and the HTML Google fetches first is a 200 with
+the home page's title and no canonical. The source patterns are a negative
+lookahead over the curated list (`/explore/:ticker((?!(?:aapl|…|compare)$)[^/]+)`),
+so a curated URL can never match, prerendered or not. Matching is
+case-sensitive: `/explore/AAPL` gets the header, and the app redirects it to
+`/explore/aapl`.
 
 ## Research translations
 
@@ -114,6 +135,40 @@ are also single-language Notion text. They are a section inside an otherwise
 localized page, not a URL claiming to be a translation, so they are not a
 hreflang problem — but they do read as untranslated content to a Spanish visitor.
 
+## Internal links
+
+A URL that is only in the sitemap is one Search Console files under "Discovered –
+currently not indexed": Google has the address, finds nothing on the site that
+links to it, and does not spend a crawl on it. Rules:
+
+- **`/explore` lists every curated company; `/explore/compare` lists every
+  curated pair.** They are the two pages whose job is to reach everything, in
+  each language.
+- **A grid on a programmatic page uses `windowAfter()`, never `slice(0, n)`.**
+  A fixed slice links every page to the same first *n* entries and leaves the
+  rest with no inbound link (50 of 80 companies, 14 of them linked from nowhere
+  at all, until November 2026). `windowAfter` gives each page the *n* entries
+  after its own position, wrapping round, so every entry is linked from exactly
+  *n* siblings.
+- **The comparison hub is a page.** It is in the navigation of every page, so it
+  is in the inventory (`COMPARE_HUB`), prerendered and indexable. It used to be
+  `noindex, nofollow` and served as the empty shell.
+- **An English-only landing needs a link from the English tree** (the drawer's
+  Portfolio group), since `LocaleLink` cannot send a ca/es reader to it.
+
+`src/lib/prerendered-html.test.ts` ("internal link graph") builds the graph from
+`dist/` and fails on an orphan, on a programmatic page with fewer than 10
+inbound links, and on an internal link to a URL that is not a page.
+
+## Ticker renames
+
+When a company changes symbol, Yahoo stops answering for the old one and its
+page renders nothing but dashes — still a 200, still in the sitemap. To retire a
+symbol: change it in `src/data/tickers.json` (and `compare-pairs.json`), add
+`OLD: "NEW"` to `RENAMED_TICKERS` in `scripts/routes.mjs`, and run
+`node scripts/gen-vercel.mjs`. The old URL then 301s to the new one in every
+language. `src/lib/sitemap.test.ts` fails if a renamed symbol is still listed.
+
 ## Deliberate non-localizations
 
 - `/portfolio-tracker` and `/etf-growth-calculator` stay English-only. The
@@ -121,11 +176,15 @@ hreflang problem — but they do read as untranslated content to a Spanish visit
   `/forecast` already targets ETF projection in all three languages; a localized
   copy would compete with a page that already owns the intent.
 - App and auth routes (`/dashboard`, `/upload`, `/account`, `/auth`, `/verify`,
-  `/debug`) are language-neutral by design — `Disallow`-ed or `noindex`, so a
-  per-language URL would buy nothing. `isLocalizable()` encodes this list.
+  `/debug`) are language-neutral by design and `noindex` by header (not
+  `Disallow`-ed: Google has to be able to fetch a URL to read its `noindex`), so
+  a per-language URL would buy nothing. `isLocalizable()` encodes this list.
+  They are linked from every page's header, so Search Console will always list
+  them under "Excluded by 'noindex' tag". That is the intended state.
 - `/explore/:ticker` resolves *any* symbol via the live API, so it can mint
   unlimited URLs. Only the curated `tickers.json` list is indexable; everything
-  else renders normally but `noindex`.
+  else renders normally but `noindex` — in the response header as well as in the
+  page (see "Headers" above).
 
 ## Tests
 

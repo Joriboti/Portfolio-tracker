@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { buildRedirects, buildRewrites } from "../../scripts/gen-vercel.mjs";
-import { ARTICLES, DEFAULT, LOCALES, PREFIX, ROUTE_SLUGS } from "../../scripts/routes.mjs";
+import { buildHeaders, buildRedirects, buildRewrites } from "../../scripts/gen-vercel.mjs";
+import {
+  ARTICLES,
+  DEFAULT,
+  LOCALES,
+  PAIR_DATA,
+  PREFIX,
+  RENAMED_TICKERS,
+  ROUTE_SLUGS,
+  TICKER_DATA,
+} from "../../scripts/routes.mjs";
 
 // Tests for the edge config: which URLs redirect, which reach the app, and
 // which must 404. The bug these lock down: a locale/slug pair that is not a
@@ -23,6 +32,7 @@ const ROOT = path.resolve(__dirname, "../..");
 const vercel = JSON.parse(readFileSync(path.join(ROOT, "vercel.json"), "utf8")) as {
   redirects: { source: string; destination: string; permanent?: boolean; has?: { type: string; key: string; value: string }[] }[];
   rewrites: { source: string; destination: string }[];
+  headers: { source: string; headers: { key: string; value: string }[] }[];
 };
 
 // --- a small resolver for Vercel's static routing ---------------------------
@@ -87,6 +97,16 @@ function redirectOnce(pathname: string, query: Record<string, string>): Res | nu
 const matchesRewrite = (pathname: string) =>
   vercel.rewrites.some((r) => toRegExp(r.source).test(pathname));
 
+/** The X-Robots-Tag the edge attaches to a path, if any. */
+const xRobots = (pathname: string): string | null => {
+  let value: string | null = null;
+  for (const h of vercel.headers) {
+    if (!toRegExp(h.source).test(pathname)) continue;
+    for (const { key, value: v } of h.headers) if (key === "X-Robots-Tag") value = v;
+  }
+  return value;
+};
+
 /** Static files the build writes, i.e. every prerendered indexable page. */
 const prerendered = new Set<string>();
 {
@@ -123,6 +143,7 @@ describe("vercel.json is generated, not hand-kept", () => {
     // article manifest.
     expect(vercel.redirects).toEqual(buildRedirects());
     expect(vercel.rewrites).toEqual(buildRewrites());
+    expect(vercel.headers).toEqual(buildHeaders());
   });
 });
 
@@ -327,5 +348,99 @@ describe("root swap (ca at / → en at /)", () => {
     for (const p of ["/es", "/es/calculadora-dcf", "/es/explore/aapl", "/es/taxes"]) {
       expect(follow(p).hops, `${p} must not move`).toEqual([]);
     }
+  });
+});
+
+describe("pages below a leaf page do not exist", () => {
+  // `/:seg(...)/:rest*` used to answer 200 with the shell for ANY path under
+  // any page: a soft 404 carrying the home page's title.
+  it.each([
+    "/taxes/foo",
+    "/dcf-calculator/foo",
+    "/es/calculadora-dcf/x",
+    "/ca/radiografia/extra",
+    "/explore/aapl/extra",
+    "/explore/compare/aapl-vs-msft/extra",
+    "/research/netflix/extra",
+    "/portfolio-tracker/x",
+  ])("%s is a 404", (p) => {
+    expect(follow(p).status).toBe(404);
+  });
+
+  it("still resolves any ticker, any pair and any article slug", () => {
+    for (const p of [
+      "/explore/zzzz",
+      "/es/explore/zzzz",
+      "/explore/compare/aapl-vs-zzzz",
+      "/ca/explore/compare/zzzz-vs-aapl",
+      "/research/some-new-article",
+    ]) {
+      expect(follow(p).status, `${p} must reach the app`).toBe(200);
+    }
+  });
+});
+
+describe("open-ended routes are noindex unless curated", () => {
+  // /explore/:ticker and /explore/compare/:pair resolve any symbol. Only the
+  // curated ones are prerendered; the rest are the SPA shell, whose HTML is a
+  // 200 with the home page's title until JavaScript adds a noindex. The header
+  // puts that in the response.
+  const tickers = TICKER_DATA.map((t) => t.symbol.toLowerCase());
+  const pairs = PAIR_DATA.map((p) => `${p.a.toLowerCase()}-vs-${p.b.toLowerCase()}`);
+
+  it("never marks an indexable URL noindex", () => {
+    for (const p of prerendered) {
+      if (/\/404$/.test(p)) continue;
+      expect(xRobots(p), `${p} is indexable but carries X-Robots-Tag`).toBeNull();
+    }
+  });
+
+  it("covers every curated ticker and pair, dotted symbols included", () => {
+    for (const l of LOCALES) {
+      for (const t of tickers) expect(xRobots(`${PREFIX[l]}/explore/${t}`)).toBeNull();
+      for (const p of pairs) expect(xRobots(`${PREFIX[l]}/explore/compare/${p}`)).toBeNull();
+      expect(xRobots(`${PREFIX[l]}/explore/compare`), "the hub is a page").toBeNull();
+      expect(xRobots(`${PREFIX[l]}/explore`)).toBeNull();
+    }
+    expect(tickers).toContain("air.pa");
+  });
+
+  it.each([
+    "/explore/zzzz",
+    "/explore/AAPL", // matching is case-sensitive; the app redirects to /explore/aapl
+    "/explore/airxpa", // the dot in air.pa must be literal, not "any character"
+    "/explore/aapl2",
+    "/es/explore/zzzz",
+    "/ca/explore/AIR.PA",
+    "/explore/compare/msft-vs-aapl", // the reverse of a curated pair
+    "/explore/compare/aapl-vs-zzzz",
+    "/es/explore/compare/zzzz-vs-aapl",
+  ])("%s is served noindex", (p) => {
+    expect(follow(p).status).toBe(200);
+    expect(xRobots(p)).toBe("noindex");
+  });
+
+  it("leaves the rest of the site alone", () => {
+    for (const p of ["/", "/ca", "/es/taxes", "/research", "/research/netflix", "/dcf-calculator"]) {
+      expect(xRobots(p)).toBeNull();
+    }
+    expect(xRobots("/dashboard")).toBe("noindex, nofollow, noarchive");
+  });
+});
+
+describe("retired ticker symbols", () => {
+  it.each(Object.entries(RENAMED_TICKERS))("%s → %s in every language, one hop", (from, to) => {
+    for (const l of LOCALES) {
+      const r = follow(`${PREFIX[l]}/explore/${from.toLowerCase()}`);
+      expect(r.hops).toEqual([`${PREFIX[l]}/explore/${to.toLowerCase()}`]);
+      expect(r.status).toBe(200);
+      expect(r.servedByShell).toBe(false);
+    }
+  });
+});
+
+describe("/how-to-prepare", () => {
+  it("is a real redirect to /upload, not a client-side one", () => {
+    expect(follow("/how-to-prepare").hops).toEqual(["/upload"]);
   });
 });

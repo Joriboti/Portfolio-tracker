@@ -78,10 +78,9 @@ function publicRoutes(locale: Locale) {
     <Route key={k("explore")} path={at("/explore")} element={<ExplorePage />} />,
     // Three segments deep, so it never competes with /explore/:ticker.
     <Route key={k("compare")} path={at("/explore/compare/:pair")} element={<ComparePage />} />,
-    // The picker that leads into them. Not in routes.mjs on purpose: it is
-    // navigation, not a page to index, and every pair it lists is already
-    // sitemapped on its own. It still resolves — /explore/:rest* rewrites to
-    // the shell — so it needs no vercel.json entry either.
+    // The picker that leads into them, and the list of every curated pair.
+    // An indexable hub like /explore: in routes.mjs (COMPARE_HUB), so it is
+    // sitemapped and prerendered in all three languages.
     <Route key={k("compareHub")} path={at("/explore/compare")} element={<CompareHubPage />} />,
     <Route key={k("exploreTicker")} path={at("/explore/:ticker")} element={<ExplorePage />} />,
     <Route key={k("forecast")} path={at("/forecast")} element={<ForecastPage />} />,
@@ -143,7 +142,9 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/debug" element={<Private><DebugPage /></Private>} />
-        {/* Folded into /upload (Build portfolio → Excel subsection). */}
+        {/* Folded into /upload (Build portfolio → Excel subsection). vercel.json
+            301s this URL before the app loads; the route only covers in-app
+            navigation from an old bookmark. */}
         <Route path="/how-to-prepare" element={<Navigate to="/upload" replace />} />
         <Route path="/account" element={<Private><AccountPage /></Private>} />
         <Route path="/account/:pathname" element={<Private><AccountPage /></Private>} />

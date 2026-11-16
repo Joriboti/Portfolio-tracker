@@ -18,6 +18,7 @@ import {
   isCuratedPair,
   pairSlug,
   parsePairSlug,
+  windowAfter,
   type Pair,
 } from "@/lib/compare";
 import { ComparePicker } from "@/components/ComparePicker";
@@ -77,14 +78,19 @@ export function ComparePage() {
 }
 
 // The hub the head-to-head pages hang off: pick any two companies, or take one
-// of the pairs that already has a page. Deliberately out of the sitemap and
-// noindex — every pair it lists is indexed on its own, so this is navigation.
+// of the pairs that already has a page.
+//
+// Indexable, prerendered and in the sitemap (COMPARE_HUB in scripts/routes.mjs).
+// It used to be "noindex, nofollow" and left out of the prerender on the theory
+// that it is only navigation — but it is linked from the menu of every page on
+// the site, so Google met it everywhere, fetched an empty shell carrying the
+// home page's title, and was then told not to follow the one list that reaches
+// every comparison.
 export function CompareHubPage() {
   const { t } = useTranslation();
   useSeo({
     title: t("seo.compareHubTitle"),
     description: t("seo.compareHubDesc"),
-    noindex: true,
   });
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-10">
@@ -665,9 +671,13 @@ function OtherComparisons({ current }: { current: Pair }) {
   // Keep the reader in the language they are browsing: these links are the crawl
   // path between the pages, so a ca link on /es would leak the whole grid back
   // to the default locale. LocaleLink now does that from the neutral path.
-  const others = COMPARE_PAIRS.filter(
-    (p) => !(p.a === current.a && p.b === current.b),
-  ).slice(0, 24);
+  // A window that starts after the current pair, not `slice(0, 24)`: with 36
+  // pairs the fixed slice never linked the last twelve from any other pair.
+  const others = windowAfter(
+    COMPARE_PAIRS,
+    COMPARE_PAIRS.findIndex((p) => p.a === current.a && p.b === current.b),
+    24,
+  );
   return (
     <section className="border-t border-slate-200 pt-6">
       <h2 className="text-sm font-semibold text-slate-700">{t("compare.othersTitle")}</h2>
