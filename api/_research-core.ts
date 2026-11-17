@@ -44,6 +44,9 @@ function bullets(text: string): string[] {
 // client turns it into a notice that links to the Catalan page.
 const INSIGHT_SUFFIX: Record<string, string> = { ca: "", es: "Es", en: "En" };
 
+/** Insight rows with these statuses are never served (see insights mode). */
+export const HIDDEN_INSIGHT_STATUSES = new Set(["In Review", "Archived"]);
+
 function readInsights(props: any, locale: string) {
   const sfx = INSIGHT_SUFFIX[locale] ?? "";
   const col = (base: string) => plain(props?.[`${base}${sfx}`]?.rich_text);
@@ -197,6 +200,11 @@ export async function handleResearch(req: VercelRequest, res: VercelResponse) {
       // /en can be pointed at it instead of being shown nothing at all.
       let hasCatalan = false;
       for (const p of q.results ?? []) {
+        // Drafted commentary waits here for a human. Rows in "In Review" (or
+        // "Archived") never reach the site; every other status does, which is
+        // how the existing rows — "Draft" included — have always been served.
+        // Moving a row to Published (or Draft) is what takes it live.
+        if (HIDDEN_INSIGHT_STATUSES.has(p.properties?.Status?.select?.name ?? "")) continue;
         const ca = readInsights(p.properties, "ca");
         if (ca.pros.length || ca.risks.length) hasCatalan = true;
         const ins = readInsights(p.properties, locale);
