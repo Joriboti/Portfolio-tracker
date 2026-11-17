@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { authenticate } from "./_auth.js";
 
 export default async function handler(
   req: VercelRequest,
@@ -20,13 +21,8 @@ export default async function handler(
       return;
     }
 
-    const rawHeader = req.headers["x-user-id"];
-    const userIdRaw = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
-    const userId = userIdRaw?.trim();
-    if (!userId || userId.length === 0 || userId.length > 128) {
-      res.status(401).end(JSON.stringify({ error: "Missing x-user-id header" }));
-      return;
-    }
+    const userId = await authenticate(req, res);
+    if (!userId) return;
 
     const mod = await import("@neondatabase/serverless");
     const sql = mod.neon(dbUrl);

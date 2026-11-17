@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { authenticate } from "./_auth.js";
 
 // Per-holding scenario valuation model: load (GET) and save (PUT).
 //
 // Follows the project's serverless conventions: flat route, `await import`
-// of the Neon driver inside the handler, auth via the `x-user-id` header. The
+// of the Neon driver inside the handler, auth via the session JWT (api/_auth.ts). The
 // model is stored verbatim as JSONB in `holding_scenarios` keyed by
 // (user_id, ticker). The table is ensured lazily on first use, mirroring the
 // fundamentals routes — no separate migration step required at runtime.
@@ -23,14 +24,6 @@ async function ensureTable(sql: SqlClient): Promise<void> {
       PRIMARY KEY (user_id, ticker)
     )
   `;
-}
-
-function getUserId(req: VercelRequest): string | null {
-  const raw = req.headers["x-user-id"];
-  const v = Array.isArray(raw) ? raw[0] : raw;
-  const trimmed = v?.trim();
-  if (!trimmed || trimmed.length === 0 || trimmed.length > 128) return null;
-  return trimmed;
 }
 
 function getTickerFromQuery(req: VercelRequest): string | null {
@@ -55,11 +48,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const userId = getUserId(req);
-    if (!userId) {
-      res.status(401).end(JSON.stringify({ error: "Missing x-user-id header" }));
-      return;
-    }
+    const userId = await authenticate(req, res);
+    if (!userId) return;
 
     const mod = await import("@neondatabase/serverless");
     const sql = mod.neon(dbUrl) as unknown as SqlClient;

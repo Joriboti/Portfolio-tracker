@@ -1,5 +1,6 @@
 import type { Transaction, Dividend, Interest, WealthEntry, DividendEvent } from "./excel-parser";
 import type { ValuationModel } from "./scenarioValuation";
+import { getAuthToken } from "./auth";
 
 export type PriceQuote = {
   ticker: string;
@@ -8,19 +9,73 @@ export type PriceQuote = {
   asOf: string;
 };
 
+// ── Who the API thinks is calling ────────────────────────────────────────────
+// Authenticated calls carry `Authorization: Bearer <jwt>`: the session JWT the
+// Neon Auth client holds, which api/_auth.ts verifies against the auth server's
+// key set. It replaces an `x-user-id` header that no route verified — the id
+// was whatever the caller typed.
+//
+// COMPAT ROLLOUT: for one deploy the old header is still sent alongside, and
+// the server falls back to it when the JWT is missing or unusable. That keeps a
+// misconfigured rollout from signing everybody out; `lastAuth` records which
+// path the server actually used so /debug can show it. Once a real session is
+// seen arriving as "jwt", the header goes and the server stops accepting it.
+
+/** How the server identified the most recent authenticated call. */
+export type AuthReport = {
+  /** "jwt" = verified session; "legacy" = fell back to the unverified header. */
+  via: string | null;
+  /** Why the JWT was not used, when it was not. */
+  jwtError: string | null;
+  /** Whether this browser had a session token to send at all. */
+  tokenSent: boolean;
+};
+
+let lastAuth: AuthReport | null = null;
+export function getLastAuth(): AuthReport | null {
+  return lastAuth;
+}
+
+const TOKEN_TIMEOUT_MS = 5000;
+
+/**
+ * The session JWT, or null. Never throws and never hangs: during the compat
+ * rollout a call must still go out (on the old header) if the auth client is
+ * slow or broken, rather than freeze the dashboard waiting for a token.
+ */
+async function sessionToken(): Promise<string | null> {
+  try {
+    return await Promise.race([
+      getAuthToken(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), TOKEN_TIMEOUT_MS)),
+    ]);
+  } catch {
+    return null;
+  }
+}
+
 async function jsonFetch<T>(
   url: string,
   init: RequestInit & { userId?: string } = {},
 ): Promise<T> {
   const { userId, headers, ...rest } = init;
+  const token = userId ? await sessionToken() : null;
   const res = await fetch(url, {
     ...rest,
     headers: {
       "Content-Type": "application/json",
       ...(userId ? { "x-user-id": userId } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(headers ?? {}),
     },
   });
+  if (userId) {
+    lastAuth = {
+      via: res.headers.get("x-auth-via"),
+      jwtError: res.headers.get("x-auth-jwt-error"),
+      tokenSent: token != null,
+    };
+  }
   if (!res.ok) {
     let message = `API ${res.status}`;
     try {

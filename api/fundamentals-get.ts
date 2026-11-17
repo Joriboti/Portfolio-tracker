@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { authenticateCronOrUser } from "./_auth.js";
 // Type-only, so the refresh core is still loaded lazily inside handleRefresh.
 import type { SqlClient as FundamentalsSqlClient } from "./_fundamentals-core.js";
 
@@ -244,7 +245,7 @@ async function handleLiveQuotes(req: VercelRequest, res: VercelResponse) {
 
 /**
  * Refresh the cached fundamentals for the caller's holdings, stale-first within
- * a time budget. Reachable either by the dashboard button (x-user-id) or by the
+ * a time budget. Reachable either by a signed-in user (the dashboard button) or by the
  * cron bearer token, exactly as when this was its own route.
  */
 async function handleRefresh(req: VercelRequest, res: VercelResponse) {
@@ -252,14 +253,8 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
   // Leave headroom inside maxDuration for the DB writes + response.
   const TIME_BUDGET_MS = 50_000;
 
-  const cronSecret = process.env.CRON_SECRET;
-  const authz = req.headers.authorization ?? "";
-  const cronOk = !cronSecret || authz === `Bearer ${cronSecret}`;
-  const userId = req.headers["x-user-id"];
-  if (!cronOk && !userId) {
-    res.status(401).end(JSON.stringify({ error: "Unauthorized" }));
-    return;
-  }
+  const caller = await authenticateCronOrUser(req, res);
+  if (!caller) return;
 
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) {
