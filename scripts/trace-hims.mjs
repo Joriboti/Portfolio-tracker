@@ -37,7 +37,6 @@ function findHeaderRow(sheet) {
   if (!ref) return -1;
   const range = XLSX.utils.decode_range(ref);
   for (let r = 0; r <= Math.min(range.e.r, 10); r++) {
-    const a = sheet[XLSX.utils.encode_cell({ r, c: 0 })];
     const cells = [];
     for (let c = 0; c < 10; c++) {
       const v = sheet[XLSX.utils.encode_cell({ r, c })]?.v;
@@ -78,7 +77,6 @@ for (const name of wb.SheetNames) {
     const buyDate = asNumber(cells[4]);
     const sellShares = asNumber(cells[5]);
     const sellPrice = asNumber(cells[6]);
-    const sellValue = asNumber(cells[7]);
     const sellDate = asNumber(cells[8]);
     const result = asNumber(cells[9]);
 

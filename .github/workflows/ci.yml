@@ -1,0 +1,64 @@
+# Runs on every pull request and on main. Two jobs, because they answer
+# different questions and one is ten times slower than the other:
+#
+#   check — lint, types and the unit suite. Under a minute.
+#   seo   — a real production build, prerender included, then the suite that
+#           reads dist/ the way a crawler does (canonicals, hreflang, the
+#           internal link graph). This is the one that catches an orphaned page
+#           or a URL served as the empty shell, and nothing else does.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # The lockfile is the contract: `npm ci` fails if it has drifted from
+      # package.json, which is exactly how it went unnoticed before.
+      - run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+      - run: npm run lint
+      - run: npx tsc -b
+      - run: npm test
+
+  seo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+      # The runner ships Chrome; use it instead of downloading another.
+      # CI is cleared for this step because scripts/prerender.mjs reads it as
+      # "running on Vercel" and would launch the Amazon Linux build of Chromium.
+      # No backend here: the pages are snapshotted without live figures, which
+      # is all the structural checks need.
+      - name: Build, prerender and check the built HTML
+        run: npm run test:seo
+        env:
+          CI: ""
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome

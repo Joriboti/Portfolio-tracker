@@ -861,7 +861,7 @@ function ValuationRuler({
   order.forEach((m, i) => sideByKey.set(m.key, i % 2 === 0 ? "top" : "bottom"));
 
   const nf = (v: number) =>
-    formatMoney(v, qc).replace(/ /g, " ");
+    formatMoney(v, qc).replace(/\u00a0/g, " ");
 
   return (
     <div className="overflow-x-auto">
@@ -1118,7 +1118,7 @@ function DcfTab({
       desiredReturn: config.desiredReturn,
       currentPrice,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [config, base, currentPrice]);
 
   const fmt = (v: number | null | undefined) => formatMoney(v ?? null, qc);
@@ -1348,7 +1348,7 @@ function ReverseDcfTab({
       exitMultiple: config.exitMultiple,
       desiredReturn: config.desiredReturn,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [config, base, currentPrice]);
 
   const nf1 = (v: number) =>
@@ -1582,7 +1582,7 @@ function MonteCarloTab({
       { growthSd: mcConfig.growthSd, multipleSd: mcConfig.multipleSd },
       5000,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [dcfConfig, mcConfig, base, currentPrice]);
 
   const fmt = (v: number | null | undefined) => formatMoney(v ?? null, qc);

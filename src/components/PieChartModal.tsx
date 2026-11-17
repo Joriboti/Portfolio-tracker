@@ -155,7 +155,7 @@ function drawPie(
 
   // Legend
   const legendX = 420;
-  let legendY = 60;
+  const legendY = 60;
   const lineH = 28;
 
   ctx.textBaseline = "middle";

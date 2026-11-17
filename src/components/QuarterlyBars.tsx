@@ -201,7 +201,7 @@ export function QuarterlyBars({
                 const v = s.values[i];
                 if (v == null) return null;
                 let bx = x0;
-                let bw = perBarW;
+                const bw = perBarW;
                 let by: number;
                 let bh: number;
                 if (stacked && series.length > 1) {

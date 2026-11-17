@@ -112,7 +112,7 @@ const prerendered = new Set<string>();
 {
   const { allIndexableUrls, BASE } = await import("../../scripts/routes.mjs");
   for (const u of allIndexableUrls({})) prerendered.add(u.loc.slice(BASE.length) || "/");
-  for (const l of LOCALES) prerendered.add(`${PREFIX[l]}/404` || "/404");
+  for (const l of LOCALES) prerendered.add(`${PREFIX[l]}/404`);
 }
 
 /** Follow the chain the way a browser would, capped so a loop is detectable. */

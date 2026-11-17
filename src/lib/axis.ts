@@ -58,7 +58,7 @@ export function niceTicks(min: number, max: number, target = 4): number[] {
  */
 export function unitFrom(format: (v: number) => string): string {
   try {
-    return format(0).replace(/[\d\s.,  -]+/g, "").trim();
+    return format(0).replace(/[\d\s.,\u00a0\u202f-]+/g, "").trim();
   } catch {
     return "";
   }

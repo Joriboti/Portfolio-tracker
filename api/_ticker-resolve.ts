@@ -276,7 +276,7 @@ export type SearchClient = {
 const TRADEABLE = new Set(["EQUITY", "ETF", "MUTUALFUND", "CRYPTOCURRENCY"]);
 
 function symbolBase(symbol: string): string {
-  return symbol.split(/[.\-]/)[0] ?? symbol;
+  return symbol.split(/[.-]/)[0] ?? symbol;
 }
 
 // A short, space-free ticker is a symbol; anything else reads as a name.
