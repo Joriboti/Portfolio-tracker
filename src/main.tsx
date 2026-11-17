@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import "./lib/i18n";
+import { i18nReady } from "./lib/i18n";
 import App from "./App";
 import "./index.css";
 
@@ -30,10 +30,16 @@ if (!root) throw new Error("#root element not found");
 // Only the two pages that render its views need it, and both are lazy routes,
 // so it now lives in AuthShell inside those chunks. The auth CLIENT is a
 // separate module and still loads wherever the session is read.
-createRoot(root).render(
-  <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>,
-);
+//
+// Mounting waits for the page's language (English is bundled, so that is
+// immediate; Catalan and Spanish are one small chunk). Mounting first would
+// replace the prerendered Catalan HTML with English for a frame.
+void i18nReady.then(() => {
+  createRoot(root).render(
+    <StrictMode>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </StrictMode>,
+  );
+});
