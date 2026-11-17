@@ -47,11 +47,16 @@ export const X_DEFAULT: Locale;
 export const DEFAULT: Locale;
 export const PREFIX: Record<Locale, string>;
 export const ROUTE_SLUGS: Record<string, Record<Locale, string>>;
+/** The comparison hub's neutral path ("/explore/compare"). */
+export const COMPARE_HUB: string;
+/** Retired ticker symbols, old → new (both upper case). */
+export const RENAMED_TICKERS: Record<string, string>;
 export const TICKER_DATA: TickerEntry[];
 export const PAIR_DATA: PairEntry[];
 
 export function localePath(neutral: string, locale: Locale): string;
 export function absolute(p: string): string;
+export function isProgrammatic(neutral: string): boolean;
 export function allIndexableUrls(opts?: { lastmod?: string }): IndexableUrl[];
 export function curatedUrls(opts?: { lastmod?: string }): IndexableUrl[];
 export function programmaticUrls(opts?: { lastmod?: string }): IndexableUrl[];

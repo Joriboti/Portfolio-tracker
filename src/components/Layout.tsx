@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LocaleLink, LocaleNavLink, useLocalePath } from "@/components/LocaleLink";
+import { LocaleLink, LocaleNavLink, useLocale, useLocalePath } from "@/components/LocaleLink";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo, Wordmark } from "./Logo";
@@ -255,6 +255,7 @@ export function Layout() {
 // all close it (the last two handled by the parent).
 function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => void; loggedIn: boolean }) {
   const { t } = useTranslation();
+  const locale = useLocale();
 
   // The drawer is grouped: a short flat list of the main sections, then
   // collapsible groups for the tool landings. Ungrouped, the twelve links read
@@ -289,6 +290,16 @@ function NavDrawer({ open, onClose, loggedIn }: { open: boolean; onClose: () => 
       items: [
         { to: "/radiografia", label: t("xray.short") },
         { to: "/forecast", label: t("nav.forecast") },
+        // The two English-only landings. They are in the sitemap and
+        // prerendered, yet nothing on the site linked to either — an orphan
+        // Google knows about only from the sitemap. English pages only: these
+        // URLs have no ca/es version to send a Catalan or Spanish reader to.
+        ...(locale === "en"
+          ? [
+              { to: "/etf-growth-calculator", label: t("nav.etfGrowth") },
+              { to: "/portfolio-tracker", label: t("nav.portfolioTracker") },
+            ]
+          : []),
       ],
     },
     {

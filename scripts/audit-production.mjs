@@ -2,7 +2,9 @@
 // build cannot: what the origin actually serves. Reads BOTH sitemaps, fetches
 // every URL concurrently, and verifies status, real HTML, title, description,
 // lang, canonical, H1, reciprocal hreflang, the private-route headers, the
-// asset cache policy, and every internal link the pages point at.
+// asset cache policy, every internal link the pages point at, that no URL is
+// an orphan, that company pages actually carry figures, and that the
+// open-ended /explore routes are noindex unless curated.
 //
 // Not a Vercel function: a plain Node script, run from CI or by hand.
 //
@@ -11,7 +13,7 @@
 //
 // Exits non-zero on the first category of failure, and prints every offender.
 
-import { allIndexableUrls, BASE } from "./routes.mjs";
+import { allIndexableUrls, BASE, RENAMED_TICKERS } from "./routes.mjs";
 
 const args = process.argv.slice(2);
 const argOf = (name, fallback) => {
@@ -119,6 +121,11 @@ for (const name of ["sitemap.xml", "sitemap-tickers.xml"]) {
 // ---------------------------------------------------------------------------
 
 const linkTargets = new Set();
+/** target path → set of other indexable pages linking to it. */
+const inbound = new Map(inventory.map((u) => [u.path, new Set()]));
+const cleanPath = (p) => p.split("#")[0].split("?")[0].replace(/(.)\/$/, "$1");
+/** A per-company page (not the hubs, not a comparison). */
+const isTickerPage = (p) => /\/explore\/(?!compare$)[^/]+$/.test(p);
 
 await mapLimit(inventory, CONCURRENCY, async (u) => {
   const url = `${BASE_URL}${u.path}`;
@@ -150,8 +157,30 @@ await mapLimit(inventory, CONCURRENCY, async (u) => {
   // Reciprocity: the page must list itself.
   if (!gotSet.has(`${u.locale}|${u.path}`)) fail("hreflang", u.path, "not self-referencing");
 
-  for (const l of internalLinks(html)) linkTargets.add(l);
+  // A company page whose symbol Yahoo no longer serves still answers 200 with
+  // its heading and an empty frame — every figure a dash, no chart. That was
+  // /explore/sq for months after Block moved to XYZ. The charts are the tell:
+  // a populated page draws well over a dozen SVGs, an empty one only the logos
+  // and icons of the layout.
+  if (isTickerPage(u.path)) {
+    const svgs = (html.match(/<svg/g) ?? []).length;
+    if (svgs < 12) fail("no-data", u.path, `${svgs} SVGs — no financials rendered (retired symbol? see RENAMED_TICKERS)`);
+  }
+
+  for (const l of internalLinks(html)) {
+    linkTargets.add(l);
+    const to = cleanPath(l);
+    if (to !== u.path) inbound.get(to)?.add(u.path);
+  }
 });
+
+// A URL nothing links to is known to Google from the sitemap alone, which is
+// what Search Console reports as "Discovered – currently not indexed".
+if (!LIMIT) {
+  for (const [p, from] of inbound) {
+    if (from.size === 0) fail("orphan", p, "in the sitemap but linked from no indexable page");
+  }
+}
 
 // ---------------------------------------------------------------------------
 // 3. Internal links: no redirect hops, no dead ends.
@@ -189,9 +218,51 @@ for (const p of ["/dashboard", "/upload", "/account", "/auth/sign-in", "/debug"]
   }
 }
 
-for (const p of ["/nonexistent-page-xyz", "/es/pagina-que-no-existeix", "/ca/nope"]) {
+for (const p of [
+  "/nonexistent-page-xyz",
+  "/es/pagina-que-no-existeix",
+  "/ca/nope",
+  // Nothing lives below a leaf page, or more than one segment below a section.
+  "/taxes/nope",
+  "/explore/aapl/nope",
+  "/es/calculadora-dcf/nope",
+]) {
   const res = await get(`${BASE_URL}${p}`);
   if (res.status !== 404) fail("404", p, `expected 404, got ${res.status}`);
+}
+
+// The open-ended routes resolve any symbol but only the curated ones are
+// indexable: the rest must say so in the response, not only after JavaScript.
+for (const p of [
+  "/explore/zzzzqq",
+  "/explore/AAPL",
+  "/es/explore/zzzzqq",
+  "/explore/compare/msft-vs-aapl",
+  "/ca/explore/compare/aapl-vs-zzzzqq",
+]) {
+  const res = await get(`${BASE_URL}${p}`);
+  const tag = res.headers.get("x-robots-tag") ?? "";
+  if (res.status !== 200) fail("open-route", p, `expected 200 (the app resolves it), got ${res.status}`);
+  else if (!/noindex/i.test(tag)) fail("open-route", p, `not curated, but X-Robots-Tag: ${tag || "(absent)"}`);
+}
+// …and a curated one must never carry it.
+for (const p of ["/explore/aapl", "/es/explore/air.pa", "/explore/compare", "/ca/explore/compare/aapl-vs-msft"]) {
+  const res = await get(`${BASE_URL}${p}`);
+  const tag = res.headers.get("x-robots-tag") ?? "";
+  if (/noindex/i.test(tag)) fail("open-route", p, `indexable, but X-Robots-Tag: ${tag}`);
+}
+
+// Retired symbols move, in the same language, in one hop.
+for (const [from, to] of Object.entries(RENAMED_TICKERS)) {
+  for (const prefix of ["", "/ca", "/es"]) {
+    const p = `${prefix}/explore/${from.toLowerCase()}`;
+    const want = `${prefix}/explore/${to.toLowerCase()}`;
+    const res = await get(`${BASE_URL}${p}`);
+    const loc = res.location ? new URL(res.location, BASE_URL).pathname : null;
+    if (!(res.status >= 301 && res.status <= 308) || loc !== want) {
+      fail("renamed-ticker", p, `expected a redirect to ${want}, got ${res.status}${loc ? ` → ${loc}` : ""}`);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

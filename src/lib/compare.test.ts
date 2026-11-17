@@ -9,6 +9,7 @@ import {
   isCuratedPair,
   pairSlug,
   pairsFor,
+  windowAfter,
   parsePairSlug,
 } from "./compare";
 import type { StatementMetrics, StatementRow } from "./statements";
@@ -182,5 +183,33 @@ describe("currency conversion", () => {
       null,
       6.2158134,
     ]);
+  });
+});
+
+describe("windowAfter (internal-link grids)", () => {
+  const items = ["a", "b", "c", "d", "e"];
+
+  it("takes the entries that follow, wrapping round the end", () => {
+    expect(windowAfter(items, 0, 2)).toEqual(["b", "c"]);
+    expect(windowAfter(items, 3, 3)).toEqual(["e", "a", "b"]);
+  });
+
+  it("never includes the current entry, even when asked for more than exist", () => {
+    expect(windowAfter(items, 2, 99)).toEqual(["d", "e", "a", "b"]);
+  });
+
+  it("starts from the top for an entry that is not in the list", () => {
+    expect(windowAfter(items, -1, 3)).toEqual(["a", "b", "c"]);
+    expect(windowAfter([], 0, 3)).toEqual([]);
+  });
+
+  it("gives every entry the same number of inbound links", () => {
+    // The bug: `slice(0, n)` linked every page to the first n entries, so the
+    // rest of the list had no inbound link from any sibling page.
+    const n = 80;
+    const list = Array.from({ length: n }, (_, i) => i);
+    const inbound = new Array(n).fill(0);
+    for (let i = 0; i < n; i++) for (const t of windowAfter(list, i, 30)) inbound[t]++;
+    expect(new Set(inbound)).toEqual(new Set([30]));
   });
 });

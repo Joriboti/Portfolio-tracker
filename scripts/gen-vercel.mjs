@@ -14,7 +14,16 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ARTICLES, DEFAULT, LOCALES, PREFIX, ROUTE_SLUGS } from "./routes.mjs";
+import {
+  ARTICLES,
+  DEFAULT,
+  LOCALES,
+  PAIR_DATA,
+  PREFIX,
+  RENAMED_TICKERS,
+  ROUTE_SLUGS,
+  TICKER_DATA,
+} from "./routes.mjs";
 
 /** The locales that carry a path prefix ("/ca", "/es"). */
 const PREFIXED = LOCALES.filter((l) => l !== DEFAULT);
@@ -28,8 +37,18 @@ const SHARED = ["explore", "research", "forecast", "taxes", "radiografia", "disc
 /** English-only landings (no ca/es equivalent — those locales must 404). */
 const EN_ONLY = ["etf-growth-calculator", "portfolio-tracker"];
 
+/**
+ * Shared slugs that have pages underneath them. Everything else is a leaf: a
+ * path below it (/taxes/anything, /dcf-calculator/x) is not a page and must 404
+ * rather than answer 200 with the shell.
+ */
+const WITH_CHILDREN = ["explore", "research"];
+
 /** The authenticated app + auth flow: deliberately language-neutral. */
-const APP = ["dashboard", "upload", "account", "auth", "debug", "verify", "how-to-prepare"];
+const APP = ["dashboard", "upload", "account", "auth", "debug", "verify"];
+
+/** Escape a literal for use inside a path-to-regexp custom pattern. */
+const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const seg = (s) => s.replace(/^\//, "");
 
@@ -53,6 +72,23 @@ export function buildRedirects() {
     if (enSlugs.has(ca)) continue;
     out.push({ source: ca, destination: `${PREFIX.ca}${ca}`, permanent: true });
   }
+
+  // 0b. Retired ticker symbols → the symbol the company trades under now, in
+  //     the same language. Without this the old URL keeps answering 200 with a
+  //     page of dashes (Yahoo no longer knows the symbol).
+  for (const [from, to] of Object.entries(RENAMED_TICKERS)) {
+    for (const l of LOCALES) {
+      out.push({
+        source: `${PREFIX[l]}/explore/${from.toLowerCase()}`,
+        destination: `${PREFIX[l]}/explore/${to.toLowerCase()}`,
+        permanent: true,
+      });
+    }
+  }
+
+  // 0c. /how-to-prepare was folded into /upload. It used to be a client-side
+  //     <Navigate>, i.e. a 200 shell that only moved once JavaScript ran.
+  out.push({ source: "/how-to-prepare", destination: "/upload", permanent: true });
 
   // 1. Articles next, so a legacy ?lng= URL on an article reaches its real
   //    language in ONE hop instead of bouncing through the locale redirect.
@@ -142,10 +178,20 @@ export function buildRewrites() {
   ];
   // One group PER LOCALE, listing only that locale's own slugs. A shared
   // "(ca|es)" group would make /es/dcf-calculator a 200 again.
+  //
+  // Each slug matches EXACTLY. The old `/:seg(...)/:rest*` tail answered 200
+  // with the shell for any path under any page (/taxes/foo, /explore/a/b/c):
+  // a soft 404 carrying the home page's title. Only the two sections that
+  // really have children get child rules, one segment deep each:
+  //   /explore/:ticker          any symbol resolves through the live API
+  //   /explore/compare/:pair    any two symbols
+  //   /research/:slug           an article published in Notion since the deploy
   for (const l of LOCALES) {
     const p = PREFIX[l];
     rules.push({ source: `${p}/:seg(${group(l)})`, destination: "/app.html" });
-    rules.push({ source: `${p}/:seg(${group(l)})/:rest*`, destination: "/app.html" });
+    rules.push({ source: `${p}/explore/:ticker`, destination: "/app.html" });
+    rules.push({ source: `${p}/explore/compare/:pair`, destination: "/app.html" });
+    rules.push({ source: `${p}/research/:slug`, destination: "/app.html" });
   }
   rules.push({ source: `/:seg(${APP.join("|")})`, destination: "/app.html" });
   rules.push({ source: `/:seg(${APP.join("|")})/:rest*`, destination: "/app.html" });
@@ -167,6 +213,27 @@ export function buildRewrites() {
 const PRIVATE = ["auth", "dashboard", "upload", "account", "debug", "verify"];
 
 const NOINDEX = { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" };
+
+/**
+ * For the open-ended routes. /explore/:ticker and /explore/compare/:pair
+ * resolve ANY symbol, and only the curated ones (tickers.json,
+ * compare-pairs.json) are prerendered and indexable. Everything else is served
+ * by the SPA shell, and the "noindex" the app sets for it only exists once
+ * JavaScript has run: the HTML Google fetches first is a 200 with the home
+ * page's title and no canonical — a duplicate of the home page for every
+ * symbol anyone ever typed or linked (/explore/AAPL in capitals, a reversed
+ * pair, a delisted ticker). The header says the same thing the app does, but
+ * in the response itself. Links stay followable: these pages point at real ones.
+ */
+const NOINDEX_FOLLOW = { key: "X-Robots-Tag", value: "noindex" };
+
+/**
+ * "Any single segment except these". The lookahead is anchored on the segment
+ * (`$` ends the path, the class cannot cross a slash), so a curated page can
+ * never match — whether or not its prerender succeeded.
+ */
+const anythingBut = (name, literals) =>
+  `:${name}((?!(?:${literals.map(reEsc).join("|")})$)[^/]+)`;
 
 export function buildHeaders() {
   const out = [
@@ -193,6 +260,22 @@ export function buildHeaders() {
   for (const p of PRIVATE) {
     out.push({ source: `/${p}`, headers: [NOINDEX] });
     out.push({ source: `/${p}/:path*`, headers: [NOINDEX] });
+  }
+  // Route matching is case-sensitive, so /explore/AAPL is "not curated" here
+  // and gets the header too; the app redirects it to the lower-case page.
+  const tickers = TICKER_DATA.map((t) => t.symbol.toLowerCase());
+  const pairs = PAIR_DATA.map((p) => `${p.a.toLowerCase()}-vs-${p.b.toLowerCase()}`);
+  for (const l of LOCALES) {
+    const p = PREFIX[l];
+    out.push({
+      // "compare" is the hub, a page of its own — not a ticker.
+      source: `${p}/explore/${anythingBut("ticker", [...tickers, "compare"])}`,
+      headers: [NOINDEX_FOLLOW],
+    });
+    out.push({
+      source: `${p}/explore/compare/${anythingBut("pair", pairs)}`,
+      headers: [NOINDEX_FOLLOW],
+    });
   }
   return out;
 }
