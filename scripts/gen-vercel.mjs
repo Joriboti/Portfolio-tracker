@@ -37,13 +37,6 @@ const SHARED = ["explore", "research", "forecast", "taxes", "radiografia", "disc
 /** English-only landings (no ca/es equivalent — those locales must 404). */
 const EN_ONLY = ["etf-growth-calculator", "portfolio-tracker"];
 
-/**
- * Shared slugs that have pages underneath them. Everything else is a leaf: a
- * path below it (/taxes/anything, /dcf-calculator/x) is not a page and must 404
- * rather than answer 200 with the shell.
- */
-const WITH_CHILDREN = ["explore", "research"];
-
 /** The authenticated app + auth flow: deliberately language-neutral. */
 const APP = ["dashboard", "upload", "account", "auth", "debug", "verify"];
 
