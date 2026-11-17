@@ -11,7 +11,7 @@
 
 import http from "node:http";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
@@ -91,6 +91,31 @@ const ROUTES = ONLY.length
 // and footer logos are role="img" too but never live in one.
 const CHARTS_PAINTED = () =>
   document.querySelectorAll('.card svg[role="img"]').length >= 5;
+
+// Catalan and Spanish are separate chunks, fetched by src/lib/i18n.ts once the
+// entry bundle has run — one round trip later than everything the HTML itself
+// names. A modulepreload in the snapshot lets the browser fetch the page's
+// language alongside the entry bundle instead of after it. English is inside
+// the entry bundle and needs nothing.
+const LOCALE_CHUNK = (() => {
+  const out = {};
+  const dir = path.join(DIST, "assets");
+  if (!existsSync(dir)) return out;
+  for (const f of readdirSync(dir)) {
+    const m = /^(ca|es)-[A-Za-z0-9_-]{8}\.js$/.exec(f);
+    if (m) out[m[1]] = `/assets/${f}`;
+  }
+  return out;
+})();
+
+function withLocalePreload(html, lng) {
+  const href = LOCALE_CHUNK[lng];
+  if (!href || html.includes(href)) return html;
+  return html.replace(
+    "</head>",
+    `<link rel="modulepreload" crossorigin href="${href}"></head>`,
+  );
+}
 
 const ACCEPT_LANGUAGE = {
   ca: "ca-ES,ca;q=0.9",
@@ -330,8 +355,9 @@ async function snapshot(browser, route, lng, opts = {}) {
     }
     await new Promise((r) => setTimeout(r, 300));
 
-    const html = await page.evaluate(
-      () => "<!DOCTYPE html>\n" + document.documentElement.outerHTML,
+    const html = withLocalePreload(
+      await page.evaluate(() => "<!DOCTYPE html>\n" + document.documentElement.outerHTML),
+      lng,
     );
     const outFile = path.join(
       route === "/" ? DIST : path.join(DIST, route),

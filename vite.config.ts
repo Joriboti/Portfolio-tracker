@@ -34,10 +34,11 @@ export default defineConfig({
         // circular chunks. The auth SDK is the big one — it carries zod — and
         // it changes far less often than the app, so it caches on its own.
         manualChunks(id: string) {
-          if (!id.includes("node_modules")) {
-            if (id.includes("/src/locales/")) return "locales";
-            return undefined;
-          }
+          // Locales are deliberately NOT grouped: en.json is imported
+          // statically and lands in the entry chunk, ca/es are dynamic imports
+          // and become one chunk each (see src/lib/i18n.ts). A "locales" group
+          // here is what used to ship all three languages to every visitor.
+          if (!id.includes("node_modules")) return undefined;
           // @neondatabase is deliberately NOT forced into one chunk: Rollup
           // splits its auth CLIENT (read wherever a session is needed) from its
           // auth UI (only /auth and /account) on its own, and grouping them
