@@ -1,10 +1,38 @@
 import { useEffect, useMemo, useState } from "react";
 import { aggregatePositions, type Transaction } from "@/lib/excel-parser";
-import { getPortfolio } from "@/lib/api";
+import { getLastAuth, getPortfolio, type AuthReport } from "@/lib/api";
 import { AuthGuard } from "@/components/AuthGuard";
 import { useUser } from "@/hooks/useUser";
 
 type DashboardData = Awaited<ReturnType<typeof getPortfolio>>;
+
+// Rollout check for the verified-login change (api/_auth.ts). The API now
+// identifies the caller from the signed session token, but for one deploy it
+// still falls back to the old unverified header so nothing can break. This box
+// says which of the two the server just used for THIS session — the evidence
+// needed before the fallback is removed. It goes away with the fallback.
+function AuthCheck({ auth }: { auth: AuthReport | null }) {
+  const verified = auth?.via === "jwt";
+  const tone = verified
+    ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+    : "border-amber-300 bg-amber-50 text-amber-900";
+  return (
+    <div className={`card text-sm ${tone}`} data-auth-via={auth?.via ?? "none"}>
+      <p className="text-base font-semibold">
+        {verified ? "SECURE LOGIN: VERIFIED ✓" : "SECURE LOGIN: NOT VERIFIED ✗"}
+      </p>
+      <p className="mt-1">
+        {verified
+          ? "The server checked your session signature. Safe to switch off the old method."
+          : "The server fell back to the old method. Do not switch it off yet."}
+      </p>
+      <p className="mt-2 font-mono text-xs break-words">
+        via: {auth?.via ?? "(no header)"} · token sent: {auth ? String(auth.tokenSent) : "?"}
+        {auth?.jwtError ? ` · reason: ${auth.jwtError}` : ""}
+      </p>
+    </div>
+  );
+}
 
 function DebugInner() {
   const { user } = useUser();
@@ -12,6 +40,7 @@ function DebugInner() {
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [auth, setAuth] = useState<AuthReport | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -19,7 +48,11 @@ function DebugInner() {
     getPortfolio(user.id)
       .then(setData)
       .catch((e) => setError((e as Error).message))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        // How the server identified the call that just completed.
+        setAuth(getLastAuth());
+        setLoading(false);
+      });
   }, [user]);
 
   const grouped = useMemo(() => {
@@ -43,7 +76,8 @@ function DebugInner() {
   }
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
+      <div className="mx-auto max-w-3xl px-4 py-10 space-y-4">
+        <AuthCheck auth={auth} />
         <div className="card border-rose-200 bg-rose-50 text-rose-900 text-sm whitespace-pre-wrap">
           {error}
         </div>
@@ -60,6 +94,7 @@ function DebugInner() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
+      <AuthCheck auth={auth} />
       <header>
         <h1 className="text-2xl font-semibold text-slate-900">Debug</h1>
         <p className="mt-1 text-sm text-slate-600">

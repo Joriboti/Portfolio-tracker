@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { authenticate } from "./_auth.js";
 
 // Value-based annual return of the portfolio.
 //
@@ -164,13 +165,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const rawHeader = req.headers["x-user-id"];
-    const userIdRaw = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
-    const userId = userIdRaw?.trim();
-    if (!userId) {
-      res.status(401).end(JSON.stringify({ error: "Missing x-user-id" }));
-      return;
-    }
+    const userId = await authenticate(req, res);
+    if (!userId) return;
 
     const dbUrl = process.env.DATABASE_URL;
     if (!dbUrl) {

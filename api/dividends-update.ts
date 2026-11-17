@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { authenticateCronOrUser } from "./_auth.js";
 import { storageKey, symbolPairs } from "./_ticker-resolve.js";
 
 export const config = { maxDuration: 60 };
@@ -29,14 +30,8 @@ export default async function handler(
   try {
     res.setHeader("Content-Type", "application/json");
 
-    const cronSecret = process.env.CRON_SECRET;
-    const authz = req.headers.authorization ?? "";
-    const cronOk = !cronSecret || authz === `Bearer ${cronSecret}`;
-    const userId = req.headers["x-user-id"];
-    if (!cronOk && !userId) {
-      res.status(401).end(JSON.stringify({ error: "Unauthorized" }));
-      return;
-    }
+    const caller = await authenticateCronOrUser(req, res);
+    if (!caller) return;
 
     const dbUrl = process.env.DATABASE_URL;
     if (!dbUrl) {

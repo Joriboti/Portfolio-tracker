@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { authenticate } from "./_auth.js";
 import { CODE_RE } from "./_snapshot-core.js";
 
 // Everything the verified-portfolio feature needs, behind one route.
@@ -18,12 +19,6 @@ import { CODE_RE } from "./_snapshot-core.js";
 
 /** Ceiling on cards issued per account per day. */
 const DAILY_LIMIT = 50;
-
-function userIdOf(req: VercelRequest): string | null {
-  const raw = req.headers["x-user-id"];
-  const value = (Array.isArray(raw) ? raw[0] : raw)?.trim();
-  return value && value.length > 0 && value.length <= 128 ? value : null;
-}
 
 function requireDb(res: VercelResponse): string | null {
   const dbUrl = process.env.DATABASE_URL;
@@ -414,11 +409,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await handleRead(res, code);
         return;
       }
-      const userId = userIdOf(req);
-      if (!userId) {
-        res.status(401).end(JSON.stringify({ error: "Missing x-user-id header" }));
-        return;
-      }
+      const userId = await authenticate(req, res);
+      if (!userId) return;
       res.setHeader("Cache-Control", "no-store");
       await handleList(res, userId);
       return;
@@ -432,11 +424,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Every write, and every read of somebody's holdings, is per-request.
     res.setHeader("Cache-Control", "no-store");
 
-    const userId = userIdOf(req);
-    if (!userId) {
-      res.status(401).end(JSON.stringify({ error: "Missing x-user-id header" }));
-      return;
-    }
+    const userId = await authenticate(req, res);
+    if (!userId) return;
 
     const rawAction = req.query.action;
     const action = (Array.isArray(rawAction) ? rawAction[0] : rawAction) ?? "create";
