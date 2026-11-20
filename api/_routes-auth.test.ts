@@ -100,7 +100,6 @@ beforeEach(() => {
   process.env.DATABASE_URL = "postgres://nobody:nothing@127.0.0.1:1/none";
   process.env.NEON_AUTH_URL = "https://auth.example.test";
   process.env.CRON_SECRET = "s3cr3t-cron-value";
-  delete process.env.AUTH_MODE;
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => {

@@ -15,15 +15,12 @@ export type PriceQuote = {
 // key set. It replaces an `x-user-id` header that no route verified — the id
 // was whatever the caller typed.
 //
-// COMPAT ROLLOUT: for one deploy the old header is still sent alongside, and
-// the server falls back to it when the JWT is missing or unusable. That keeps a
-// misconfigured rollout from signing everybody out; `lastAuth` records which
-// path the server actually used so /debug can show it. Once a real session is
-// seen arriving as "jwt", the header goes and the server stops accepting it.
+// The old header is no longer sent and the server no longer accepts it.
+// `lastAuth` records how the server identified the latest call, for /debug.
 
 /** How the server identified the most recent authenticated call. */
 export type AuthReport = {
-  /** "jwt" = verified session; "legacy" = fell back to the unverified header. */
+  /** "jwt" = verified session. */
   via: string | null;
   /** Why the JWT was not used, when it was not. */
   jwtError: string | null;
@@ -39,9 +36,9 @@ export function getLastAuth(): AuthReport | null {
 const TOKEN_TIMEOUT_MS = 5000;
 
 /**
- * The session JWT, or null. Never throws and never hangs: during the compat
- * rollout a call must still go out (on the old header) if the auth client is
- * slow or broken, rather than freeze the dashboard waiting for a token.
+ * The session JWT, or null. Never throws and never hangs: if the auth client is
+ * slow or broken the call still goes out and comes back as a readable 401,
+ * rather than freezing the dashboard waiting for a token.
  */
 async function sessionToken(): Promise<string | null> {
   try {
@@ -59,16 +56,24 @@ async function jsonFetch<T>(
   init: RequestInit & { userId?: string } = {},
 ): Promise<T> {
   const { userId, headers, ...rest } = init;
-  const token = userId ? await sessionToken() : null;
-  const res = await fetch(url, {
-    ...rest,
-    headers: {
-      "Content-Type": "application/json",
-      ...(userId ? { "x-user-id": userId } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(headers ?? {}),
-    },
-  });
+  let token: string | null = null;
+  const send = async () => {
+    token = userId ? await sessionToken() : null;
+    return fetch(url, {
+      ...rest,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(headers ?? {}),
+      },
+    });
+  };
+  let res = await send();
+  // One retry on 401: the JWT lives ~15 minutes, so a tab left open long enough
+  // presents an expired one. getAuthToken() reads through the session cache,
+  // so by now it has rotated; retrying once turns a spurious "signed out" into
+  // an invisible refresh, while a genuinely rejected token still surfaces.
+  if (res.status === 401 && userId) res = await send();
   if (userId) {
     lastAuth = {
       via: res.headers.get("x-auth-via"),

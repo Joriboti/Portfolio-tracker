@@ -48,7 +48,6 @@ beforeEach(async () => {
   };
 
   process.env.NEON_AUTH_URL = BASE;
-  delete process.env.AUTH_MODE;
   delete process.env.CRON_SECRET;
   delete process.env.VITE_NEON_AUTH_URL;
   delete process.env.NEON_AUTH_ISSUER;
@@ -421,91 +420,7 @@ describe("authenticate", () => {
 // every response must say which path identified the caller.
 // ---------------------------------------------------------------------------
 
-describe("compat mode (first deploy)", () => {
-  it("prefers the JWT and ignores an x-user-id sent alongside it", async () => {
-    const { authenticate } = await importAuth();
-    const token = await mint({ sub: "user_real" });
-    const { res, out } = fakeRes();
-    const id = await authenticate(
-      req({ authorization: `Bearer ${token}`, "x-user-id": "user_victim" }),
-      res,
-    );
-    // The whole point: a signed-in caller cannot act as somebody else.
-    expect(id).toBe("user_real");
-    expect(out.headers["x-auth-via"]).toBe("jwt");
-    expect(out.status).toBeNull();
-  });
-
-  it("still accepts the old header when there is no token, and says so", async () => {
-    const { authenticate } = await importAuth();
-    const { res, out } = fakeRes();
-    const id = await authenticate(req({ "x-user-id": "user_abc" }), res);
-    expect(id).toBe("user_abc");
-    expect(out.headers["x-auth-via"]).toBe("legacy");
-    expect(out.headers["x-auth-jwt-error"]).toMatch(/^401 Missing Authorization/);
-    expect(out.status).toBeNull();
-  });
-
-  it("falls back to the old header when the JWT is unusable, naming why", async () => {
-    // This is the case that keeps a broken rollout from locking anyone out —
-    // and the header is how we find out it was broken.
-    const { authenticate } = await importAuth();
-    const forged = await mint({ sub: "user_abc" }, { key: otherPrivateKey });
-    const { res, out } = fakeRes();
-    const id = await authenticate(
-      req({ authorization: `Bearer ${forged}`, "x-user-id": "user_abc" }),
-      res,
-    );
-    expect(id).toBe("user_abc");
-    expect(out.headers["x-auth-via"]).toBe("legacy");
-    expect(out.headers["x-auth-jwt-error"]).toMatch(/^401 Invalid session token/);
-  });
-
-  it("reports an unreachable key set as the reason, not as a bad login", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => new Response("not found", { status: 404 })),
-    );
-    const { authenticate } = await importAuth();
-    const token = await mint({ sub: "user_abc" });
-    const { res, out } = fakeRes();
-    const id = await authenticate(
-      req({ authorization: `Bearer ${token}`, "x-user-id": "user_abc" }),
-      res,
-    );
-    expect(id).toBe("user_abc");
-    expect(out.headers["x-auth-jwt-error"]).toMatch(/^503 /);
-  });
-
-  it("answers 401 when there is neither a token nor a header", async () => {
-    const { authenticate } = await importAuth();
-    const { res, out } = fakeRes();
-    expect(await authenticate(req({}), res)).toBeNull();
-    expect(out.status).toBe(401);
-    expect(out.headers["x-auth-via"]).toBeUndefined();
-  });
-
-  it("ignores an empty or oversized x-user-id", async () => {
-    const { authenticate } = await importAuth();
-    for (const bad of ["", "   ", "x".repeat(129)]) {
-      const { res, out } = fakeRes();
-      expect(await authenticate(req({ "x-user-id": bad }), res)).toBeNull();
-      expect(out.status).toBe(401);
-    }
-  });
-
-  it("keeps the header value a single line of plain text", async () => {
-    const { authenticate } = await importAuth();
-    const { res, out } = fakeRes();
-    await authenticate(req({ authorization: "Bearer not\u00e9-a-jwt", "x-user-id": "u" }), res);
-    expect(out.headers["x-auth-jwt-error"]).toMatch(/^[\x20-\x7e]+$/);
-  });
-});
-
-describe("enforce mode (AUTH_MODE=enforce)", () => {
-  beforeEach(() => {
-    process.env.AUTH_MODE = "enforce";
-  });
+describe("authenticate ignores x-user-id entirely", () => {
 
   it("REJECTS a bare x-user-id header — the vulnerability, closed", async () => {
     const { authenticate } = await importAuth();
@@ -579,12 +494,34 @@ describe("cron-or-user routes", () => {
     }
   });
 
-  it("in enforce mode a bare x-user-id cannot start a job", async () => {
+  it("a bare x-user-id cannot start a job", async () => {
     process.env.CRON_SECRET = SECRET;
-    process.env.AUTH_MODE = "enforce";
     const { authenticateCronOrUser } = await importAuth();
     const { res, out } = fakeRes();
     expect(await authenticateCronOrUser(req({ "x-user-id": "anyone" }), res)).toBeNull();
     expect(out.status).toBe(401);
+  });
+});
+
+describe("a signed-in caller cannot act as somebody else", () => {
+  it("uses the token's subject and ignores an x-user-id sent alongside it", async () => {
+    const { authenticate } = await importAuth();
+    const token = await mint({ sub: "user_real" });
+    const { res, out } = fakeRes();
+    const id = await authenticate(
+      req({ authorization: `Bearer ${token}`, "x-user-id": "user_victim" }),
+      res,
+    );
+    expect(id).toBe("user_real");
+    expect(out.status).toBeNull();
+  });
+
+  it("no longer reports a legacy path", async () => {
+    const { authenticate } = await importAuth();
+    const { res, out } = fakeRes();
+    expect(await authenticate(req({ "x-user-id": "user_abc" }), res)).toBeNull();
+    expect(out.status).toBe(401);
+    expect(out.headers["x-auth-via"]).toBeUndefined();
+    expect(out.headers["x-auth-jwt-error"]).toBeUndefined();
   });
 });
