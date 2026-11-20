@@ -12,18 +12,12 @@
 // their name, and any id at all was enough to trigger the price and backfill
 // jobs. Confirmed on production on 2026-11-17 with a made-up id.
 //
-// ── Rollout: two deploys, on purpose ─────────────────────────────────────────
-// This layer cannot be exercised against the real Neon Auth server from a
-// laptop, and getting it wrong signs every user out of their own dashboard. So:
-//
-//   1. COMPAT (this deploy). The app sends the session JWT *and* the old
-//      header. A valid JWT wins; without one the old header is still accepted,
-//      so nothing can break. Every response says which path identified the
-//      caller (`X-Auth-Via: jwt | legacy`), and /debug shows it.
-//   2. ENFORCE. Once a real signed-in session has been seen to arrive as
-//      `jwt`, the legacy branch is deleted and the hole is closed.
-//
-// `AUTH_MODE=enforce` in the environment switches early without a deploy.
+// ── Rollout ──────────────────────────────────────────────────────────────────
+// Shipped in two steps. The first deploy still accepted the old header as a
+// fallback and reported which path identified each caller (`X-Auth-Via`, shown
+// on /debug). Once a real signed-in session was seen arriving as `jwt`
+// (2026-11-20), the fallback was deleted: a request without a valid session
+// token is now a 401, whatever headers it carries.
 //
 // ── Why a JWT and not the session cookie ──────────────────────────────────────
 // The obvious designs both fail here:
@@ -211,10 +205,10 @@ function asAuthError(e: unknown): AuthError {
   }
 }
 
-// ── Compat rollout ───────────────────────────────────────────────────────────
+// ── Route guards ─────────────────────────────────────────────────────────────
 
 /** How the caller was identified. Sent back as `X-Auth-Via`. */
-export type AuthVia = "jwt" | "legacy" | "cron";
+export type AuthVia = "jwt" | "cron";
 
 /** The slice of VercelResponse this module touches (keeps the tests honest). */
 type Res = {
@@ -223,33 +217,11 @@ type Res = {
 };
 
 /**
- * Whether the unverified `x-user-id` header is still accepted. True during the
- * compat deploy; `AUTH_MODE=enforce` turns it off without a redeploy. The
- * follow-up change deletes this function and everything that calls it.
- */
-function legacyHeaderAccepted(): boolean {
-  return (process.env.AUTH_MODE ?? "compat").trim().toLowerCase() !== "enforce";
-}
-
-function legacyUserId(req: VercelRequest): string | null {
-  const raw = req.headers["x-user-id"];
-  const value = (Array.isArray(raw) ? raw[0] : raw)?.trim();
-  return value && value.length > 0 && value.length <= 128 ? value : null;
-}
-
-// Header values must be a single line of plain text.
-const headerSafe = (v: string) => v.replace(/[^\x20-\x7e]/g, " ").slice(0, 200);
-
-/**
- * Route-level wrapper: returns the caller's user id, or null having ALREADY
+ * Route-level wrapper: returns the verified user id, or null having ALREADY
  * written the error response. Callers just `if (!userId) return;`.
  *
- * A verified JWT always wins — its subject is used and any `x-user-id` sent
- * alongside is ignored, so a signed-in caller can never act as somebody else.
- * Only when there is no usable JWT does compat mode fall back to the header,
- * and it says so: `X-Auth-Via: legacy`, plus the reason the JWT was not usable
- * in `X-Auth-Jwt-Error`. That header is what tells us, from a real session,
- * whether enforcing is safe.
+ * Only a valid session JWT identifies a caller. An `x-user-id` header, the
+ * unverified identity every route used to trust, is ignored.
  *
  * The failure reason is passed through to the body verbatim on purpose. None of
  * these messages reveal anything an attacker doesn't already know (they hold
@@ -258,26 +230,15 @@ const headerSafe = (v: string) => v.replace(/[^\x20-\x7e]/g, " ").slice(0, 200);
  * difference between a two-minute fix and being locked out of your own app.
  */
 export async function authenticate(req: VercelRequest, res: Res): Promise<string | null> {
-  let failure: AuthError;
   try {
     const userId = await requireUserId(req);
     res.setHeader("X-Auth-Via", "jwt" satisfies AuthVia);
     return userId;
   } catch (e) {
-    failure = e instanceof AuthError ? e : new AuthError(401, "Unauthorized");
+    const err = e instanceof AuthError ? e : new AuthError(401, "Unauthorized");
+    res.status(err.status).end(JSON.stringify({ error: err.message }));
+    return null;
   }
-
-  if (legacyHeaderAccepted()) {
-    const legacy = legacyUserId(req);
-    if (legacy) {
-      res.setHeader("X-Auth-Via", "legacy" satisfies AuthVia);
-      res.setHeader("X-Auth-Jwt-Error", headerSafe(`${failure.status} ${failure.message}`));
-      return legacy;
-    }
-  }
-
-  res.status(failure.status).end(JSON.stringify({ error: failure.message }));
-  return null;
 }
 
 /** Who a cron-or-user route is running for. */
